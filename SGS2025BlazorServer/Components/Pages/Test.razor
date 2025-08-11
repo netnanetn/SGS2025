@@ -1,0 +1,353 @@
+﻿@page "/test"
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+@using System.Globalization
+
+<button type="button" class="btn btn-primary w-100" @onclick="CanLan1"> Cân</button>
+<div class="container-fluid">
+   
+  
+    <div class="row">
+        <!-- Cột trái: Camera -->
+        <div class="col-2" style="padding: unset">
+            <div style="    background-color: #558bef;
+                            text-align: center;
+                            border-radius: 0px;
+                            border-right: 1px solid white;
+                            color: white;
+                            font-size: 12px;
+                            padding: 5px;">
+                CAMERA
+            </div>
+            <div class="d-flex flex-column align-items-center py-3 gap-3">
+                <img src="/images/scale.jpg" class="img-fluid" />
+                <img src="/images/scale.jpg" class="img-fluid" />
+                <img src="/images/scale.jpg" class="img-fluid" />
+                <img src="/images/scale.jpg" class="img-fluid" />
+            </div>
+        </div>
+
+        <!-- Cột phải: Thông tin phiếu cân và khối lượng cân -->
+        <div class="col-10">
+            <div class="row" >
+                <!-- Thông tin phiếu cân -->
+                <div class="col-5 parent" style=" padding-left: unset; height: auto">
+                    <div style="    background-color: #558bef;
+                            text-align: center;
+                            border-radius: 0px;
+                            color: white;
+                            font-size: 12px;
+                            padding: 5px;">
+                        THÔNG TIN PHIẾU CÂN
+                    </div>
+                    <div style="padding: 15px">
+                        <div class="row">
+                            <!-- Cột trái: Thông tin -->
+                            <div class="col-md-8">
+                                <div class="mb-2 d-flex align-items-center">
+                                    <label for="sophieu" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Số phiếu</label>
+                                    <input @bind="scaleData.SoPhieu" type="text" id="sophieu" class="form-control form-control-sm" style="margin-left: 15px;" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                        <i class="bi bi-lightning-charge"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-2 d-flex align-items-center">
+                                    <label for="bienso" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Biển số</label>
+                                    <input type="text" id="bienso" class="form-control form-control-sm" value="37K55055" style="margin-left: 15px;" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                        <i class="bi bi-repeat"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Cột phải: Ảnh biển số -->
+                            <div class="col-md-4 d-flex align-items-start justify-content-start gap-2">
+                                <img src="/images/bs2.png" class="img-thumbnail" style="max-width: 100px;" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Cột trái: Thông tin -->
+                            <div class="col-md-12">
+                                <div class="mb-1 d-flex align-items-center">
+                                    <label for="khachhang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Khách hàng</label>
+                                    <input type="text" id="khachhang" class="form-control form-control-sm-custom" value="2390" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                        <i class="bi bi-person-badge"></i>
+                                    </button>
+                                </div>
+
+                                <div class="mb-1 d-flex align-items-center">
+                                    <label for="loaihang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Loại hàng</label>
+                                    <input type="text" id="loaihang" class="form-control form-control-sm-custom" value="37K55055" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                        <i class="bi bi-stack"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-1 d-flex align-items-center">
+                                    <label for="kieucan" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Kiểu cân</label>
+                                    <input type="text" id="kieucan" class="form-control form-control-sm-custom" value="2390" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                        <i class="bi bi-tags"></i>
+                                    </button>
+                                </div>
+
+                                <div class="mb-1 d-flex align-items-center">
+                                    <label for="tenlaixe" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Tên lái xe</label>
+                                    <input type="text" id="tenlaixe" class="form-control form-control-sm-custom" value="37K55055" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px; opacity: 0;">
+                                        <i class="bi bi-dice-1"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-1 d-flex align-items-center">
+                                    <label for="ghichu" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Ghi chú</label>
+                                    <input type="text" id="ghichu" class="form-control form-control-sm-custom" value="Ghi chú" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px; opacity: 0;">
+                                        <i class="bi bi-fire"></i>
+                                    </button>
+                                </div>
+
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="bottom-fixed border-top pt-3 px-3">
+                        <div class="row g-2" style="height: 120px">
+                            <!-- g-2: khoảng cách giữa các ô -->
+                            <div class="col-4">
+                                <button class="btn btn-warning w-100"><i class="bi bi-plus-square"></i> Thêm mới</button>
+                            </div>
+                            <div class="col-4">
+                                <button type="button" class="btn btn-primary w-100" @onclick="CanLan1"> <i class="bi bi-box-arrow-in-left"></i> Cân lần 1</button>
+                            </div>
+
+                            <div class="col-4">
+                                <button class="btn btn-success w-100"><i class="bi bi-printer-fill"></i> In Phiếu</button>
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-danger w-100"><i class="bi bi-save"></i> Lưu phiếu</button>
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-secondary w-100"><i class="bi bi-box-arrow-right"></i> Cân lần 2</button>
+                            </div>
+
+                            <div class="col-4">
+                                <button class="btn btn-dark w-100"><i class="bi bi-repeat"></i> Quay lại</button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <!-- Ô khối lượng cân -->
+                <div class="col-7" style="padding: unset">
+                    <div class="row" style="padding: unset">
+                        <div class="col-8"  style="padding: unset">
+                            <div class="digital-display">
+                                256800
+                            </div>
+                        </div>
+                        <div class="col-4" style="padding: unset">
+                            <div style="    background-color: #558bef;
+                            text-align: center;
+                            border-radius: 0px;
+                            color: white;
+
+                            font-size: 12px;
+                            padding: 5px;">
+                                THỐNG KÊ
+                            </div>
+
+                            <table class="table table-sm   text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Trong ngày</th>
+                                        <th>Chờ cân lần 2</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            Cân lần 1: <strong>11</strong><br />
+                                            Cân lần 2: <strong>2</strong>
+                                        </td>
+                                        <td>
+                                            <strong>49</strong> chuyến
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row" style="padding: unset">
+                        <div class="col-4 parent" style=" padding: unset; height: auto">
+                            <div>
+                                <table class="digital-table">
+                                    <tr>
+                                        <td class="digital-label">KL cân lần 1</td>
+                                        <td>1200 kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="digital-label">KL cân lần 2</td>
+                                        <td>0 kg</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="digital-label">KL hàng</td>
+                                        <td>0 kg</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="bottom-fixed border-top" style="    padding-top: 19px;">
+                                <!-- 2 checkbox trên cùng dòng -->
+                                <div class="d-flex gap-4 align-items-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkboxcanlan2">
+                                        <label class="form-check-label" for="checkboxcanlan2" style="font-size: small;">Xe chờ cân lần 2</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkboxxedacan">
+                                        <label class="form-check-label" for="checkboxxedacan" style="font-size: small;">Xe đã cân</label>
+                                    </div>
+                                </div>
+
+                                <!-- Combobox kiểu cân -->
+                                <div class="mb-3 d-flex align-items-center">
+                                    <label for="dropdownkieucan" class="form-label me-2 mb-0" style="min-width: 80px; font-size: small;">Kiểu cân</label>
+                                    <select id="dropdownkieucan" class="form-select" style="font-size: small;">
+                                        <option>Tất cả</option>
+                                        <option>Nhập hàng</option>
+                                        <option>Xuất hàng</option>
+                                        <option>Dịch vụ</option>
+                                    </select>
+                                </div>
+
+                                <!-- Datetime + nút tìm kiếm -->
+                                <div class="d-flex gap-3 align-items-end">
+                                    <div>
+                                        <input type="date" id="ngaycanfilter" style="font-size: small;" class="form-control" @bind="ngayCan" />
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-primary " style="font-size: small;">Tìm kiếm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-8 border p-3 d-flex flex-wrap justify-content-between" style="gap: 10px;">
+                            <img src="/images/scale.jpg" class="img-fluid img-quad" />
+                            <img src="/images/scale.jpg" class="img-fluid img-quad" />
+                            <img src="/images/scale.jpg" class="img-fluid img-quad" />
+                            <img src="/images/scale.jpg" class="img-fluid img-quad" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng dữ liệu cân -->
+            <div class="row mt-3">
+                <div class="col-12 p-3" style="margin-left: 15px">
+                    <h6>Bảng dữ liệu cân</h6>
+                    <table class="table table-bordered table-striped table-sm">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Số phiếu</th>
+                                <th>Ngày cân</th>
+                                <th>Biển số xe</th>
+                                <th>Khách hàng</th>
+                                <th>Hàng hóa</th>
+                                <th>Thời gian cân 1</th>
+                                <th>KL cân 1</th>
+                                <th>Thời gian cân 2</th>
+                                <th>KL cân 2</th>
+                                <th>KL hàng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in danhSachPhieu)
+                            {
+                                <tr>
+                                    <td>@p.SoPhieu</td>
+                                    <td>@p.NgayCan.ToString("dd/MM/yyyy")</td>
+                                    <td>@p.BienSoXe</td>
+                                    <td>@p.KhachHang</td>
+                                    <td>@p.HangHoa</td>
+                                    <td>@p.ThoiGianCan1.ToString(@"hh\:mm")</td>
+                                    <td>@FormatKL(p.KLCan1)</td>
+                                    <td>@p.ThoiGianCan2.ToString(@"hh\:mm")</td>
+                                    <td>@FormatKL(p.KLCan2)</td>
+                                    <td>@FormatKL(p.KhoiLuongHang)</td>
+                                    <td>@FormatCurrency(p.DonGia)</td>
+                                    <td>@FormatCurrency(p.ThanhTien)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    public class PhieuCanModel
+    {
+        public int SoPhieu { get; set; }
+        public DateTime NgayCan { get; set; }
+        public string BienSoXe { get; set; }
+        public string KhachHang { get; set; }
+        public string HangHoa { get; set; }
+        public TimeSpan ThoiGianCan1 { get; set; }
+        public double KLCan1 { get; set; }
+        public TimeSpan ThoiGianCan2 { get; set; }
+        public double KLCan2 { get; set; }
+        public double KhoiLuongHang => KLCan1 - KLCan2;
+        public decimal DonGia { get; set; }
+        public decimal ThanhTien => (decimal)KhoiLuongHang * DonGia;
+    }
+    private string Image1, Image2, Image3, Image4;
+    private Timer _timer;
+
+    private DateTime ngayCan = DateTime.Today;
+    private List<PhieuCanModel> danhSachPhieu = new();
+
+    private PhieuCanModel scaleData = new();
+    protected override void OnInitialized()
+    {
+        danhSachPhieu = new List<PhieuCanModel>
+    {
+        new() { SoPhieu = 2390, NgayCan = DateTime.Today, BienSoXe = "37H-55055", KhachHang = "Công ty ABC", HangHoa = "Đá 1x2", ThoiGianCan1 = new(8, 15, 0), KLCan1 = 18500, ThoiGianCan2 = new(8, 40, 0), KLCan2 = 10200, DonGia = 250000 },
+        new() { SoPhieu = 2391, NgayCan = DateTime.Today, BienSoXe = "37H-55056", KhachHang = "Công ty XYZ", HangHoa = "Than đá", ThoiGianCan1 = new(9, 00, 0), KLCan1 = 20000, ThoiGianCan2 = new(9, 25, 0), KLCan2 = 11000, DonGia = 300000 },
+        new() { SoPhieu = 2392, NgayCan = DateTime.Today, BienSoXe = "38C-12345", KhachHang = "Cty TNHH Hòa Bình", HangHoa = "Cát xây", ThoiGianCan1 = new(9, 30, 0), KLCan1 = 16000, ThoiGianCan2 = new(9, 50, 0), KLCan2 = 8500, DonGia = 180000 },
+        new() { SoPhieu = 2393, NgayCan = DateTime.Today, BienSoXe = "37H-33333", KhachHang = "CTCP Đầu tư A", HangHoa = "Xi măng", ThoiGianCan1 = new(10, 10, 0), KLCan1 = 22000, ThoiGianCan2 = new(10, 30, 0), KLCan2 = 12000, DonGia = 320000 },
+        new() { SoPhieu = 2394, NgayCan = DateTime.Today, BienSoXe = "36A-99999", KhachHang = "Công ty Trường An", HangHoa = "Đá 0x4", ThoiGianCan1 = new(10, 50, 0), KLCan1 = 17500, ThoiGianCan2 = new(11, 10, 0), KLCan2 = 9500, DonGia = 260000 },
+        new() { SoPhieu = 2395, NgayCan = DateTime.Today, BienSoXe = "29C-88888", KhachHang = "Công ty Lê Minh", HangHoa = "Đá mi", ThoiGianCan1 = new(11, 20, 0), KLCan1 = 14500, ThoiGianCan2 = new(11, 40, 0), KLCan2 = 7000, DonGia = 240000 },
+        new() { SoPhieu = 2396, NgayCan = DateTime.Today, BienSoXe = "30E-44444", KhachHang = "CT TNHH Hải Hà", HangHoa = "Cát vàng", ThoiGianCan1 = new(12, 00, 0), KLCan1 = 18000, ThoiGianCan2 = new(12, 20, 0), KLCan2 = 10500, DonGia = 200000 },
+        new() { SoPhieu = 2397, NgayCan = DateTime.Today, BienSoXe = "34D-56789", KhachHang = "Cty SX VLXD Minh Phát", HangHoa = "Sỏi", ThoiGianCan1 = new(12, 45, 0), KLCan1 = 19500, ThoiGianCan2 = new(13, 10, 0), KLCan2 = 9500, DonGia = 270000 },
+      //  new() { SoPhieu = 2398, NgayCan = DateTime.Today, BienSoXe = "33A-12321", KhachHang = "Công ty Nam Trung", HangHoa = "Gạch", ThoiGianCan1 = new(13, 30, 0), KLCan1 = 21000, ThoiGianCan2 = new(13, 55, 0), KLCan2 = 12000, DonGia = 310000 },
+      //  new() { SoPhieu = 2399, NgayCan = DateTime.Today, BienSoXe = "29H-55555", KhachHang = "Cty TMDV Thành Công", HangHoa = "Đá 1x2", ThoiGianCan1 = new(14, 15, 0), KLCan1 = 18500, ThoiGianCan2 = new(14, 35, 0), KLCan2 = 10000, DonGia = 250000 }
+    };
+    }
+    private async Task CanLan1()
+    {
+        var s = "";
+         await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+        // var response = await Http.PostAsJsonAsync("/api/phieu/luu", phieu);
+        // if (response.IsSuccessStatusCode)
+        // {
+        //     // Xử lý khi thành công
+        // }
+    }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+    private string FormatCurrency(decimal amount) =>
+        string.Format(CultureInfo.GetCultureInfo("vi-VN"), "{0:#,##0} đ", amount);
+
+    private string FormatKL(double kl) =>
+        string.Format("{0:#,##0} kg", kl);
+
+  
+}

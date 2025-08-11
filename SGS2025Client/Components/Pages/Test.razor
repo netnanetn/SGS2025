@@ -1,0 +1,57 @@
+﻿@page "/test"
+
+@using SGS2025Client.Services
+@inject HikvisionCameraService hikvisionCameraService
+
+<h3>Hikvision</h3>
+
+@if (!string.IsNullOrEmpty(Image1))
+{
+    <img src="@Image1" width="480" />
+}
+
+@if (!string.IsNullOrEmpty(Image2))
+{
+    <img src="@Image2" width="480" />
+}
+@if (!string.IsNullOrEmpty(Image3))
+{
+    <img src="@Image3" width="480" />
+}
+@if (!string.IsNullOrEmpty(Image4))
+{
+    <img src="@Image4" width="480" />
+}
+
+@code {
+    private string Image1, Image2, Image3, Image4;
+    private Timer _timer;
+
+    protected override void OnInitialized()
+    {
+        Task.Run(() =>
+        {
+            hikvisionCameraService.AddCamera("cam1", "192.168.1.107", 8002, "admin", "abcd@1234");
+            hikvisionCameraService.AddCamera("cam2", "192.168.1.107", 8002, "admin", "abcd@1234");
+            hikvisionCameraService.AddCamera("cam3", "192.168.1.107", 8002, "admin", "abcd@1234");
+            hikvisionCameraService.AddCamera("cam4", "192.168.1.107", 8002, "admin", "abcd@1234");
+        });
+
+        _timer = new Timer(UpdateImages, null, 1000, 100);
+    }
+
+    private void UpdateImages(object state)
+    {
+        Image1 = hikvisionCameraService.GetImage("cam1");
+        Image2 = hikvisionCameraService.GetImage("cam2");
+        Image3 = hikvisionCameraService.GetImage("cam3");
+        Image4 = hikvisionCameraService.GetImage("cam4");
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+        hikvisionCameraService.StopAll();
+    }
+}

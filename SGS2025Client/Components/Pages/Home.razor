@@ -1,0 +1,18 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+
+<h3>Trang Home</h3>
+
+<button class="btn btn-primary" @onclick="GoToTest">Đi đến trang Test</button>
+<button class="btn btn-primary" @onclick="Scale">Đi đến trang Scale</button>
+
+@code {
+    void GoToTest()
+    {
+        Navigation.NavigateTo("/test");
+    }
+    void Scale()
+    {
+        Navigation.NavigateTo("/scalewithimage");
+    }
+}
