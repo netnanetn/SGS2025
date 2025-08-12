@@ -2,8 +2,7 @@
 @inject IJSRuntime JS
 @rendermode InteractiveServer
 @using System.Globalization
-
-<button type="button" class="btn btn-primary w-100" @onclick="CanLan1"> Cân</button>
+ 
 <div class="container-fluid">
    
   
@@ -16,7 +15,7 @@
                             border-right: 1px solid white;
                             color: white;
                             font-size: 12px;
-                            padding: 5px;">
+                            padding: 5px;border-radius: 5px;">
                 CAMERA
             </div>
             <div class="d-flex flex-column align-items-center py-3 gap-3">
@@ -37,7 +36,7 @@
                             border-radius: 0px;
                             color: white;
                             font-size: 12px;
-                            padding: 5px;">
+                            padding: 5px;border-radius: 5px;">
                         THÔNG TIN PHIẾU CÂN
                     </div>
                     <div style="padding: 15px">
@@ -110,27 +109,27 @@
                         </div>
                     </div>
                     <div class="bottom-fixed border-top pt-3 px-3">
-                        <div class="row g-2" style="height: 120px">
+                        <div class="row g-2" style="height: 80px">
                             <!-- g-2: khoảng cách giữa các ô -->
                             <div class="col-4">
-                                <button class="btn btn-warning w-100"><i class="bi bi-plus-square"></i> Thêm mới</button>
+                                <button class="btn btn-sm btn-warning w-100"><i class="bi bi-plus-square"></i> Thêm mới</button>
                             </div>
                             <div class="col-4">
-                                <button type="button" class="btn btn-primary w-100" @onclick="CanLan1"> <i class="bi bi-box-arrow-in-left"></i> Cân lần 1</button>
-                            </div>
-
-                            <div class="col-4">
-                                <button class="btn btn-success w-100"><i class="bi bi-printer-fill"></i> In Phiếu</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-danger w-100"><i class="bi bi-save"></i> Lưu phiếu</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-secondary w-100"><i class="bi bi-box-arrow-right"></i> Cân lần 2</button>
+                                <button type="button" class="btn btn-sm btn-primary w-100" @onclick="CanLan1"> <i class="bi bi-box-arrow-in-left"></i> Cân lần 1</button>
                             </div>
 
                             <div class="col-4">
-                                <button class="btn btn-dark w-100"><i class="bi bi-repeat"></i> Quay lại</button>
+                                <button class="btn btn-sm btn-success w-100"><i class="bi bi-printer-fill"></i> In Phiếu</button>
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-sm btn-danger w-100"><i class="bi bi-save"></i> Lưu phiếu</button>
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-sm btn-secondary w-100"><i class="bi bi-box-arrow-right"></i> Cân lần 2</button>
+                            </div>
+
+                            <div class="col-4">
+                                <button class="btn btn-sm btn-dark w-100"><i class="bi bi-repeat"></i> Quay lại</button>
                             </div>
                         </div>
                     </div>
@@ -141,19 +140,19 @@
                 <!-- Ô khối lượng cân -->
                 <div class="col-7" style="padding: unset">
                     <div class="row" style="padding: unset">
-                        <div class="col-8"  style="padding: unset">
+                        <div class="col-6"  style="padding: 0px 10px">
                             <div class="digital-display">
                                 256800
                             </div>
                         </div>
-                        <div class="col-4" style="padding: unset">
+                        <div class="col-6" style="padding: unset">
                             <div style="    background-color: #558bef;
                             text-align: center;
                             border-radius: 0px;
                             color: white;
 
                             font-size: 12px;
-                            padding: 5px;">
+                            padding: 5px;border-radius: 5px;">
                                 THỐNG KÊ
                             </div>
 
@@ -179,20 +178,20 @@
                         </div>
                     </div>
                     <div class="row" style="padding: unset">
-                        <div class="col-4 parent" style=" padding: unset; height: auto">
+                        <div class="col-6 parent" style=" padding: 10px; height: auto">
                             <div>
                                 <table class="digital-table">
                                     <tr>
-                                        <td class="digital-label">KL cân lần 1</td>
-                                        <td>1200 kg</td>
+                                        <td class="digital-label" style="border-top-left-radius: 10px;">KL cân lần 1</td>
+                                        <td style="border-top-right-radius: 10px;">1200 kg</td>
                                     </tr>
                                     <tr>
                                         <td class="digital-label">KL cân lần 2</td>
                                         <td>0 kg</td>
                                     </tr>
                                     <tr>
-                                        <td class="digital-label">KL hàng</td>
-                                        <td>0 kg</td>
+                                        <td class="digital-label" style="border-bottom-left-radius: 10px;">KL hàng</td>
+                                        <td style="border-bottom-right-radius: 10px;">0 kg</td>
                                     </tr>
                                 </table>
                             </div>
@@ -211,7 +210,7 @@
 
                                 <!-- Combobox kiểu cân -->
                                 <div class="mb-3 d-flex align-items-center">
-                                    <label for="dropdownkieucan" class="form-label me-2 mb-0" style="min-width: 80px; font-size: small;">Kiểu cân</label>
+                                    @* <label for="dropdownkieucan" class="form-label me-2 mb-0" style="min-width: 80px; font-size: small;">Kiểu cân</label> *@
                                     <select id="dropdownkieucan" class="form-select" style="font-size: small;">
                                         <option>Tất cả</option>
                                         <option>Nhập hàng</option>
@@ -226,12 +225,12 @@
                                         <input type="date" id="ngaycanfilter" style="font-size: small;" class="form-control" @bind="ngayCan" />
                                     </div>
                                     <div>
-                                        <button class="btn btn-primary " style="font-size: small;">Tìm kiếm</button>
+                                        <button class="btn btn-sm btn-primary " style="font-size: small;">Tìm kiếm</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-8 border p-3 d-flex flex-wrap justify-content-between" style="gap: 10px;">
+                        <div class="col-6 border p-3 d-flex flex-wrap justify-content-between" style="gap: 10px;">
                             <img src="/images/scale.jpg" class="img-fluid img-quad" />
                             <img src="/images/scale.jpg" class="img-fluid img-quad" />
                             <img src="/images/scale.jpg" class="img-fluid img-quad" />
@@ -243,45 +242,46 @@
 
             <!-- Bảng dữ liệu cân -->
             <div class="row mt-3">
-                <div class="col-12 p-3" style="margin-left: 15px">
-                    <h6>Bảng dữ liệu cân</h6>
-                    <table class="table table-bordered table-striped table-sm">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Số phiếu</th>
-                                <th>Ngày cân</th>
-                                <th>Biển số xe</th>
-                                <th>Khách hàng</th>
-                                <th>Hàng hóa</th>
-                                <th>Thời gian cân 1</th>
-                                <th>KL cân 1</th>
-                                <th>Thời gian cân 2</th>
-                                <th>KL cân 2</th>
-                                <th>KL hàng</th>
-                                <th>Đơn giá</th>
-                                <th>Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var p in danhSachPhieu)
-                            {
+                <div class="col-12 p-3" style="margin-left: 5px">
+                    <div style="overflow-x: auto; max-width: 100%;">
+                        <table class="table table-bordered table-striped table-sm" style="font-size: 0.85rem; white-space: nowrap;">
+                            <thead class="table-dark">
                                 <tr>
-                                    <td>@p.SoPhieu</td>
-                                    <td>@p.NgayCan.ToString("dd/MM/yyyy")</td>
-                                    <td>@p.BienSoXe</td>
-                                    <td>@p.KhachHang</td>
-                                    <td>@p.HangHoa</td>
-                                    <td>@p.ThoiGianCan1.ToString(@"hh\:mm")</td>
-                                    <td>@FormatKL(p.KLCan1)</td>
-                                    <td>@p.ThoiGianCan2.ToString(@"hh\:mm")</td>
-                                    <td>@FormatKL(p.KLCan2)</td>
-                                    <td>@FormatKL(p.KhoiLuongHang)</td>
-                                    <td>@FormatCurrency(p.DonGia)</td>
-                                    <td>@FormatCurrency(p.ThanhTien)</td>
+                                    <th>Số phiếu</th>
+                                    <th>Ngày cân</th>
+                                    <th>Biển số xe</th>
+                                    <th>Khách hàng</th>
+                                    <th>Hàng hóa</th>
+                                    <th>Thời gian cân 1</th>
+                                    <th>KL cân 1</th>
+                                    <th>Thời gian cân 2</th>
+                                    <th>KL cân 2</th>
+                                    <th>KL hàng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in danhSachPhieu)
+                                {
+                                    <tr>
+                                        <td>@p.SoPhieu</td>
+                                        <td>@p.NgayCan.ToString("dd/MM/yyyy")</td>
+                                        <td>@p.BienSoXe</td>
+                                        <td>@p.KhachHang</td>
+                                        <td>@p.HangHoa</td>
+                                        <td>@p.ThoiGianCan1.ToString(@"hh\:mm")</td>
+                                        <td>@FormatKL(p.KLCan1)</td>
+                                        <td>@p.ThoiGianCan2.ToString(@"hh\:mm")</td>
+                                        <td>@FormatKL(p.KLCan2)</td>
+                                        <td>@FormatKL(p.KhoiLuongHang)</td>
+                                        <td>@FormatCurrency(p.DonGia)</td>
+                                        <td>@FormatCurrency(p.ThanhTien)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

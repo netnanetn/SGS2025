@@ -66,6 +66,7 @@
 		<None Remove="runtimes\win-x64\native\AudioRender.dll" />
 	</ItemGroup>
     <ItemGroup>
+        <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
         <PackageReference Include="JerryShaw.HCNet.SDK" Version="0.0.14" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
@@ -86,6 +87,26 @@
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
+      <Content Update="wwwroot\lib\bootstrap-icons\css\bootstrap-icons.min.css">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Update="wwwroot\lib\bootstrap\css\bootstrap.min.css">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Update="wwwroot\lib\bootstrap\js\bootstrap.bundle.min.js">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Update="wwwroot\lib\bootstrap\js\bootstrap.bundle.min.js.map">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="wwwroot\lib\bootstrap-icons\fonts\" />
+      <Folder Include="wwwroot\lib\fonts\" />
     </ItemGroup>
 
 

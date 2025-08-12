@@ -22,7 +22,8 @@ namespace SGS2025Client
             builder.Services.AddSingleton<HikvisionCameraService>();
 
 
-
+            // Add services to the container.
+            builder.Services.AddBlazorBootstrap();
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG

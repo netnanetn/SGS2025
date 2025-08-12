@@ -9,9 +9,11 @@ namespace SGS2025BlazorServer
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddBlazorBootstrap();
+
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
-
+           
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
