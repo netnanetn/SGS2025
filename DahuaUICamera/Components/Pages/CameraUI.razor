@@ -1,0 +1,21 @@
+﻿@namespace DahuaUICamera2
+@inject DahuaUICamera.Form1 MainForm
+
+<h3>Camera Control</h3>
+<button class="btn btn-primary" @onclick="Capture">Chụp ảnh</button>
+
+@if (!string.IsNullOrEmpty(ImagePath))
+{
+    <div>
+        <img src="@ImagePath" width="320" />
+    </div>
+}
+
+@code {
+    private string ImagePath;
+
+    private void Capture()
+    {
+        ImagePath = MainForm.CaptureCamera();
+    }
+}

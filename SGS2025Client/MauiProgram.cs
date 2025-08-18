@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using SGS2025Client.SDKCameraServices;
+using SGS2025Client.SDKCameraServices.Dahua;
+using SGS2025Client.SDKCameraServices.Hik;
 using SGS2025Client.Services;
 //using SGS2025Client.Services;
 
@@ -20,7 +21,7 @@ namespace SGS2025Client
             // ✅ Đăng ký DI (Dependency Injection)
            //builder.Services.AddSingleton<CameraService>();
             builder.Services.AddSingleton<HikvisionCameraService>();
-
+            builder.Services.AddSingleton<DahuaCameraService>();
 
             // Add services to the container.
             builder.Services.AddBlazorBootstrap();

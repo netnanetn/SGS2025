@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SGS2025Client", "SGS2025Cli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SGS2025BlazorServer", "SGS2025BlazorServer\SGS2025BlazorServer.csproj", "{0E1A1411-FDF8-4AAA-921D-21EFF7382644}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DahuaUICamera", "DahuaUICamera\DahuaUICamera.csproj", "{380B7385-9D41-4BEC-90CA-2956FB6D11D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,14 @@ Global
 		{0E1A1411-FDF8-4AAA-921D-21EFF7382644}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0E1A1411-FDF8-4AAA-921D-21EFF7382644}.Release|x64.ActiveCfg = Release|Any CPU
 		{0E1A1411-FDF8-4AAA-921D-21EFF7382644}.Release|x64.Build.0 = Release|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Debug|x64.Build.0 = Debug|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGS2025Client.SDKCameraServices
+namespace SGS2025Client.SDKCameraServices.Hik
 {
     public class HikvisionCameraSession
     {
@@ -46,8 +46,8 @@ namespace SGS2025Client.SDKCameraServices
                 throw new Exception("PlayM4_GetPort failed");
 
             PlayCtrl.PlayM4_SetStreamOpenMode(_playPort, 0);
-            PlayCtrl.PlayM4_OpenStream(_playPort, IntPtr.Zero, 0, 2 * 1024 * 1024);
-            PlayCtrl.PlayM4_Play(_playPort, IntPtr.Zero);
+            PlayCtrl.PlayM4_OpenStream(_playPort, nint.Zero, 0, 2 * 1024 * 1024);
+            PlayCtrl.PlayM4_Play(_playPort, nint.Zero);
 
             _realDataCallback = new CHCNetSDK.REALDATACALLBACK(RealDataCallback);
 
@@ -59,17 +59,17 @@ namespace SGS2025Client.SDKCameraServices
                 bBlocked = true
             };
 
-            _realHandle = CHCNetSDK.NET_DVR_RealPlay_V40(_userID, ref previewInfo, _realDataCallback, IntPtr.Zero);
+            _realHandle = CHCNetSDK.NET_DVR_RealPlay_V40(_userID, ref previewInfo, _realDataCallback, nint.Zero);
             if (_realHandle < 0)
                 throw new Exception("RealPlay failed: " + CHCNetSDK.NET_DVR_GetLastError());
         }
 
-        private void RealDataCallback(int lRealHandle, uint dwDataType, IntPtr pBuffer, uint dwBufSize, IntPtr pUser)
+        private void RealDataCallback(int lRealHandle, uint dwDataType, nint pBuffer, uint dwBufSize, nint pUser)
         {
             if (dwDataType == CHCNetSDK.NET_DVR_SYSHEAD)
             {
                 PlayCtrl.PlayM4_OpenStream(_playPort, pBuffer, dwBufSize, 2 * 1024 * 1024);
-                PlayCtrl.PlayM4_Play(_playPort, IntPtr.Zero);
+                PlayCtrl.PlayM4_Play(_playPort, nint.Zero);
             }
             else
             {
@@ -86,7 +86,7 @@ namespace SGS2025Client.SDKCameraServices
                 uint actualSize = 0;
 
                 GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                IntPtr ptr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
+                nint ptr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
 
                 bool result = PlayCtrl.PlayM4_GetJPEG(_playPort, ptr, (uint)jpegSize, ref actualSize);
                 handle.Free();
