@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CMS_Data.Models;
+using CMS_Data.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SGS2025Client.SDKCameraServices.Dahua;
 using SGS2025Client.SDKCameraServices.Hik;
 using SGS2025Client.Services;
@@ -18,8 +21,17 @@ namespace SGS2025Client
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
+
+            // 🔹 Đường dẫn SQLite
+            var dbPath = Path.Combine("E:\\MyProject\\SGS2025\\Database", "SGS2025OFFLINE.db");
+
+            // 🔹 Đăng ký DbContext vào DI
+            builder.Services.AddDbContext<MoDaContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
+            builder.Services.AddScoped<VehicleService>();
+
             // ✅ Đăng ký DI (Dependency Injection)
-           //builder.Services.AddSingleton<CameraService>();
+            //builder.Services.AddSingleton<CameraService>();
             builder.Services.AddSingleton<HikvisionCameraService>();
             builder.Services.AddSingleton<DahuaCameraService>();
 

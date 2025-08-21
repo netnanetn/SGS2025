@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SGS2025BlazorServer", "SGS2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DahuaUICamera", "DahuaUICamera\DahuaUICamera.csproj", "{380B7385-9D41-4BEC-90CA-2956FB6D11D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMS_Data", "CMS_Data\CMS_Data.csproj", "{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,14 @@ Global
 		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|x64.ActiveCfg = Release|Any CPU
 		{380B7385-9D41-4BEC-90CA-2956FB6D11D4}.Release|x64.Build.0 = Release|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Debug|x64.Build.0 = Debug|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|x64.ActiveCfg = Release|Any CPU
+		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

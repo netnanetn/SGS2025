@@ -18,6 +18,8 @@ public unsafe class H264StreamingDecoder : IDisposable
     // Sự kiện trả về JPEG Base64 mỗi khi decode được 1 frame
     public event Action<string>? FrameDecoded;
 
+    private int _frameCount = 0;
+
     public H264StreamingDecoder(string ffmpegDllFolder)
     {
         // Chỉ định thư mục chứa DLL FFmpeg trước khi gọi bất kỳ API nào
@@ -113,12 +115,20 @@ public unsafe class H264StreamingDecoder : IDisposable
                             break;
                         }
 
-                        // Convert YUV -> BGR (Bitmap)
-                        string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
-                        if (b64 != null)
+                        _frameCount++;
+                        if (_frameCount % 20 == 0) // lấy mỗi 5 frame
                         {
-                            FrameDecoded?.Invoke(b64);
+                            string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+                            if (b64 != null)
+                                FrameDecoded?.Invoke(b64);
                         }
+
+                        // Convert YUV -> BGR (Bitmap)
+                        //string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+                        //if (b64 != null)
+                        //{
+                        //    FrameDecoded?.Invoke(b64);
+                        //}
 
                         ffmpeg.av_frame_unref(_frame);
                     }

@@ -1,11 +1,12 @@
 ﻿@page "/test"
 @inject IJSRuntime JS
+@inject LoadDataService loadDataService
 @rendermode InteractiveServer
 @using System.Globalization
- 
+
 <div class="container-fluid">
-   
-  
+
+
     <div class="row">
         <!-- Cột trái: Camera -->
         <div class="col-2" style="padding: unset">
@@ -52,11 +53,30 @@
                                 </div>
                                 <div class="mb-2 d-flex align-items-center">
                                     <label for="bienso" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Biển số</label>
-                                    <input type="text" id="bienso" class="form-control form-control-sm" value="37K55055" style="margin-left: 15px;" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    @* <input type="text" id="bienso" class="form-control form-control-sm" @bind="scaleData.BienSoXe" style="margin-left: 15px;" /> *@
+                                    <input type="text" id="bienso"
+                                    class="form-control form-control-sm"
+                                    value="@bienSoSearch"
+                                    @oninput="OnInputChanged"
+                                    style="margin-left: 15px;" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showVehiclePicker = true">
                                         <i class="bi bi-repeat"></i>
                                     </button>
                                 </div>
+                                @if (!string.IsNullOrWhiteSpace(bienSoSearch) && filteredVehicles.Any())
+                                {
+                                    <ul class="list-group" style="max-height: 150px; overflow-y: auto; width: 300px; margin-left: 115px;">
+                                        @foreach (var v in filteredVehicles)
+                                        {
+                                            <li class="list-group-item list-group-item-action"
+                                            @onclick="() => SelectVehicle(v)">
+                                                @v.VehiceCode
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+
+
                             </div>
 
                             <!-- Cột phải: Ảnh biển số -->
@@ -69,19 +89,53 @@
                             <div class="col-md-12">
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="khachhang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Khách hàng</label>
-                                    <input type="text" id="khachhang" class="form-control form-control-sm-custom" value="2390" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    @* <input type="text" id="khachhang" class="form-control form-control-sm-custom" @bind="scaleData.KhachHang" /> *@
+                                    <input type="text" id="khachhang"
+                                    class="form-control form-control-sm-custom"
+                                    value="@customerSearch"
+                                    @oninput="OnCustomerInputChanged"
+                                    style="margin-left: 15px;" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showCustomerPicker = true">
                                         <i class="bi bi-person-badge"></i>
                                     </button>
                                 </div>
+                                @if (filteredCustomers.Any())
+                                {
+                                    <ul class="list-group" style="max-height: 150px; overflow-y: auto; width: 300px; margin-left: 115px;">
+                                        @foreach (var c in filteredCustomers)
+                                        {
+                                            <li class="list-group-item list-group-item-action"
+                                            @onclick="() => SelectCustomer(c)">
+                                                @c.Name
+                                            </li>
+                                        }
+                                    </ul>
+                                }
 
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="loaihang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Loại hàng</label>
-                                    <input type="text" id="loaihang" class="form-control form-control-sm-custom" value="37K55055" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    @* <input type="text" id="loaihang" class="form-control form-control-sm-custom" @bind="scaleData.HangHoa" /> *@
+                                    <input type="text" id="loaihang"
+                                           class="form-control form-control-sm-custom"
+                                           value="@productSearch"
+                                           @oninput="OnProductInputChanged"
+                                           style="margin-left: 15px;" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showProductPicker = true">
                                         <i class="bi bi-stack"></i>
                                     </button>
                                 </div>
+                                @if (filteredProducts.Any())
+                                {
+                                    <ul class="list-group" style="max-height: 150px; overflow-y: auto; width: 300px; margin-left: 115px;">
+                                        @foreach (var p in filteredProducts)
+                                        {
+                                            <li class="list-group-item list-group-item-action"
+                                                @onclick="() => SelectProduct(p)">
+                                                @p.Name
+                                            </li>
+                                        }
+                                    </ul>
+                                }
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="kieucan" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Kiểu cân</label>
                                     <input type="text" id="kieucan" class="form-control form-control-sm-custom" value="2390" />
@@ -287,7 +341,21 @@
         </div>
     </div>
 </div>
+
+@* <VehiclePicker @bind-Show="ShowPicker" OnSelected="HandleSelected" />  *@
+<VehiclePicker Show="@showVehiclePicker"
+ShowChanged="@((v) => showVehiclePicker = v)"
+OnSelected="@OnVehicleSelected" />
+<CustomerPicker Show="@showCustomerPicker"
+ShowChanged="@((v) => showCustomerPicker = v)"
+OnSelected="@OnCustomerSelected" />
+<ProductPicker Show="@showProductPicker"
+ShowChanged="@((v) => showProductPicker = v)"
+OnSelected="@OnProductSelected" />
+
 @code {
+    private FilterInitViewModel ModelLoad = new();
+
     public class PhieuCanModel
     {
         public int SoPhieu { get; set; }
@@ -310,8 +378,12 @@
     private List<PhieuCanModel> danhSachPhieu = new();
 
     private PhieuCanModel scaleData = new();
-    protected override void OnInitialized()
+
+
+
+    protected override async void OnInitialized()
     {
+        ModelLoad = await loadDataService.LoadAllData();
         danhSachPhieu = new List<PhieuCanModel>
     {
         new() { SoPhieu = 2390, NgayCan = DateTime.Today, BienSoXe = "37H-55055", KhachHang = "Công ty ABC", HangHoa = "Đá 1x2", ThoiGianCan1 = new(8, 15, 0), KLCan1 = 18500, ThoiGianCan2 = new(8, 40, 0), KLCan2 = 10200, DonGia = 250000 },
@@ -329,7 +401,7 @@
     private async Task CanLan1()
     {
         var s = "";
-         await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+        await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
         // var response = await Http.PostAsJsonAsync("/api/phieu/luu", phieu);
         // if (response.IsSuccessStatusCode)
         // {
@@ -349,5 +421,124 @@
     private string FormatKL(double kl) =>
         string.Format("{0:#,##0} kg", kl);
 
-  
+
+    private bool showVehiclePicker;
+    private TblVehicle? selectedVehicle;
+    private string SelectedText =>
+       selectedVehicle is null ? "(chưa chọn)" : $"{selectedVehicle.VehiceCode} - {selectedVehicle.DriverName} - {selectedVehicle.DriverPhone}";
+
+    private Task OnVehicleSelected(TblVehicle v)
+    {
+        selectedVehicle = v;
+        scaleData.BienSoXe = v.VehiceCode;
+        bienSoSearch = v.VehiceCode;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+
+    private bool showCustomerPicker;
+    private TblCustomer? selectedCustomer;
+
+    private Task OnCustomerSelected(TblCustomer c)
+    {
+        selectedCustomer = c;
+        scaleData.KhachHang = c.Name;
+        customerSearch = c.Name;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private bool showProductPicker;
+    private TblProduct? selectedProduct;
+
+    private Task OnProductSelected(TblProduct c)
+    {
+        selectedProduct = c;
+        scaleData.HangHoa = c.Name;
+        productSearch = c.Name;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private string bienSoSearch = string.Empty;
+    private List<TblVehicle> filteredVehicles = new();
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        bienSoSearch = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(bienSoSearch))
+        {
+            filteredVehicles.Clear();
+        }
+        else
+        {
+            filteredVehicles = ModelLoad.Vehicles
+                .Where(v => v.VehiceCode.Contains(bienSoSearch, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private void SelectVehicle(TblVehicle vehicle)
+    {
+        bienSoSearch = vehicle.VehiceCode;
+        scaleData.BienSoXe = vehicle.VehiceCode; // gán lại vào model chính
+        filteredVehicles.Clear();
+    }
+
+    private string customerSearch = string.Empty;
+    private List<TblCustomer> filteredCustomers = new();
+
+    private void OnCustomerInputChanged(ChangeEventArgs e)
+    {
+        customerSearch = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(customerSearch))
+        {
+            filteredCustomers.Clear();
+        }
+        else
+        {
+            filteredCustomers = ModelLoad.Customers
+                .Where(c => c.Name.Contains(customerSearch, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private void SelectCustomer(TblCustomer customer)
+    {
+        customerSearch = customer.Name;
+        scaleData.KhachHang = customer.Name; // gán lại vào model chính
+        filteredCustomers.Clear();
+    }
+
+    private string productSearch = string.Empty;
+    private List<TblProduct> filteredProducts = new();
+
+    private void OnProductInputChanged(ChangeEventArgs e)
+    {
+        productSearch = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(productSearch))
+        {
+            filteredProducts.Clear();
+        }
+        else
+        {
+            filteredProducts = ModelLoad.Products
+                .Where(p => p.Name.Contains(productSearch, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private void SelectProduct(TblProduct product)
+    {
+        productSearch = product.Name;
+        scaleData.HangHoa = product.Name; // gán lại vào model chính
+        filteredProducts.Clear();
+    }
+
 }

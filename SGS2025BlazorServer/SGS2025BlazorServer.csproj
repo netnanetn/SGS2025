@@ -18,4 +18,8 @@
     <Folder Include="wwwroot\lib\fonts\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CMS_Data\CMS_Data.csproj" />
+  </ItemGroup>
+
 </Project>

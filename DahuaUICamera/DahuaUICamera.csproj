@@ -12,4 +12,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.WindowsForms" Version="8.0.100" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CMS_Data\CMS_Data.csproj" />
+  </ItemGroup>
+
 </Project>

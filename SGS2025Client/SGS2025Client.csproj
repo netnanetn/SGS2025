@@ -118,6 +118,9 @@
       <Folder Include="wwwroot\lib\bootstrap-icons\fonts\" />
       <Folder Include="wwwroot\lib\fonts\" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\CMS_Data\CMS_Data.csproj" />
+    </ItemGroup>
  
  
  
