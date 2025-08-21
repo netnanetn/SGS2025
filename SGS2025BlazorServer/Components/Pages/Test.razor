@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @using System.Globalization
 
+
 <div class="container-fluid">
 
 
@@ -53,28 +54,17 @@
                                 </div>
                                 <div class="mb-2 d-flex align-items-center">
                                     <label for="bienso" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Biển số</label>
-                                    @* <input type="text" id="bienso" class="form-control form-control-sm" @bind="scaleData.BienSoXe" style="margin-left: 15px;" /> *@
-                                    <input type="text" id="bienso"
-                                    class="form-control form-control-sm"
-                                    value="@bienSoSearch"
-                                    @oninput="OnInputChanged"
-                                    style="margin-left: 15px;" />
+                                    <AutoCompleteInput T="TblVehicle"
+                                      Items="ModelLoad.Vehicles"
+                                      ItemText="v => v.VehiceCode"
+                                      Placeholder="Nhập biển số..."
+                                      OnSelected="OnVehicleSelected"
+                                      Value="@scaleData.BienSoXe"  />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showVehiclePicker = true">
                                         <i class="bi bi-repeat"></i>
                                     </button>
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(bienSoSearch) && filteredVehicles.Any())
-                                {
-                                    <ul class="list-group" style="max-height: 150px; overflow-y: auto; width: 300px; margin-left: 115px;">
-                                        @foreach (var v in filteredVehicles)
-                                        {
-                                            <li class="list-group-item list-group-item-action"
-                                            @onclick="() => SelectVehicle(v)">
-                                                @v.VehiceCode
-                                            </li>
-                                        }
-                                    </ul>
-                                }
+                                 
 
 
                             </div>
@@ -89,57 +79,45 @@
                             <div class="col-md-12">
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="khachhang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Khách hàng</label>
-                                    @* <input type="text" id="khachhang" class="form-control form-control-sm-custom" @bind="scaleData.KhachHang" /> *@
-                                    <input type="text" id="khachhang"
-                                    class="form-control form-control-sm-custom"
-                                    value="@customerSearch"
-                                    @oninput="OnCustomerInputChanged"
-                                    style="margin-left: 15px;" />
+                                     <AutoCompleteInput T="TblCustomer"
+                                  Items="ModelLoad.Customers"
+                                  ItemText="c => c.Name"
+                                  Placeholder="Nhập tên khách hàng..."
+                                  OnSelected="OnCustomerSelected"
+                                  Value="@scaleData.KhachHang"  />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showCustomerPicker = true">
                                         <i class="bi bi-person-badge"></i>
                                     </button>
                                 </div>
-                                @if (filteredCustomers.Any())
-                                {
-                                    <ul class="list-group" style="max-height: 150px; overflow-y: auto; width: 300px; margin-left: 115px;">
-                                        @foreach (var c in filteredCustomers)
-                                        {
-                                            <li class="list-group-item list-group-item-action"
-                                            @onclick="() => SelectCustomer(c)">
-                                                @c.Name
-                                            </li>
-                                        }
-                                    </ul>
-                                }
+                        
 
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="loaihang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Loại hàng</label>
-                                    @* <input type="text" id="loaihang" class="form-control form-control-sm-custom" @bind="scaleData.HangHoa" /> *@
-                                    <input type="text" id="loaihang"
-                                           class="form-control form-control-sm-custom"
-                                           value="@productSearch"
-                                           @oninput="OnProductInputChanged"
-                                           style="margin-left: 15px;" />
+                                     <AutoCompleteInput T="TblProduct"
+                                          Items="ModelLoad.Products"
+                                          ItemText="p => p.Name"
+                                          Placeholder="Nhập loại hàng..."
+                                          OnSelected="OnProductSelected"
+                                          Value="@scaleData.HangHoa" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showProductPicker = true">
                                         <i class="bi bi-stack"></i>
                                     </button>
-                                </div>
-                                @if (filteredProducts.Any())
-                                {
-                                    <ul class="list-group" style="max-height: 150px; overflow-y: auto; width: 300px; margin-left: 115px;">
-                                        @foreach (var p in filteredProducts)
-                                        {
-                                            <li class="list-group-item list-group-item-action"
-                                                @onclick="() => SelectProduct(p)">
-                                                @p.Name
-                                            </li>
-                                        }
-                                    </ul>
-                                }
+                                </div> 
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="kieucan" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Kiểu cân</label>
-                                    <input type="text" id="kieucan" class="form-control form-control-sm-custom" value="2390" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+
+                                    <select id="kieucan"
+                                            class="form-select form-select-sm form-control-sm-custom"
+                                            @bind="scaleData.TypeId">
+                                        <option value="1">Nhập hàng</option>
+                                        <option value="2">Xuất hàng</option>
+                                        <option value="3">Dịch vụ</option>
+                                        <option value="4">Trung chuyển</option>
+                                        <option value="5">Khác</option>
+                                    </select>
+
+                                    <button class="btn btn-sm" type="button"
+                                            style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
                                         <i class="bi bi-tags"></i>
                                     </button>
                                 </div>
@@ -359,6 +337,7 @@ OnSelected="@OnProductSelected" />
     public class PhieuCanModel
     {
         public int SoPhieu { get; set; }
+        public int? TypeId { get; set; }
         public DateTime NgayCan { get; set; }
         public string BienSoXe { get; set; }
         public string KhachHang { get; set; }

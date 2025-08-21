@@ -1,0 +1,73 @@
+﻿@typeparam T
+
+<div class="position-relative" >
+    <input type="text"
+           class="form-control form-control-sm"
+           value="@searchText"
+           @oninput="OnInputChanged"
+           placeholder="@Placeholder" />
+
+    @if (filteredItems.Any())
+    {
+        <ul class="list-group position-absolute w-100" style="z-index: 1000; max-height: 150px; overflow-y: auto;">
+            @foreach (var item in filteredItems)
+            {
+                <li class="list-group-item list-group-item-action"
+                    @onclick="() => SelectItem(item)">
+                    @ItemText(item)
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<T> Items { get; set; } = new List<T>();
+    [Parameter] public Func<T, string> ItemText { get; set; } = default!;
+    [Parameter] public EventCallback<T> OnSelected { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Gõ để tìm...";
+    [Parameter] public string Width { get; set; } = "300px";
+
+    // 🔥 Thêm Value để có thể set/get từ bên ngoài
+    private string searchText = string.Empty;
+
+    [Parameter]
+    public string Value
+    {
+        get => searchText;
+        set
+        {
+            if (searchText != value)
+            {
+                searchText = value ?? string.Empty;
+                filteredItems.Clear();
+            }
+        }
+    }
+
+    private List<T> filteredItems = new();
+
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        searchText = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            filteredItems.Clear();
+        }
+        else
+        {
+            filteredItems = Items
+                .Where(x => ItemText(x).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private async Task SelectItem(T item)
+    {
+        Value = ItemText(item);   // gán lại cho Value (tức input hiển thị)
+        filteredItems.Clear();
+        await OnSelected.InvokeAsync(item);
+    }
+}
