@@ -22,4 +22,10 @@
     <ProjectReference Include="..\CMS_Data\CMS_Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Database\SGS2025OFFLINE.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

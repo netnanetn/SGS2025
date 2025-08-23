@@ -13,7 +13,9 @@ namespace SGS2025BlazorServer
 
 
             // 🔹 Đường dẫn SQLite
-            var dbPath = Path.Combine("E:\\MyProject\\SGS2025\\Database", "SGS2025OFFLINE.db");
+            //var dbPath = Path.Combine("E:\\MyProject\\SGS2025\\Database", "SGS2025OFFLINE.db");
+            var basePath = AppContext.BaseDirectory;
+            var dbPath = Path.Combine(basePath, "Database", "SGS2025OFFLINE.db");
 
             // 🔹 Đăng ký DbContext vào DI
             builder.Services.AddDbContext<MoDaContext>(options =>
@@ -22,6 +24,7 @@ namespace SGS2025BlazorServer
             builder.Services.AddScoped<CustomerService>();
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<LoadDataService>();
+            builder.Services.AddScoped<ScaleService>();
 
             // Add services to the container.
             builder.Services.AddBlazorBootstrap();
