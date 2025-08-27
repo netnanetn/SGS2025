@@ -1,0 +1,11 @@
+ <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:SGS2025Client.Shared"
+             x:Class="SGS2025Client.Controls.Dahua.CameraDahuaHostView">
+    <Grid RowDefinitions="*,*,*,*">
+        <controls:CameraHostView x:Name="Cam1" Grid.Row="0"/>
+        <!--<controls:CameraHostView x:Name="Cam2" Grid.Row="1"/>
+        <controls:CameraHostView x:Name="Cam3" Grid.Row="2"/>
+        <controls:CameraHostView x:Name="Cam4" Grid.Row="3"/>-->
+    </Grid>
+</ContentPage>

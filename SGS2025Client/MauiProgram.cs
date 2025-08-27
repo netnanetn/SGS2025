@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SGS2025Client.SDKCameraServices.Dahua;
 using SGS2025Client.SDKCameraServices.Hik;
 using SGS2025Client.Services;
+using SGS2025Client.Shared;
 //using SGS2025Client.Services;
 
 namespace SGS2025Client
@@ -35,6 +36,8 @@ namespace SGS2025Client
             builder.Services.AddSingleton<HikvisionCameraService>();
             builder.Services.AddSingleton<DahuaCameraService>();
 
+            builder.Services.AddSingleton<DahuaCameraService2>();
+
             // Add services to the container.
             builder.Services.AddBlazorBootstrap();
             builder.Services.AddMauiBlazorWebView();
@@ -42,6 +45,13 @@ namespace SGS2025Client
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
+#endif
+
+#if WINDOWS
+            builder.ConfigureMauiHandlers(handlers =>
+            {
+                handlers.AddHandler<CameraHostView, CameraHostViewHandler>();
+            });
 #endif
 
             return builder.Build();

@@ -1,4 +1,5 @@
 ﻿#if WINDOWS
+using QuickNV.DahuaNetSDK.Api;
 using System;
 using System.Collections.Generic;
 using System.Threading.Channels;
@@ -18,7 +19,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
           //  cam.StartLive(0); // Gọi phát live luôn
             _cameras[id] = cam;
         }
-
+      
         public string GetImage(string id)
         {
             if (_cameras.ContainsKey(id))
