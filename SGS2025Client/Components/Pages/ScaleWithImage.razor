@@ -337,10 +337,10 @@
     };
         Task.Run(() =>
         {
-            hikvisionCameraService.AddCamera("cam1", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam2", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam3", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam4", "192.168.1.107", 8002, "admin", "abcd@1234");
+            //hikvisionCameraService.AddCamera("cam1", "192.168.1.107", 8002, "admin", "abcd@1234");
+            //hikvisionCameraService.AddCamera("cam2", "192.168.1.107", 8002, "admin", "abcd@1234");
+            //hikvisionCameraService.AddCamera("cam3", "192.168.1.107", 8002, "admin", "abcd@1234");
+            //hikvisionCameraService.AddCamera("cam4", "192.168.1.107", 8002, "admin", "abcd@1234");
         });
 
         _timer = new Timer(UpdateImages, null, 1000, 100);
@@ -356,10 +356,10 @@
  
     private void UpdateImages(object state)
     {
-        Image1 = hikvisionCameraService.GetImage("cam1");
-        Image2 = hikvisionCameraService.GetImage("cam2");
-        Image3 = hikvisionCameraService.GetImage("cam3");
-        Image4 = hikvisionCameraService.GetImage("cam4");
+        //Image1 = hikvisionCameraService.GetImage("cam1");
+        //Image2 = hikvisionCameraService.GetImage("cam2");
+        //Image3 = hikvisionCameraService.GetImage("cam3");
+       // Image4 = hikvisionCameraService.GetImage("cam4");
         InvokeAsync(StateHasChanged);
     }
      private async Task CanLan1()
