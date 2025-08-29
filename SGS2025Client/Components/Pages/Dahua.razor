@@ -5,20 +5,20 @@
 <h3>Dahua</h3>
 @if (!string.IsNullOrEmpty(Image1))
 {
-    <img src="@Image1" style="max-width:480px; height:auto;" />
+    <img src="@Image1" style="max-width:240px; height:auto;" />
 }
 
 @if (!string.IsNullOrEmpty(Image2))
 {
-    <img src="@Image2" style="max-width:480px; height:auto;" />
+    <img src="@Image2" style="max-width:240px; height:auto;" />
 }
 @if (!string.IsNullOrEmpty(Image3))
 {
-    <img src="@Image3" style="max-width:480px; height:auto;" />
+    <img src="@Image3" style="max-width:240px; height:auto;" />
 }
 @if (!string.IsNullOrEmpty(Image4))
 {
-    <img src="@Image4" style="max-width:480px; height:auto;" />
+    <img src="@Image4" style="max-width:240px; height:auto;" />
 } 
 <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="chupanh">
     <i class="bi bi-repeat"></i>
@@ -33,9 +33,9 @@
         Task.Run(() =>
         {
             dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
-          //  dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
-          //  dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
-          //  dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
+            dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
+        //    dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
+         //   dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
         });
 
         _timer = new Timer(UpdateImages, null, 1000, 50);
@@ -45,7 +45,7 @@
     {
          Image1 = dahuaCameraService.GetImage("cam1");
         
-      //  Image2 = dahuaCameraService.GetImage("cam2");
+        Image2 = dahuaCameraService.GetImage("cam2");
        //  Image3 = dahuaCameraService.GetImage("cam3");
       //  Image4 = dahuaCameraService.GetImage("cam4");
         InvokeAsync(StateHasChanged);

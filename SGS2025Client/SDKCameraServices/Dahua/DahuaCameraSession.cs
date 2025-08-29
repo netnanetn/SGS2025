@@ -137,7 +137,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             {
                 dwSize = (uint)Marshal.SizeOf<NET_IN_REALPLAY>(),
                 nChannelID = channel,
-                rType = EM_RealPlayType.Realplay,//EM_RealPlayType.Realplay,
+                rType = EM_RealPlayType.Realplay_1,//EM_RealPlayType.Realplay, // chuyển sang luồng phụ xem mượt ko
                 hWnd = IntPtr.Zero,
                 dwUser = IntPtr.Zero,
                 cbRealData = _realDataCallback
