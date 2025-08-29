@@ -2,8 +2,11 @@
 @inject IJSRuntime JS
 @inject LoadDataService loadDataService
 @inject ScaleService scaleService
+@inject PdfService PdfService
 @rendermode InteractiveServer
 @using System.Globalization
+@using PuppeteerSharp
+@using SGS2025BlazorServer.Components.LibPDFs
 
 
 <div class="container-fluid">
@@ -152,7 +155,7 @@
                             </div>
 
                             <div class="col-4">
-                                <button class="btn btn-sm btn-success w-100"><i class="bi bi-printer-fill"></i> In Phiếu</button>
+                                <button class="btn btn-sm btn-success w-100" @onclick="InPhieu"><i class="bi bi-printer-fill"></i> In Phiếu</button>
                             </div>
                             <div class="col-4">
                                 <button class="btn btn-sm btn-danger w-100" @onclick="LuuPhieu"><i class="bi bi-save"></i> Lưu phiếu</button>
@@ -332,6 +335,36 @@ OnSelected="@OnCustomerSelected" />
 ShowChanged="@((v) => showProductPicker = v)"
 OnSelected="@OnProductSelected" />
 
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Phiếu thông tin xe</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (pdfBase64 != null)
+                    {
+                        <iframe src="data:application/pdf;base64,@pdfBase64" style="width: 100%; height: 500px; border: none;"></iframe>
+                    }
+                    else
+                    {
+                        <p>Đang tạo PDF...</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Đóng</button>
+                    <button type="button" class="btn btn-primary" @onclick="PrintSilent">In ngầm</button>
+                    <button type="button" class="btn btn-success" @onclick="DownloadPdf">Tải PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private FilterInitViewModel ModelLoad = new();
 
@@ -344,7 +377,28 @@ OnSelected="@OnProductSelected" />
 
     private TblScale scaleData = new();
 
+    //print
+    private bool showModal = false;
+    private string? pdfBase64;
 
+ 
+
+    private void CloseModal()
+    {
+        showModal = false;
+        pdfBase64 = null;
+    }
+
+    private async Task PrintSilent()
+    {
+        await JS.InvokeVoidAsync("printSilent", pdfBase64);
+    }
+
+    private async Task DownloadPdf()
+    {
+        await JS.InvokeVoidAsync("saveAsFile", "output.pdf", pdfBase64);
+    }
+    //end print
 
     protected override async void OnInitialized()
     {
@@ -399,6 +453,13 @@ OnSelected="@OnProductSelected" />
         await scaleService.LuuPhieu(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
+    private async Task InPhieu()
+    {
+        var pdfBytes = await PdfService.GeneratePdfAsync(scaleData);
+        pdfBase64 = Convert.ToBase64String(pdfBytes);
+        showModal = true;
+    }
+     
     private async Task OnClickThemMoi(){
         scaleData = new TblScale();
     }
