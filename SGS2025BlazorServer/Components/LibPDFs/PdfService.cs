@@ -1,5 +1,7 @@
 ﻿using CMS_Data.Models;
+using PdfiumViewer;
 using PuppeteerSharp;
+using System.Drawing.Printing;
 using System.Text;
 using System.Threading.Tasks;
 namespace SGS2025BlazorServer.Components.LibPDFs
@@ -305,6 +307,37 @@ namespace SGS2025BlazorServer.Components.LibPDFs
             });
 
             return pdfBytes;
+        }
+        public async Task PrintPdf(string base64, string printerName = null, bool landscape = false)
+        {
+            try
+            {
+                // Giải mã base64 -> PDF bytes
+                var pdfBytes = Convert.FromBase64String(base64);
+
+                using (var ms = new MemoryStream(pdfBytes))
+                using (var doc = PdfDocument.Load(ms))
+                using (var printDoc = doc.CreatePrintDocument())
+                {
+                    // Thiết lập thông số in
+                    var settings = new PrinterSettings();
+                    if (!string.IsNullOrEmpty(printerName))
+                        settings.PrinterName = printerName; // Máy in cụ thể
+
+                    printDoc.PrinterSettings = settings;
+
+                    // Cấu hình trang in (A4, dọc/ngang)
+                    printDoc.DefaultPageSettings.PaperSize = new PaperSize("A4", 827, 1169); // đơn vị: 1/100 inch
+                    printDoc.DefaultPageSettings.Landscape = landscape;
+
+                    // In thẳng luôn
+                    printDoc.Print();
+                }
+            }
+            catch (Exception e)
+            {
+                 
+            }
         }
     }
 }

@@ -391,7 +391,8 @@ OnSelected="@OnProductSelected" />
 
     private async Task PrintSilent()
     {
-        await JS.InvokeVoidAsync("printSilent", pdfBase64);
+      //  await JS.InvokeVoidAsync("printSilent", pdfBase64);
+        await PdfService.PrintPdf(pdfBase64);
     }
 
     private async Task DownloadPdf()

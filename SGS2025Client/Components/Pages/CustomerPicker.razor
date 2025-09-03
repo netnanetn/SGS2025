@@ -1,0 +1,172 @@
+﻿@using CMS_Data.Services
+@using Microsoft.AspNetCore.Components
+@inject CustomerService CustomerService
+
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Danh sách khách hàng</h5>
+                    <button type="button" class="btn-close" @onclick="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Tìm kiếm -->
+                    <div class="input-group mb-3">
+                        <input class="form-control" placeholder="Tìm theo mã, tên, số điện thoại..."
+                               @bind="search" @bind:event="oninput" />
+                        <button class="btn btn-outline-secondary" @onclick="DoSearch">Tìm</button>
+                    </div>
+
+                    <!-- Kết quả -->
+                    <div class="table-responsive mb-3" style="max-height:320px; overflow:auto;">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width:120px">Mã KH</th>
+                                    <th>Tên KH</th>
+                                    <th>SĐT</th>
+                                    <th>Email</th>
+                                    <th style="width:100px"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (items is null)
+                                {
+                                    <tr><td colspan="5">Nhập từ khoá để tìm…</td></tr>
+                                }
+                                else if (items.Count == 0)
+                                {
+                                    <tr><td colspan="5">Không tìm thấy.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var c in items)
+                                    {
+                                        <tr>
+                                            <td>@c.Code</td>
+                                            <td>@c.Name</td>
+                                            <td>@c.Phone</td>
+                                            <td>@c.Email</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary" @onclick="() => Select(c)">Chọn</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Thêm mới -->
+                    <details class="mb-2">
+                        <summary class="h6">Thêm khách hàng mới</summary>
+                        <div class="row g-2 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label">Mã KH *</label>
+                                <input class="form-control" @bind="createModel.Code" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Tên KH *</label>
+                                <input class="form-control" @bind="createModel.Name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">SĐT</label>
+                                <input class="form-control" @bind="createModel.Phone" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input class="form-control" @bind="createModel.Email" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Địa chỉ</label>
+                                <input class="form-control" @bind="createModel.Address" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Ghi chú</label>
+                                <textarea class="form-control" rows="2" @bind="createModel.Note"></textarea>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button class="btn btn-success" @onclick="AddNew">
+                                    Lưu KH mới
+                                </button>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(error))
+                        {
+                            <div class="text-danger mt-2">@error</div>
+                        }
+                    </details>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="Close">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+    [Parameter] public EventCallback<TblCustomer> OnSelected { get; set; }
+
+    private string? search;
+    private List<TblCustomer>? items;
+    private TblCustomer createModel = new();
+    private string? error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Show && items is null)
+            await DoSearch();
+    }
+
+    private async Task DoSearch()
+    {
+        items = await CustomerService.SearchAsync(search);
+        StateHasChanged();
+    }
+
+    private async Task AddNew()
+    {
+        error = null;
+        try
+        {
+            createModel.Code = createModel.Code?.Trim();
+            createModel.Name = createModel.Name?.Trim();
+            if (string.IsNullOrWhiteSpace(createModel.Code) || string.IsNullOrWhiteSpace(createModel.Name))
+            {
+                error = "Mã và tên khách hàng là bắt buộc.";
+                return;
+            }
+
+            var saved = await CustomerService.AddAsync(createModel);
+            await DoSearch();
+            await Select(saved);
+
+            createModel = new();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private async Task Select(TblCustomer c)
+    {
+        if (OnSelected.HasDelegate)
+            await OnSelected.InvokeAsync(c);
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        items ??= new();
+        if (ShowChanged.HasDelegate)
+            await ShowChanged.InvokeAsync(false);
+    }
+}
