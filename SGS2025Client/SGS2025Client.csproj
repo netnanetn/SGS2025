@@ -22,7 +22,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <EnableDefaultCssItems>false</EnableDefaultCssItems>
         <Nullable>enable</Nullable>
-
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
         <!-- Display name -->
         <ApplicationTitle>SGS2025Client</ApplicationTitle>
 
@@ -73,6 +74,8 @@
         <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
         <PackageReference Include="FFmpeg.AutoGen" Version="7.1.1" />
         <PackageReference Include="JerryShaw.HCNet.SDK" Version="0.0.14" />
+        <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.36" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
@@ -85,11 +88,15 @@
         <PackageReference Include="QuickNV.DahuaNetSDK" Version="1.0.1" />
         <PackageReference Include="QuickNV.DahuaNetSDK.Api" Version="1.0.1" />
         <PackageReference Include="QuickNV.DahuaNetSDK.Native" Version="1.0.1" />
+        <PackageReference Include="RazorLight" Version="2.3.1" />
         <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
     </ItemGroup>
     <ItemGroup>
       <Content Update="Components\Pages\CameraUI.razor">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </Content>
+      <Content Update="Components\PdfTemplates\ScalePdfTemplate6Img.cshtml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <Content Update="wwwroot\images\bs1.png">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

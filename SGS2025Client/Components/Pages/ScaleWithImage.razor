@@ -1,5 +1,6 @@
 ﻿@page "/scalewithimage"
 
+@using SGS2025Client.Components.HelperService
 @using SGS2025Client.Services
 @inject HikvisionCameraService hikvisionCameraService
 @inject IJSRuntime JS
@@ -7,6 +8,7 @@
 @inject LoadDataService loadDataService
 @inject ScaleService scaleService
 @inject PdfService PdfService
+@inject RazorRenderer RazorRenderer
 @using PuppeteerSharp
 
  <div class="container-fluid">
@@ -456,14 +458,29 @@ OnSelected="@OnProductSelected" />
     }
     private async Task InPhieu()
     {
-        var pdfBytes = await PdfService.GeneratePdfAsync(scaleData);
+      
+
+        // Render template thành HTML
+        var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", scaleData);
+
+        var pdfBytes = await PdfService.GeneratePdfAsync(html);
         pdfBase64 = Convert.ToBase64String(pdfBytes);
-
-
+         
         showModal = true;
 
         //in ko show
        // await PdfService.PrintPdf(pdfBase64);
+
+    }
+    private async Task InPhieu_bak()
+    {
+        var pdfBytes = await PdfService.GeneratePdfAsync(scaleData);
+        pdfBase64 = Convert.ToBase64String(pdfBytes);
+
+        showModal = true;
+
+        //in ko show
+        // await PdfService.PrintPdf(pdfBase64);
 
     }
      
