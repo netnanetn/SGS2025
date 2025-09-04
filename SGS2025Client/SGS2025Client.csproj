@@ -65,6 +65,7 @@
     </ItemGroup>
 
 	<ItemGroup>
+		<Content Remove="Resources\Raw\appsettings.sgs.json" />
 		<Content Remove="runtimes\win-x64\native\AudioRender.dll" />
 		<None Remove="runtimes\win-x64\native\AudioRender.dll" />
 	</ItemGroup>

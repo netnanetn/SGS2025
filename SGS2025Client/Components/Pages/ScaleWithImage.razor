@@ -9,9 +9,10 @@
 @inject ScaleService scaleService
 @inject PdfService PdfService
 @inject RazorRenderer RazorRenderer
+@inject ConfigService configService
 @using PuppeteerSharp
 
- <div class="container-fluid">
+<div class="container-fluid">
 
 
     <div class="row">
@@ -368,6 +369,9 @@ OnSelected="@OnProductSelected" />
 }
 
 @code {
+
+    private AppConfig? _config;
+
     private FilterInitViewModel ModelLoad = new();
 
 
@@ -383,7 +387,7 @@ OnSelected="@OnProductSelected" />
     private bool showModal = false;
     private string? pdfBase64;
 
- 
+
 
     private void CloseModal()
     {
@@ -393,7 +397,7 @@ OnSelected="@OnProductSelected" />
 
     private async Task PrintSilent()
     {
-      //  await JS.InvokeVoidAsync("printSilent", pdfBase64);
+        //  await JS.InvokeVoidAsync("printSilent", pdfBase64);
         await PdfService.PrintPdf(pdfBase64);
     }
 
@@ -405,6 +409,12 @@ OnSelected="@OnProductSelected" />
 
     protected override async void OnInitialized()
     {
+        _config = await configService.LoadAsync();
+        // update camera thử
+         if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
+             await configService.SaveAsync();
+        // _config = await configService.LoadAsync();
+
         ModelLoad = await loadDataService.LoadAllData();
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }

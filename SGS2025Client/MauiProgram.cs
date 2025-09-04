@@ -25,6 +25,24 @@ namespace SGS2025Client
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
+            // 🔹 cấu hình hệ thống
+            var folder = @"C:\TVS\Config";
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            var fileName = "appsettings.sgs.json";
+            var targetPath = Path.Combine(folder, fileName);
+
+            // Nếu chưa có file config thì copy từ AppPackage (Resources)
+            if (!File.Exists(targetPath))
+            {
+                using var stream = FileSystem.OpenAppPackageFileAsync(fileName).Result;
+                using var reader = new StreamReader(stream);
+                var content = reader.ReadToEnd();
+                File.WriteAllText(targetPath, content);
+            }
+            builder.Services.AddSingleton(new ConfigService(targetPath));
+
 
             // 🔹 Đường dẫn SQLite
             var dbPath = Path.Combine("E:\\MyProject\\SGS2025\\Database", "SGS2025OFFLINE.db");
