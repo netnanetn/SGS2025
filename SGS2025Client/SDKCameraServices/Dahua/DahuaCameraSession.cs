@@ -224,8 +224,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
         }
         public string GetBase64Image(int channel = 0)
         {
-          
-            return _latestBase64Image;
+           
             try
             {
                 //_session.PictureService.ManualSnap(channel);
@@ -238,12 +237,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
                     return _latestBase64Image;
 
                 string base64 = "data:image/jpeg;base64," + Convert.ToBase64String(jpegData);
-
-                lock (_lock)
-                {
-                    _latestBase64Image = base64;
-                }
-
+                 
                 return base64;
             }
             catch (Exception e)

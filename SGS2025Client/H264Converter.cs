@@ -221,6 +221,45 @@ public unsafe class H264StreamingDecoder : IDisposable
 
         return Convert.ToBase64String(ms.ToArray());
     }
+    private static string? ConvertFrameToJpegBase64_new(AVFrame* frame, ref SwsContext* sws)
+    {
+        int targetW = 640;
+        int targetH = 480;
+
+        if (frame->width <= 0 || frame->height <= 0) return null;
+
+        // Tạo SwsContext resize
+        if (sws == null)
+        {
+            sws = ffmpeg.sws_getContext(
+                frame->width, frame->height, (AVPixelFormat)frame->format,
+                targetW, targetH, AVPixelFormat.AV_PIX_FMT_BGR24,
+                ffmpeg.SWS_BILINEAR, null, null, null
+            );
+        }
+        if (sws == null) return null;
+
+        using var bmp = new Bitmap(targetW, targetH, PixelFormat.Format24bppRgb);
+        var data = bmp.LockBits(new Rectangle(0, 0, targetW, targetH), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+        byte_ptrArray4 dstData = default;
+        int_array4 dstLinesize = default;
+        dstData[0] = (byte*)data.Scan0;
+        dstLinesize[0] = data.Stride;
+
+        // scale frame gốc -> frame fixed size
+        ffmpeg.sws_scale(sws, frame->data, frame->linesize, 0, frame->height, dstData, dstLinesize);
+
+        bmp.UnlockBits(data);
+
+        using var ms = new MemoryStream();
+        var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+        var encoderParams = new EncoderParameters(1);
+        encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 80L);
+        bmp.Save(ms, encoder, encoderParams);
+
+        return Convert.ToBase64String(ms.ToArray());
+    }
 
     public void Flush()
     {

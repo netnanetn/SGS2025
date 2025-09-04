@@ -48,3 +48,15 @@ function saveAsFile(filename, base64String) {
     link.download = filename;
     link.click();
 }
+
+window.drawFrameOnCanvas = (canvasId, base64) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src =  base64;
+};
