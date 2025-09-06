@@ -3,6 +3,7 @@
 @using SGS2025Client.Components.HelperService
 @using SGS2025Client.Services
 @inject HikvisionCameraService hikvisionCameraService
+@inject DahuaCameraService dahuaCameraService
 @inject IJSRuntime JS
 @using System.Globalization
 @inject LoadDataService loadDataService
@@ -11,6 +12,7 @@
 @inject RazorRenderer RazorRenderer
 @inject ConfigService configService
 @using PuppeteerSharp
+@implements IDisposable
 
 <div class="container-fluid">
 
@@ -28,7 +30,7 @@
                 CAMERA
             </div>
             <div class="d-flex flex-column align-items-center py-3 gap-3">
-                <img src="/images/scale.jpg" class="img-fluid" />
+                <canvas id="cam1Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
                 <img src="/images/scale.jpg" class="img-fluid" />
                 <img src="/images/scale.jpg" class="img-fluid" />
                 <img src="/images/scale.jpg" class="img-fluid" />
@@ -407,16 +409,45 @@ OnSelected="@OnProductSelected" />
     }
     //end print
 
-    protected override async void OnInitialized()
+  
+    protected override async Task OnInitializedAsync()
     {
         _config = await configService.LoadAsync();
         // update camera thử
-         if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
-             await configService.SaveAsync();
+        if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
+            await configService.SaveAsync();
         // _config = await configService.LoadAsync();
 
         ModelLoad = await loadDataService.LoadAllData();
         danhSachPhieu = await scaleService.SearchAsync("", 200);
+         
+        await Task.Run(() =>
+        {
+            dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
+        });
+
+        _timer = new Timer(async _ =>
+            {
+            await InvokeAsync(async () => await UpdateFrame());
+            }, null, 1000, 50);
+    }
+    private async Task UpdateFrame()
+    { 
+        async Task Draw(string canvasId, string camId)
+        {
+            var img = dahuaCameraService.GetImageBase64(camId);
+            if (!string.IsNullOrEmpty(img))
+            {
+                await JS.InvokeVoidAsync("drawFrameOnCanvas", canvasId, img);
+            }
+        }
+
+        await Task.WhenAll(
+            Draw("cam1Canvas", "cam1"),
+            Draw("cam2Canvas", "cam2")
+        // Draw("cam3Canvas", "cam3"),
+        // Draw("cam4Canvas", "cam4")
+        );
     }
     private async Task CanLan1()
     {
@@ -457,7 +488,7 @@ OnSelected="@OnProductSelected" />
         // xu ly de luu
 
         scaleData.WeightOut = 2500;
-        await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+     //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
         await scaleService.CanLan2(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
@@ -672,5 +703,13 @@ OnSelected="@OnProductSelected" />
             UpdateBy = item.UpdateBy
         };
     }
+    public void Dispose()
+    {  
+        _timer?.Dispose();   // ✅ stop timer
+        _timer = null;
 
+        // Nếu có camera service thì stop luôn
+       // dahuaCameraService?.StopAll();
+    } 
+   
 }

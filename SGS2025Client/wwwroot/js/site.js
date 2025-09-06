@@ -60,3 +60,28 @@ window.drawFrameOnCanvas = (canvasId, base64) => {
     };
     img.src =  base64;
 };
+window.drawFrameOnCanvasByte = async (canvasId, bytes) => {
+    try {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+
+        // Chuyển byte[] từ .NET thành Uint8Array
+        const uint8Array = new Uint8Array(bytes);
+
+        // Tạo Blob hình ảnh (JPEG/PNG tuỳ bạn nén từ server)
+        const blob = new Blob([uint8Array], { type: "image/jpeg" });
+
+        // Giải mã hình ảnh bằng GPU thread riêng
+        const bitmap = await createImageBitmap(blob);
+
+        // Vẽ lên canvas
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+        // Giải phóng bộ nhớ GPU
+        bitmap.close();
+    } catch (err) {
+        console.error("drawFrameOnCanvas error:", err);
+    }
+};

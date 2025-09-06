@@ -26,7 +26,18 @@ namespace SGS2025Client.SDKCameraServices.Dahua
                 return _cameras[id].GetBase64Image();
             return null;
         }
-
+        public string GetImageBase64(string id)
+        {
+            if (_cameras.ContainsKey(id))
+                return _cameras[id].GetBase64ImageByConvert();
+            return null;
+        }
+        //public byte[] GetImageBytes(string id)
+        //{
+        //    if (_cameras.ContainsKey(id))
+        //        return _cameras[id].GetBase64Image();
+        //    return null;
+        //}
         public void StopAll()
         {
             foreach (var cam in _cameras.Values)

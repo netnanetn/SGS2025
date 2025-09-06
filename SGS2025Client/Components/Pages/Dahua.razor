@@ -6,7 +6,7 @@
 <h3>Dahua</h3>
 
 
-<canvas id="cam1Canvas" width="960" height="720" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam1Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 <canvas id="cam2Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 <canvas id="cam3Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 <canvas id="cam4Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
@@ -42,13 +42,13 @@
         Task.Run(() =>
         {
             dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
-          //  dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
+            dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
           // dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
          //   dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
         });
 
       //  _timer = new Timer(UpdateImages, null, 1000, 100);
-        _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 100); // 10fps
+        _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
     }
 
     private void UpdateImages(object state)
@@ -61,6 +61,14 @@
       //  Image4 = dahuaCameraService.GetImage("cam4");
         InvokeAsync(StateHasChanged);
     }
+    private async Task UpdateFrame_new()
+    {
+        // byte[] imgBytes = dahuaCameraService.GetImageBytes("cam1"); // trả về JPEG byte[]
+        // if (imgBytes != null && imgBytes.Length > 0)
+        // {
+        //     await JS.InvokeVoidAsync("drawFrameOnCanvasByte", "cam1Canvas", imgBytes);
+        // }
+    }
     private async Task UpdateFrame()
     { 
         // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam1Canvas", dahuaCameraService.GetImage("cam1"));
@@ -69,7 +77,7 @@
         // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam4Canvas", dahuaCameraService.GetImage("cam4"));
         async Task Draw(string canvasId, string camId)
         {
-            var img = dahuaCameraService.GetImage(camId);
+            var img = dahuaCameraService.GetImageBase64(camId);
             if (!string.IsNullOrEmpty(img))
             {
                 await JS.InvokeVoidAsync("drawFrameOnCanvas", canvasId, img);
@@ -77,8 +85,8 @@
         }
 
         await Task.WhenAll(
-            Draw("cam1Canvas", "cam1")
-           // Draw("cam2Canvas", "cam2"),
+            Draw("cam1Canvas", "cam1"),
+            Draw("cam2Canvas", "cam2")
            // Draw("cam3Canvas", "cam3"),
            // Draw("cam4Canvas", "cam4")
         );

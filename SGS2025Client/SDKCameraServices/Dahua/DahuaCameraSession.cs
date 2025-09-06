@@ -245,6 +245,20 @@ namespace SGS2025Client.SDKCameraServices.Dahua
                 return null;
             }
         }
+        public string GetBase64ImageByConvert(int channel = 0)
+        {
+
+            try
+            {
+                return _latestBase64Image;
+
+               
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
         public void Logout()
         {
             if (_session != null)
