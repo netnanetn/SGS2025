@@ -6,7 +6,7 @@
 <h3>Dahua</h3>
 
 
-<canvas id="cam1Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam1Canvas" width="960" height="720" style="border:1px solid #ccc;"></canvas>
 <canvas id="cam2Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 <canvas id="cam3Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 <canvas id="cam4Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
@@ -42,9 +42,9 @@
         Task.Run(() =>
         {
             dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
-            dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
-           dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
-            dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
+          //  dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
+          // dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
+         //   dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
         });
 
       //  _timer = new Timer(UpdateImages, null, 1000, 100);
@@ -77,10 +77,10 @@
         }
 
         await Task.WhenAll(
-            Draw("cam1Canvas", "cam1"),
-            Draw("cam2Canvas", "cam2"),
-            Draw("cam3Canvas", "cam3"),
-            Draw("cam4Canvas", "cam4")
+            Draw("cam1Canvas", "cam1")
+           // Draw("cam2Canvas", "cam2"),
+           // Draw("cam3Canvas", "cam3"),
+           // Draw("cam4Canvas", "cam4")
         );
     }
     private void chupanh()
