@@ -49,6 +49,11 @@ namespace SGS2025Client.Services
             var json = JsonSerializer.Serialize(_config, options);
             await File.WriteAllTextAsync(_filePath, json);
         }
+        public async Task SaveAsync(AppConfig config)
+        {
+            var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(_filePath, json);
+        }
 
         /// <summary>
         /// Lấy cấu hình hiện tại trong memory

@@ -1,5 +1,6 @@
 ﻿using CMS_Data.Models;
 using CMS_Data.Services;
+using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
@@ -10,6 +11,7 @@ using SGS2025Client.SDKCameraServices.Hik;
 using SGS2025Client.Services;
 using SGS2025Client.Shared;
 //using SGS2025Client.Services;
+using Microsoft.Web.WebView2.Core;
 
 namespace SGS2025Client
 {
@@ -59,6 +61,7 @@ namespace SGS2025Client
 
             builder.Services.AddSingleton<RazorRenderer>();
             builder.Services.AddScoped<PdfService>();
+            builder.Services.AddScoped<ImageStorageService>();
               
 
             // ✅ Đăng ký DI (Dependency Injection)
@@ -82,7 +85,8 @@ namespace SGS2025Client
             {
                 handlers.AddHandler<CameraHostView, CameraHostViewHandler>();
             });
-#endif 
+#endif
+          
 
             return builder.Build();
         }

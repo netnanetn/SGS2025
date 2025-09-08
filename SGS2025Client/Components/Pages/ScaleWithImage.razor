@@ -2,6 +2,7 @@
 
 @using SGS2025Client.Components.HelperService
 @using SGS2025Client.Services
+@using SGS2025Client.Components.Shared
 @inject HikvisionCameraService hikvisionCameraService
 @inject DahuaCameraService dahuaCameraService
 @inject IJSRuntime JS
@@ -11,6 +12,7 @@
 @inject PdfService PdfService
 @inject RazorRenderer RazorRenderer
 @inject ConfigService configService
+@inject ImageStorageService _imageStorageService
 @using PuppeteerSharp
 @implements IDisposable
 
@@ -330,15 +332,12 @@
 </div>
 
 @* <VehiclePicker @bind-Show="ShowPicker" OnSelected="HandleSelected" />  *@
-<VehiclePicker Show="@showVehiclePicker"
-ShowChanged="@((v) => showVehiclePicker = v)"
-OnSelected="@OnVehicleSelected" />
-<CustomerPicker Show="@showCustomerPicker"
-ShowChanged="@((v) => showCustomerPicker = v)"
-OnSelected="@OnCustomerSelected" />
-<ProductPicker Show="@showProductPicker"
-ShowChanged="@((v) => showProductPicker = v)"
-OnSelected="@OnProductSelected" />
+<VehiclePicker Show="@showVehiclePicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showVehiclePicker = v))" OnSelected="@OnVehicleSelected" />
+<CustomerPicker Show="@showCustomerPicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showCustomerPicker = v))" OnSelected="@OnCustomerSelected" />
+<ProductPicker Show="@showProductPicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showProductPicker = v))" OnSelected="@OnProductSelected" />
+@* <VehiclePicker Show="@showVehiclePicker" ShowChanged="@((v) => showVehiclePicker = v)" OnSelected="@OnVehicleSelected" />
+<CustomerPicker Show="@showCustomerPicker" ShowChanged="@((v) => showCustomerPicker = v)" OnSelected="@OnCustomerSelected" />
+<ProductPicker Show="@showProductPicker" ShowChanged="@((v) => showProductPicker = v)" OnSelected="@OnProductSelected" /> *@
 
 
 @if (showModal)
@@ -409,7 +408,7 @@ OnSelected="@OnProductSelected" />
     }
     //end print
 
-  
+
     protected override async Task OnInitializedAsync()
     {
         _config = await configService.LoadAsync();
@@ -420,7 +419,7 @@ OnSelected="@OnProductSelected" />
 
         ModelLoad = await loadDataService.LoadAllData();
         danhSachPhieu = await scaleService.SearchAsync("", 200);
-         
+
         await Task.Run(() =>
         {
             dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
@@ -428,8 +427,8 @@ OnSelected="@OnProductSelected" />
 
         _timer = new Timer(async _ =>
             {
-            await InvokeAsync(async () => await UpdateFrame());
-            }, null, 1000, 50);
+                await InvokeAsync(async () => await UpdateFrame());
+            }, null, 1000, 200);
     }
     private async Task UpdateFrame()
     { 
@@ -476,19 +475,24 @@ OnSelected="@OnProductSelected" />
         scaleData.ProductPrice ??= 0;
         scaleData.ProductMoney ??= 0;
 
-    
-         
+        //_imageStorageService
+        var img1 = dahuaCameraService.GetImageBase64("cam1");
+        var img2 = dahuaCameraService.GetImageBase64("cam2");
+        scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
+        scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+
+
         await scaleService.AddAsync(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
     private async Task CanLan2()
     { 
-       
+
 
         // xu ly de luu
 
         scaleData.WeightOut = 2500;
-     //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+        //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
         await scaleService.CanLan2(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
@@ -499,10 +503,12 @@ OnSelected="@OnProductSelected" />
     }
     private async Task InPhieu()
     {
-      
 
+        var modelForPdf = scaleData;
+        modelForPdf.Img11 = _imageStorageService.ConvertImageToBase64(scaleData.Img11);
+        modelForPdf.Img12 = _imageStorageService.ConvertImageToBase64(scaleData.Img12);
         // Render template thành HTML
-        var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", scaleData);
+        var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", modelForPdf);
 
         var pdfBytes = await PdfService.GeneratePdfAsync(html);
         pdfBase64 = Convert.ToBase64String(pdfBytes);
