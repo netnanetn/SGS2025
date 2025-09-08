@@ -493,6 +493,13 @@
 
         scaleData.WeightOut = 2500;
         //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+
+        //_imageStorageService
+        var img1 = dahuaCameraService.GetImageBase64("cam1");
+        var img2 = dahuaCameraService.GetImageBase64("cam2");
+        scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
+        scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
+
         await scaleService.CanLan2(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
