@@ -12,6 +12,7 @@ using SGS2025Client.Services;
 using SGS2025Client.Shared;
 //using SGS2025Client.Services;
 using Microsoft.Web.WebView2.Core;
+using SGS2025Client.SDKCameraServices.Tvt;
 
 namespace SGS2025Client
 {
@@ -68,6 +69,8 @@ namespace SGS2025Client
             //builder.Services.AddSingleton<CameraService>();
             builder.Services.AddSingleton<HikvisionCameraService>();
             builder.Services.AddSingleton<DahuaCameraService>();
+            builder.Services.AddSingleton<TvtCameraService>();
+
 
             builder.Services.AddSingleton<DahuaCameraService2>();
 

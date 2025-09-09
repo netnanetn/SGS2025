@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DahuaUICamera.SDKTvt
+namespace DahuaUICamera.SDKTvt22
 {
     using System.Net;
     using System.Runtime.InteropServices;

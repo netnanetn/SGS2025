@@ -141,12 +141,20 @@
       <None Update="Database\SGS2025OFFLINE.db">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="NativeLibs\win-x64\native\DevSdkByCS.dll">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 	<ItemGroup>
 		<Content Include="NativeLibs\win-x64\native\pdfium.dll">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<Link>runtimes\win-x64\native\pdfium.dll</Link>
 		</Content>
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="DevSdkByCS">
+	    <HintPath>NativeLibs\win-x64\native\DevSdkByCS.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
  
  
