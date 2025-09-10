@@ -1,5 +1,7 @@
 ﻿using DevSdkByCS;
+using FFmpeg.AutoGen;
 using JerryShaw.HCNet;
+using SGS2025Client.SDKCameraServices.CameraFactory;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -13,7 +15,7 @@ using Windows.System;
 
 namespace SGS2025Client.SDKCameraServices.Tvt
 {
-    public class TvtCameraSession
+    public class TvtCameraSession : ICameraSession
     {
         private int _userID = -1;
         private int _realHandle = -1;
@@ -164,32 +166,41 @@ namespace SGS2025Client.SDKCameraServices.Tvt
         }
         public string GetBase64Image()
         {
+            IntPtr sp = IntPtr.Zero;
             try
             {
-                int jpegSize = 8 * 1024 * 1024;
-                byte[] buffer = new byte[jpegSize];
-                uint actualSize = 0;
+                int picSize = 8 * 1024 * 1024;
+                sp = Marshal.AllocHGlobal(picSize);
+                int size = 0;
 
-                GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                nint ptr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
-
-                bool result = PlayCtrl.PlayM4_GetJPEG(_playPort, ptr, (uint)jpegSize, ref actualSize);
-                handle.Free();
-
-                if (!result || actualSize == 0)
-                    return null;
-
-                string base64 = "data:image/jpeg;base64," + Convert.ToBase64String(buffer, 0, (int)actualSize);
-                lock (_lock)
+                bool ret = DevSdkHelper.NET_SDK_CaptureJpeg(_userID, 0, 0, sp, picSize, ref size);
+                if (ret && size > 0)
                 {
-                    _latestBase64Image = base64;
+                    byte[] data = new byte[size];
+                    Marshal.Copy(sp, data, 0, size);
+
+                    string base64 = Convert.ToBase64String(data);
+                    string dataUrl = $"data:image/jpeg;base64,{base64}";
+
+                    lock (_lock)
+                    {
+                        _latestBase64Image = dataUrl;
+                    }
+                    return dataUrl;
                 }
 
-                return base64;
+                return _latestBase64Image;
             }
             catch
             {
-                return null;
+                return _latestBase64Image;
+            }
+            finally
+            {
+                if (sp != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(sp); // ✅ luôn free
+                }
             }
         }
         public string GetBase64ImageByCapture()
@@ -245,8 +256,14 @@ namespace SGS2025Client.SDKCameraServices.Tvt
                     byte[] data = new byte[size];
                     Marshal.Copy(sp, data, 0, size);
 
-                    string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
-                    File.WriteAllBytes(filePath, data);
+
+                    //string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                    //File.WriteAllBytes(filePath, data);
+
+                    string finalPath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                    string tempPath = finalPath + ".tmp";
+                    File.WriteAllBytes(tempPath, data);
+                    File.Move(tempPath, finalPath, true);
 
                     // Trả về URL cho Blazor
                     return $"https://local.tvs/temp/{camId}.jpg";

@@ -7,10 +7,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using SGS2025Client.SDKCameraServices.CameraFactory;
 
 namespace SGS2025Client.SDKCameraServices.Hik
 {
-    public class HikvisionCameraSession
+    public class HikvisionCameraSession : ICameraSession
     {
         private int _userID = -1;
         private int _realHandle = -1;
@@ -273,8 +274,13 @@ namespace SGS2025Client.SDKCameraServices.Hik
                     return null;
 
                 // Ghi file
-                string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
-                File.WriteAllBytes(filePath, buffer.Take((int)actualSize).ToArray());
+                //string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                //File.WriteAllBytes(filePath, buffer.Take((int)actualSize).ToArray());
+
+                string finalPath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                string tempPath = finalPath + ".tmp";
+                File.WriteAllBytes(tempPath, buffer.Take((int)actualSize).ToArray());
+                File.Move(tempPath, finalPath, true);
 
                 // Trả về URL cho Blazor
                 return $"https://local.tvs/temp/{camId}.jpg";

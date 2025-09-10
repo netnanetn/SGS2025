@@ -1,11 +1,13 @@
-﻿using QuickNV.DahuaNetSDK;
+﻿using JerryShaw.HCNet;
+using QuickNV.DahuaNetSDK;
 using QuickNV.DahuaNetSDK.Api;
+using SGS2025Client.SDKCameraServices.CameraFactory;
 using System;
 using System.Runtime.InteropServices;
 
 namespace SGS2025Client.SDKCameraServices.Dahua
 {
-    public class DahuaCameraSession
+    public class DahuaCameraSession : ICameraSession
     {
         private DhSession _session;
         private bool _initialized = false;
@@ -247,6 +249,28 @@ namespace SGS2025Client.SDKCameraServices.Dahua
                 return base64;
             }
             catch (Exception e)
+            {
+                return null;
+            }
+        }
+        public string GetBase64Image()
+        {
+            try
+            {
+                byte[] jpegData = SnapPicture();
+
+                if (jpegData == null || jpegData.Length == 0)
+                    return _latestBase64Image;
+
+                string base64 = "data:image/jpeg;base64," + Convert.ToBase64String(jpegData);
+                lock (_lock)
+                {
+                    _latestBase64Image = base64;
+                }
+
+                return base64;
+            }
+            catch
             {
                 return null;
             }

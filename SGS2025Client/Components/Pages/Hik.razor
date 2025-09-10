@@ -1,8 +1,9 @@
 ﻿@page "/hik"
 
 @using SGS2025Client.Services
-@inject HikvisionCameraService hikvisionCameraService
+@inject FactoryCameraService _factoryCameraService
 @inject IJSRuntime JS
+@implements IDisposable
 
 <h3>Hikvision</h3>
 
@@ -37,20 +38,24 @@
     {
         Task.Run(() =>
         {
-            hikvisionCameraService.AddCamera("cam1", "192.168.1.109", 8000, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam2", "192.168.1.109", 8000, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam3", "192.168.1.109", 8000, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam4", "192.168.1.109", 8000, "admin", "abcd@1234");
+            _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+          //  _factoryCameraService.AddCamera("cam3", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+           // _factoryCameraService.AddCamera("cam4", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam1", "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam2", "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam3", "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam4", "192.168.1.109", 8000, "admin", "abcd@1234");
         });
 
-        _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 200); // 10fps
+        _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
     }
      
     private async Task UpdateFrame()
     {
         async Task Draw(string canvasId, string camId)
         {
-            var url = hikvisionCameraService.CaptureToUrl(camId);
+            var url = _factoryCameraService.CaptureToUrl(camId);
             if (!string.IsNullOrEmpty(url))
             {
                 await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
@@ -64,18 +69,11 @@
             Draw("cam4Canvas", "cam4")
         );
     }
-    private void UpdateImages(object state)
-    {
-        Image1 = hikvisionCameraService.GetImage("cam1");
-        Image2 = hikvisionCameraService.GetImage("cam2");
-        Image3 = hikvisionCameraService.GetImage("cam3");
-        Image4 = hikvisionCameraService.GetImage("cam4");
-        InvokeAsync(StateHasChanged);
-    }
+  
 
     public void Dispose()
     {
         _timer?.Dispose();
-        hikvisionCameraService.StopAll();
+      //  _factoryCameraService.StopAll();
     }
 }

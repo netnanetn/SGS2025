@@ -13,6 +13,7 @@ using SGS2025Client.Shared;
 //using SGS2025Client.Services;
 using Microsoft.Web.WebView2.Core;
 using SGS2025Client.SDKCameraServices.Tvt;
+using SGS2025Client.SDKCameraServices.CameraFactory;
 
 namespace SGS2025Client
 {
@@ -63,10 +64,11 @@ namespace SGS2025Client
             builder.Services.AddSingleton<RazorRenderer>();
             builder.Services.AddScoped<PdfService>();
             builder.Services.AddScoped<ImageStorageService>();
-              
+
 
             // ✅ Đăng ký DI (Dependency Injection)
             //builder.Services.AddSingleton<CameraService>();
+            builder.Services.AddSingleton<FactoryCameraService>();
             builder.Services.AddSingleton<HikvisionCameraService>();
             builder.Services.AddSingleton<DahuaCameraService>();
             builder.Services.AddSingleton<TvtCameraService>();

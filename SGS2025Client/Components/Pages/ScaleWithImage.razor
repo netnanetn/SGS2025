@@ -3,8 +3,7 @@
 @using SGS2025Client.Components.HelperService
 @using SGS2025Client.Services
 @using SGS2025Client.Components.Shared
-@inject HikvisionCameraService hikvisionCameraService
-@inject DahuaCameraService dahuaCameraService
+@inject FactoryCameraService _factoryCameraService
 @inject IJSRuntime JS
 @using System.Globalization
 @inject LoadDataService loadDataService
@@ -33,7 +32,7 @@
             </div>
             <div class="d-flex flex-column align-items-center py-3 gap-3">
                 <canvas id="cam1Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
-                <img src="/images/scale.jpg" class="img-fluid" />
+                <canvas id="cam2Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
                 <img src="/images/scale.jpg" class="img-fluid" />
                 <img src="/images/scale.jpg" class="img-fluid" />
             </div>
@@ -411,41 +410,60 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _config = await configService.LoadAsync();
-        // update camera thử
-        if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
-            await configService.SaveAsync();
+        _config = await configService.LoadAsync(); 
         // _config = await configService.LoadAsync();
 
-        ModelLoad = await loadDataService.LoadAllData();
-        danhSachPhieu = await scaleService.SearchAsync("", 200);
+        // ModelLoad = await loadDataService.LoadAllData();
+        // danhSachPhieu = await scaleService.SearchAsync("", 200);
 
-        await Task.Run(() =>
+        // await Task.Run(() =>
+        // {
+        //    // dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
+        //     _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+        //     _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+        // });
+
+        // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
-        });
+            // chạy các tác vụ nặng sau khi UI render
+            if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
+                await configService.SaveAsync();
 
-        _timer = new Timer(async _ =>
+            ModelLoad = await loadDataService.LoadAllData();
+            danhSachPhieu = await scaleService.SearchAsync("", 200);
+
+            await Task.Run(() =>
             {
-                await InvokeAsync(async () => await UpdateFrame());
-            }, null, 1000, 200);
+                _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+                _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            });
+
+           _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
+         
+            // refresh UI sau khi có dữ liệu
+            StateHasChanged();
+        }
     }
     private async Task UpdateFrame()
     { 
         async Task Draw(string canvasId, string camId)
         {
-            var img = dahuaCameraService.GetImageBase64(camId);
-            if (!string.IsNullOrEmpty(img))
+            var url = _factoryCameraService.CaptureToUrl(camId);
+            if (!string.IsNullOrEmpty(url))
             {
-                await JS.InvokeVoidAsync("drawFrameOnCanvas", canvasId, img);
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
             }
         }
 
         await Task.WhenAll(
             Draw("cam1Canvas", "cam1"),
-            Draw("cam2Canvas", "cam2")
-        // Draw("cam3Canvas", "cam3"),
-        // Draw("cam4Canvas", "cam4")
+            Draw("cam2Canvas", "cam2"),
+           Draw("cam3Canvas", "cam3"),
+           Draw("cam4Canvas", "cam4")
         );
     }
     private async Task CanLan1()
@@ -476,8 +494,8 @@
         scaleData.ProductMoney ??= 0;
 
         //_imageStorageService
-        var img1 = dahuaCameraService.GetImageBase64("cam1");
-        var img2 = dahuaCameraService.GetImageBase64("cam2");
+        var img1 = _factoryCameraService.GetImage("cam1");
+        var img2 = _factoryCameraService.GetImage("cam2");
         scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
         scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
 
@@ -495,8 +513,8 @@
         //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         //_imageStorageService
-        var img1 = dahuaCameraService.GetImageBase64("cam1");
-        var img2 = dahuaCameraService.GetImageBase64("cam2");
+        var img1 = _factoryCameraService.GetImage("cam1");
+        var img2 = _factoryCameraService.GetImage("cam2");
         scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
         scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
 
