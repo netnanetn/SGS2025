@@ -25,6 +25,12 @@ namespace SGS2025Client.SDKCameraServices.Tvt
                 return _cameras[id].GetBase64ImageByCapture();
             return null;
         }
+        public string CaptureToUrl(string id)
+        {
+            if (_cameras.ContainsKey(id))
+                return _cameras[id].CaptureToUrl(id);
+            return null;
+        }
 
         public void StopAll()
         {

@@ -85,3 +85,18 @@ window.drawFrameOnCanvasByte = async (canvasId, bytes) => {
         console.error("drawFrameOnCanvas error:", err);
     }
 };
+window.drawFrameOnCanvasUrl = (canvasId, camId) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+
+    // 👉 thêm query để tránh cache
+    img.src = `https://local.tvs/temp/${camId}.jpg?t=${Date.now()}`;
+};

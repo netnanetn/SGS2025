@@ -25,7 +25,12 @@ namespace SGS2025Client.SDKCameraServices.Hik
                 return _cameras[id].GetBase64Image();
             return null;
         }
-
+        public string CaptureToUrl(string id)
+        {
+            if (_cameras.ContainsKey(id))
+                return _cameras[id].CaptureToUrl(id);
+            return null;
+        }
         public void StopAll()
         {
             foreach (var cam in _cameras.Values)

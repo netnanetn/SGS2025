@@ -43,24 +43,15 @@
         {
             dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
             dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
-          // dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
-         //   dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
+         //  dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
+          //  dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
         });
 
       //  _timer = new Timer(UpdateImages, null, 1000, 100);
         _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
     }
 
-    private void UpdateImages(object state)
-    {
-         Image1 = dahuaCameraService.GetImage("cam1");
-        
-         Image2 = dahuaCameraService.GetImage("cam2");
-
-       //  Image3 = dahuaCameraService.GetImage("cam3");
-      //  Image4 = dahuaCameraService.GetImage("cam4");
-        InvokeAsync(StateHasChanged);
-    }
+  
     private async Task UpdateFrame_new()
     {
         // byte[] imgBytes = dahuaCameraService.GetImageBytes("cam1"); // trả về JPEG byte[]
@@ -77,18 +68,18 @@
         // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam4Canvas", dahuaCameraService.GetImage("cam4"));
         async Task Draw(string canvasId, string camId)
         {
-            var img = dahuaCameraService.GetImageBase64(camId);
+            var img = dahuaCameraService.CaptureToUrl(camId);
             if (!string.IsNullOrEmpty(img))
             {
-                await JS.InvokeVoidAsync("drawFrameOnCanvas", canvasId, img);
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
             }
         }
 
         await Task.WhenAll(
             Draw("cam1Canvas", "cam1"),
-            Draw("cam2Canvas", "cam2")
-           // Draw("cam3Canvas", "cam3"),
-           // Draw("cam4Canvas", "cam4")
+            Draw("cam2Canvas", "cam2"),
+            Draw("cam3Canvas", "cam3"),
+            Draw("cam4Canvas", "cam4")
         );
     }
     private void chupanh()

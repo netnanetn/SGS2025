@@ -25,6 +25,11 @@ namespace SGS2025Client.SDKCameraServices.Dahua
         private H264StreamingDecoder _decoder;
         private DateTime _lastFrameTime = DateTime.MinValue;
         private readonly int _frameIntervalMs = 10; // 5 FPS
+
+        private byte[] _latestByteImage;
+        private readonly object _fileLock = new object();
+
+        private readonly string _imageFolder = @"C:\TVS\Images\temp";
         public DahuaCameraSession(string ip, int port, string username, string password)
         {
             _ip = ip;
@@ -50,7 +55,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             _session = DhSession.Login(_ip, _port, _username, _password);
             if (_session == null)
                 throw new Exception("Login failed");
-            NETClient.RealPlay(_session.UserId, 0, IntPtr.Zero);
+          //  NETClient.RealPlay(_session.UserId, 0, IntPtr.Zero);
             StartRealPlay();
 
 
@@ -63,7 +68,8 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             _decoder = new H264StreamingDecoder(path);
             _decoder.FrameDecoded += base64 =>
             {
-                _latestBase64Image = $"data:image/jpeg;base64,{base64}";
+                // _latestBase64Image = $"data:image/jpeg;base64,{base64}";
+                _latestByteImage = base64;
             };
         }
         private void SnapRevCallBack(IntPtr lLoginID, IntPtr pBuf, uint RevLen, uint EncodeType, uint CmdSerial, IntPtr dwUser)
@@ -257,6 +263,53 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             catch (Exception e)
             {
                 return null;
+            }
+        }
+        public string CaptureToUrl(string camId)
+        {
+            try
+            {
+                if (_latestByteImage == null || _latestByteImage.Length == 0) return null;
+
+                string finalPath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                string tempPath = finalPath + ".tmp";
+
+                // Ghi ra file tạm
+                File.WriteAllBytes(tempPath, _latestByteImage);
+
+                // Đổi tên file tạm -> file chính (atomic, không bị denied)
+                File.Move(tempPath, finalPath, true);
+            }
+            catch (Exception ex)
+            {
+              //  Console.WriteLine($"❌ SaveCameraImage error {camId}: {ex.Message}");
+            }
+            return $"https://local.tvs/temp/{camId}.jpg";
+            try
+            {
+
+                string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                string tempPath = filePath + ".tmp";
+                if (_latestByteImage == null) return null;
+                lock (_fileLock)
+                {
+                    using (var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+                    {
+                        fs.Write(_latestByteImage, 0, _latestByteImage.Length);
+                    }
+                    File.Move(tempPath, filePath, true); // overwrite an toàn
+                }
+
+
+                //string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                //if (_latestByteImage == null) return null;
+                //File.WriteAllBytes(filePath, _latestByteImage);
+
+                // Trả về URL cho Blazor
+                return $"https://local.tvs/temp/{camId}.jpg";
+            }
+            finally
+            {
             }
         }
         public void Logout()

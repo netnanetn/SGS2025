@@ -4,7 +4,7 @@
 @using SGS2025Client.Services
 @inject TvtCameraService _tvtCameraService
 @inject IJSRuntime JS
-<h3>Dahua</h3>
+<h3>TVT</h3>
 
 
 <canvas id="cam1Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
@@ -47,8 +47,7 @@
             _tvtCameraService.AddCamera("cam3", "192.168.1.107", 9008, "admin", "A123456a@");
             _tvtCameraService.AddCamera("cam4", "192.168.1.107", 9008, "admin", "A123456a@");
         });
-
-      //  _timer = new Timer(UpdateImages, null, 1000, 100);
+         
         _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
     }
 
@@ -56,16 +55,12 @@
     
     private async Task UpdateFrame()
     { 
-        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam1Canvas", dahuaCameraService.GetImage("cam1"));
-        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam2Canvas", dahuaCameraService.GetImage("cam2"));
-        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam3Canvas", dahuaCameraService.GetImage("cam3"));
-        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam4Canvas", dahuaCameraService.GetImage("cam4"));
         async Task Draw(string canvasId, string camId)
         {
-            var img = _tvtCameraService.GetImage(camId);
-            if (!string.IsNullOrEmpty(img))
+            var url = _tvtCameraService.CaptureToUrl(camId);
+            if (!string.IsNullOrEmpty(url))
             {
-                await JS.InvokeVoidAsync("drawFrameOnCanvas", canvasId, img);
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
             }
         }
 

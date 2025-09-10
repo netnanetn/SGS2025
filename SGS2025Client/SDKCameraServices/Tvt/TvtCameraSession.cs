@@ -32,6 +32,10 @@ namespace SGS2025Client.SDKCameraServices.Tvt
         private DateTime _lastFrameTime = DateTime.MinValue;
         private readonly int _frameIntervalMs = 10; // 5 FPS
 
+        private byte[] _latestByteImage;
+        private readonly object _fileLock = new object();
+        private readonly string _imageFolder = @"C:\TVS\Images\temp";
+
         public TvtCameraSession(string ip, int port, string username, string password)
         {
             _ip = ip;
@@ -48,7 +52,7 @@ namespace SGS2025Client.SDKCameraServices.Tvt
             _userID = DevSdkHelper.NET_SDK_Login(_ip, (ushort)_port, _username, _password, ref devInfo);
             if (_userID < 0)
                 throw new Exception("Login failed: " + CHCNetSDK.NET_DVR_GetLastError());
-           // InitDecoder();
+            InitDecoder();
             int channelNum = devInfo.videoInputNum;
             //Start Live
             NET_SDK_CLIENTINFO clientInfo = new NET_SDK_CLIENTINFO();
@@ -56,15 +60,16 @@ namespace SGS2025Client.SDKCameraServices.Tvt
             clientInfo.hPlayWnd = IntPtr.Zero;
             clientInfo.streamType = 1;
 
-            _liveDataCallback = new LIVE_DATA_CALLBACK(RealDataCallback);
-          //  var _realHandle = (int)DevSdkHelper.NET_SDK_LivePlay(_userID, ref clientInfo, _liveDataCallback, IntPtr.Zero);
-          //  if (_realHandle < 0)    throw new Exception("RealPlay failed: " + CHCNetSDK.NET_DVR_GetLastError());
+            _liveDataCallback = (RealDataCallback);
+           //  _realHandle = (int)DevSdkHelper.NET_SDK_LivePlay(_userID, ref clientInfo, _liveDataCallback, IntPtr.Zero);
+            GC.KeepAlive(_liveDataCallback);
+            //  if (_realHandle < 0)    throw new Exception("RealPlay failed: " + CHCNetSDK.NET_DVR_GetLastError());
 
 
 
 
 
-            
+
         }
         void InitDecoder()
         {
@@ -72,81 +77,76 @@ namespace SGS2025Client.SDKCameraServices.Tvt
             _decoder = new H264StreamingDecoder(path);
             _decoder.FrameDecoded += base64 =>
             {
-                _latestBase64Image = $"data:image/jpeg;base64,{base64}";
+               // _latestBase64Image = $"data:image/jpeg;base64,{base64}";
+                _latestByteImage = base64;
             };
         }
 
         private void RealDataCallback(long lLiveHandle, NET_SDK_FRAME_INFO frameInfo, IntPtr pBuffer, IntPtr pUser)
         {
-            //int curDivide = -1;
-            //if (PBAudioDecHandles == null)
-            //{
-            //    PBAudioDecHandles = new int[16];
-            //}
-            //for (int i = 0; i < 16; i++)
-            //{
-            //    if (PBAudioDecHandles[i] == lLiveHandle)
-            //    {
-            //        curDivide = i;
-            //    }
-            //}
- 
 
-            if (frameInfo.frameType == 5)//video format frame
+            try
             {
-                if (frameInfo.length == Marshal.SizeOf(typeof(BITMAPINFOHEADER)))
-                {
-                    BITMAPINFOHEADER bitmapinfo = (BITMAPINFOHEADER)Marshal.PtrToStructure(pBuffer, typeof(BITMAPINFOHEADER));
-                    if (DevSdkHelper.GetbiCompression(bitmapinfo.biCompression) == "H264")
-                        Debug.Print("is H264 \n");
-                    else if (DevSdkHelper.GetbiCompression(bitmapinfo.biCompression) == "HEVC")
-                        Debug.Print("is H265 \n");
+                if (frameInfo.frameType == 5)//video format frame
+                { 
+                    if (frameInfo.length == Marshal.SizeOf(typeof(BITMAPINFOHEADER)))
+                    {
+                        BITMAPINFOHEADER bitmapinfo = (BITMAPINFOHEADER)Marshal.PtrToStructure(pBuffer, typeof(BITMAPINFOHEADER));
+                        if (DevSdkHelper.GetbiCompression(bitmapinfo.biCompression) == "H264")
+                            Debug.Print("is H264 \n");
+                        else if (DevSdkHelper.GetbiCompression(bitmapinfo.biCompression) == "HEVC")
+                            Debug.Print("is H265 \n");
+                    }
+
+                    SDK_FRAME_INFO info = new SDK_FRAME_INFO();
+                    info.keyFrame = frameInfo.keyFrame;
+                    info.nLength = frameInfo.length;
+                    info.nHeight = frameInfo.height;
+                    info.nWidth = frameInfo.width;
+                    info.nStamp = frameInfo.time;
+                    info.frameType = frameInfo.frameType;
+
+
+                    //int bb = Marshal.SizeOf(info);
+                    //byte[] aa = StructToBytes(info, bb);
+                    //MyWriteLog(aa, "record11_" + lLiveHandle + ".txt");//
+                    //MyWriteFile(aa, "record11_" + lLiveHandle + ".txt");//
+                    //uint len = frameInfo.length;
+                    //aa = new byte[len];
+                    //Marshal.Copy(pBuffer, aa, 0, (int)len);
+                    //if (dataIndex > 0)
+                    //MyWriteLog(aa, "record11_" + lLiveHandle + ".txt");
+                    //MyWriteFile(aa, "record11_" + lLiveHandle + ".txt");//
+                    //dataIndex++;
                 }
+                else if (frameInfo.frameType == 1)//video data frame
+                {
+                    SDK_FRAME_INFO info = new SDK_FRAME_INFO();
+                    info.keyFrame = frameInfo.keyFrame;
+                    info.nLength = frameInfo.length;
+                    info.nHeight = frameInfo.height;
+                    info.nWidth = frameInfo.width;
+                    info.nStamp = frameInfo.time;
+                    info.frameType = frameInfo.frameType;
 
-                SDK_FRAME_INFO info = new SDK_FRAME_INFO();
-                info.keyFrame = frameInfo.keyFrame;
-                info.nLength = frameInfo.length;
-                info.nHeight = frameInfo.height;
-                info.nWidth = frameInfo.width;
-                info.nStamp = frameInfo.time;
-                info.frameType = frameInfo.frameType;
+                    int bb = Marshal.SizeOf(info);
+                    byte[] aa = StructToBytes(info, bb);
+                    uint len = frameInfo.length;
+                    aa = new byte[len];
+                    Marshal.Copy(pBuffer, aa, 0, (int)len);
 
 
-                //int bb = Marshal.SizeOf(info);
-                //byte[] aa = StructToBytes(info, bb);
-                //MyWriteLog(aa, "record11_" + lLiveHandle + ".txt");//
-                //MyWriteFile(aa, "record11_" + lLiveHandle + ".txt");//
-                //uint len = frameInfo.length;
-                //aa = new byte[len];
-                //Marshal.Copy(pBuffer, aa, 0, (int)len);
-                //if (dataIndex > 0)
-                //MyWriteLog(aa, "record11_" + lLiveHandle + ".txt");
-                //MyWriteFile(aa, "record11_" + lLiveHandle + ".txt");//
-                //dataIndex++;
+                    //byte[] buffer = new byte[pBuffer];
+                    //Marshal.Copy(pBuffer, buffer, 0, (int)pBuffer);
+
+                   _decoder.Feed(aa);
+
+
+                }
             }
-            else if (frameInfo.frameType == 1)//video data frame
+            catch (Exception e)
             {
-                SDK_FRAME_INFO info = new SDK_FRAME_INFO();
-                info.keyFrame = frameInfo.keyFrame;
-                info.nLength = frameInfo.length;
-                info.nHeight = frameInfo.height;
-                info.nWidth = frameInfo.width;
-                info.nStamp = frameInfo.time;
-                info.frameType = frameInfo.frameType;
 
-                int bb = Marshal.SizeOf(info);
-                byte[] aa = StructToBytes(info, bb);
-                uint len = frameInfo.length;
-                aa = new byte[len];
-                Marshal.Copy(pBuffer, aa, 0, (int)len);
-
-
-                //byte[] buffer = new byte[pBuffer];
-                //Marshal.Copy(pBuffer, buffer, 0, (int)pBuffer);
-                 
-                _decoder.Feed(aa);
-
-                
             }
              
         }
@@ -231,24 +231,71 @@ namespace SGS2025Client.SDKCameraServices.Tvt
                 }
             }
         }
+        public string CaptureToUrl(string camId)
+        {
+
+            int picSize = 8 * 1024 * 1024;
+            IntPtr sp = Marshal.AllocHGlobal(picSize);
+            try
+            {
+                int size = 0;
+                bool ret = DevSdkHelper.NET_SDK_CaptureJpeg(_userID, 0, 0, sp, picSize, ref size);
+                if (ret && size > 0)
+                {
+                    byte[] data = new byte[size];
+                    Marshal.Copy(sp, data, 0, size);
+
+                    string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                    File.WriteAllBytes(filePath, data);
+
+                    // Trả về URL cho Blazor
+                    return $"https://local.tvs/temp/{camId}.jpg";
+                }
+                return null;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(sp);
+            }
+        }
+        public string CaptureToUrl_callback(string camId)
+        {
+            try
+            {
+                if (_latestByteImage == null || _latestByteImage.Length == 0) return null;
+
+                string finalPath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                string tempPath = finalPath + ".tmp";
+
+                // Ghi ra file tạm
+                File.WriteAllBytes(tempPath, _latestByteImage);
+
+                // Đổi tên file tạm -> file chính (atomic, không bị denied)
+                File.Move(tempPath, finalPath, true);
+            }
+            catch (Exception ex)
+            {
+            }
+            return $"https://local.tvs/temp/{camId}.jpg";
+             
+        }
 
         public void Stop()
         {
             if (_realHandle >= 0)
             {
-                CHCNetSDK.NET_DVR_StopRealPlay(_realHandle);
+                DevSdkHelper.NET_SDK_StopLivePlay(_realHandle);
                 _realHandle = -1;
             }
 
             if (_userID >= 0)
             {
-                CHCNetSDK.NET_DVR_Logout(_userID);
+                DevSdkHelper.NET_SDK_Logout(_userID);
                 _userID = -1;
-            }
-
-            PlayCtrl.PlayM4_Stop(_playPort);
-            PlayCtrl.PlayM4_CloseStream(_playPort);
-            PlayCtrl.PlayM4_FreePort(_playPort);
+            } 
+            //PlayCtrl.PlayM4_Stop(_playPort);
+            //PlayCtrl.PlayM4_CloseStream(_playPort);
+            //PlayCtrl.PlayM4_FreePort(_playPort);
         }
     }
 }

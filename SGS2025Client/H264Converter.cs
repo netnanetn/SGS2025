@@ -16,7 +16,7 @@ public unsafe class H264StreamingDecoder : IDisposable
     private bool _disposed;
 
     // Sự kiện trả về JPEG Base64 mỗi khi decode được 1 frame
-    public event Action<string>? FrameDecoded;
+    public event Action<byte[]>? FrameDecoded;
 
     private int _frameCount = 0;
 
@@ -131,9 +131,12 @@ public unsafe class H264StreamingDecoder : IDisposable
                         {
                             _lastFrameTime = now;
 
-                            string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
-                            if (b64 != null)
-                                FrameDecoded?.Invoke(b64);
+                            //string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+                            //if (b64 != null)
+                            //    FrameDecoded?.Invoke(b64);
+                            byte[]? jpegBytes = ConvertFrameToJpegBase64(_frame, ref _sws);
+                            if (jpegBytes != null)
+                                FrameDecoded?.Invoke(jpegBytes);
                         }
 
                         // Convert YUV -> BGR (Bitmap)
@@ -185,7 +188,7 @@ public unsafe class H264StreamingDecoder : IDisposable
         bmp.Save(ms, ImageFormat.Jpeg);
         return Convert.ToBase64String(ms.ToArray());
     }
-    private static string? ConvertFrameToJpegBase64(AVFrame* frame, ref SwsContext* sws)
+    private static byte[]? ConvertFrameToJpegBase64(AVFrame* frame, ref SwsContext* sws)
     {
         int w = frame->width;
         int h = frame->height;
@@ -219,7 +222,8 @@ public unsafe class H264StreamingDecoder : IDisposable
         encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 80L); // 0–100
         bmp.Save(ms, encoder, encoderParams);
 
-        return Convert.ToBase64String(ms.ToArray());
+        //return Convert.ToBase64String(ms.ToArray());
+        return ms.ToArray();
     }
     private static string? ConvertFrameToJpegBase64_new(AVFrame* frame, ref SwsContext* sws)
     {
@@ -275,8 +279,11 @@ public unsafe class H264StreamingDecoder : IDisposable
             if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN) || ret == ffmpeg.AVERROR_EOF) break;
             if (ret < 0) break;
 
-            string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
-            if (b64 != null) FrameDecoded?.Invoke(b64);
+            //string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+            //if (b64 != null) FrameDecoded?.Invoke(b64);
+            byte[]? jpegBytes = ConvertFrameToJpegBase64(_frame, ref _sws);
+            if (jpegBytes != null)
+                FrameDecoded?.Invoke(jpegBytes);
             ffmpeg.av_frame_unref(_frame);
         }
     }
