@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DahuaUICamera", "DahuaUICam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMS_Data", "CMS_Data\CMS_Data.csproj", "{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,14 @@ Global
 		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|x64.ActiveCfg = Release|Any CPU
 		{2329AA7C-BD00-4FF5-BA6D-A91060C36AF5}.Release|x64.Build.0 = Release|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Debug|x64.Build.0 = Debug|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Release|x64.ActiveCfg = Release|Any CPU
+		{3A9C0D67-3F30-4EB3-8EDF-23C85FBD58BA}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

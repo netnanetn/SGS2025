@@ -74,7 +74,8 @@ namespace SGS2025Client
             builder.Services.AddSingleton<TvtCameraService>();
 
 
-            builder.Services.AddSingleton<DahuaCameraService2>();
+            //builder.Services.AddSingleton<WeighingScaleService>();
+            builder.Services.AddSingleton(new WeighingScaleService(ScaleProtocol.STXETX));
 
             // Add services to the container.
             builder.Services.AddBlazorBootstrap();

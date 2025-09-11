@@ -91,6 +91,7 @@
         <PackageReference Include="QuickNV.DahuaNetSDK.Native" Version="1.0.1" />
         <PackageReference Include="RazorLight" Version="2.3.1" />
         <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
+        <PackageReference Include="System.IO.Ports" Version="9.0.9" />
     </ItemGroup>
     <ItemGroup>
       <Content Update="Components\Pages\CameraUI.razor">

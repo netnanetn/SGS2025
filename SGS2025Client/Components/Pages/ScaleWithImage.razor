@@ -11,9 +11,13 @@
 @inject PdfService PdfService
 @inject RazorRenderer RazorRenderer
 @inject ConfigService configService
+@inject WeighingScaleService _weighingScaleService
 @inject ImageStorageService _imageStorageService
 @using PuppeteerSharp
 @implements IDisposable
+
+
+<p>@WeightDisplay</p>
 
 <div class="container-fluid">
 
@@ -387,6 +391,8 @@
     private bool showModal = false;
     private string? pdfBase64;
 
+    private string WeightDisplay = "Đang chờ dữ liệu...";
+    private double WeightRealTime = 0;
 
 
     private void CloseModal()
@@ -411,19 +417,35 @@
     protected override async Task OnInitializedAsync()
     {
         _config = await configService.LoadAsync(); 
-        // _config = await configService.LoadAsync();
 
-        // ModelLoad = await loadDataService.LoadAllData();
-        // danhSachPhieu = await scaleService.SearchAsync("", 200);
+        // lấy cấu hình cổng / baud / protocol từ config (fallback nếu null)
+        var port = _config?.ComConfig?.PortName ?? "COM3";
+        var baud = _config?.ComConfig?.BaudRate ?? 9600;
 
-        // await Task.Run(() =>
-        // {
-        //    // dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
-        //     _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-        //     _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-        // });
-
-        // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
+        // nếu service chưa connect thì connect (Connect idempotent)
+        try
+        {
+            if (!_weighingScaleService.IsConnected)
+            {
+                _weighingScaleService.DataReceived += OnDataReceived;
+                _weighingScaleService.Connect(port, baud);
+            }
+        }
+        catch (Exception ex)
+        {
+            // log hoặc show error theo nhu cầu
+            Console.WriteLine($"Cannot connect scale: {ex.Message}");
+            WeightDisplay = "Không thể kết nối đầu cân";
+        }
+    
+    }
+    private void OnDataReceived(double data)
+    { 
+        InvokeAsync(() =>
+        {
+            WeightDisplay = $"{data:N2} kg";
+            StateHasChanged();
+        });
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -438,13 +460,12 @@
 
             await Task.Run(() =>
             {
-                _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-                _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+              //  _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+               // _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
             });
 
            _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
          
-            // refresh UI sau khi có dữ liệu
             StateHasChanged();
         }
     }
@@ -738,7 +759,8 @@
     {  
         _timer?.Dispose();   // ✅ stop timer
         _timer = null;
-
+        _weighingScaleService.DataReceived -= OnDataReceived;
+        _weighingScaleService.Disconnect();
         // Nếu có camera service thì stop luôn
        // dahuaCameraService?.StopAll();
     } 
