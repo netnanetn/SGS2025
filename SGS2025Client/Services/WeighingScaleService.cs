@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
@@ -10,35 +11,46 @@ namespace SGS2025Client.Services
 {
     public class WeighingScaleService
     {
-        private SerialPort _serialPort;
-        private readonly ScaleProtocol _protocol;
-        private StringBuilder _buffer = new StringBuilder();
+        private readonly SerialPort _serialPort;
+        private StringBuilder _buffer = new();
+        private ScaleProtocol _protocol = ScaleProtocol.Unknown; // Unknown ban đầu
+        private static string dataPlus = "";
 
-        public event Action<double> DataReceived;
-
-        public WeighingScaleService(ScaleProtocol protocol)
-        {
-            _protocol = protocol;
-        }
         public bool IsConnected => _serialPort?.IsOpen ?? false;
-        public void Connect(string portName = "COM3", int baudRate = 9600)
-        {
-            // tránh connect nhiều lần
-            if (IsConnected) return;
+        public event Action<double>? DataReceived;
 
-            _serialPort = new SerialPort(portName, baudRate)
+        public WeighingScaleService()
+        {
+            _serialPort = new SerialPort
             {
+                Encoding = Encoding.ASCII,
                 Parity = Parity.None,
                 DataBits = 8,
-                StopBits = StopBits.One,
-                Handshake = Handshake.None,
-                Encoding = System.Text.Encoding.ASCII,
-                NewLine = "\r\n",
-                ReadTimeout = 200
+                StopBits = StopBits.One
             };
-
             _serialPort.DataReceived += SerialPort_DataReceived;
+        }
+
+        public void Connect(string portName, int baudRate = 9600)
+        {
+            if (IsConnected) return; // idempotent
+
+            _serialPort.PortName = portName;
+            _serialPort.BaudRate = baudRate;
             _serialPort.Open();
+
+            _protocol = ScaleProtocol.Unknown; // reset về auto detect
+        }
+
+        public void Disconnect()
+        {
+            if (IsConnected)
+            {
+                _serialPort.Close();
+                _buffer.Clear();
+                dataPlus = "";
+                _protocol = ScaleProtocol.Unknown;
+            }
         }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -50,7 +62,8 @@ namespace SGS2025Client.Services
 
                 _buffer.Append(chunk);
 
-                var weights = ScaleParser.ExtractWeights(ref _buffer, _protocol);
+                // Auto detect nếu chưa xác định protocol
+                var weights = ScaleParser.ExtractWeights(ref _buffer, ref _protocol);
 
                 foreach (var w in weights)
                     DataReceived?.Invoke(w);
@@ -58,27 +71,6 @@ namespace SGS2025Client.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"COM error: {ex.Message}");
-            }
-        }
-
-        public void Disconnect()
-        {
-            if (_serialPort != null)
-            {
-                try
-                {
-                    if (_serialPort.IsOpen)
-                    {
-                        _serialPort.DataReceived -= SerialPort_DataReceived;
-                        _serialPort.Close();
-                    }
-                }
-                catch { /* swallow or log */ }
-                finally
-                {
-                    _serialPort?.Dispose();
-                    _serialPort = null;
-                }
             }
         }
     }

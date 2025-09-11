@@ -36,7 +36,7 @@ namespace ConsoleApp1
 
                 while (true)
                 {
-                    weight = Math.Round(50 + rand.NextDouble() * 50, 1); // random 50–100 kg
+                    weight = rand.Next(11000, 68001); // random 50–100 kg
 
                     string frame = BuildFrame(weight, mode);
 
@@ -74,7 +74,7 @@ namespace ConsoleApp1
 
         private static string BuildFrame(double weight, string mode)
         {
-            string val = weight.ToString("0.0");
+            string val = weight.ToString();
 
             switch (mode)
             {

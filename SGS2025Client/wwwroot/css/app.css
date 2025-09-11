@@ -53,19 +53,20 @@ h1:focus {
 /*add*/
 .digital-display {
     font-family: 'Orbitron', sans-serif;
-    font-size: 50px;
+    font-size: 60px;
     color: #0eed0a;
     background-color: #1d2c5cf7;
     padding: 10px 10px;
     border-radius: 0px;
     /* letter-spacing: 5px; */
     text-shadow: 0 0 5px #0f0;
-    text-align: center;
     height: -webkit-fill-available;
     align-items: center;
     /* flex: 1; */
     display: flex;
     border-radius: 10px;
+    justify-content: center; /* căn giữa ngang */
+    align-items: center; /* căn giữa dọc */
 }
 
 .digital-table {
