@@ -1,10 +1,17 @@
 ﻿@page "/hik"
 
 @using SGS2025Client.Services
-@inject HikvisionCameraService hikvisionCameraService
+@inject FactoryCameraService _factoryCameraService
+@inject IJSRuntime JS
+@implements IDisposable
 
 <h3>Hikvision</h3>
 
+
+<canvas id="cam1Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam2Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam3Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam4Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 @if (!string.IsNullOrEmpty(Image1))
 {
     <img src="@Image1" width="480" />
@@ -31,27 +38,42 @@
     {
         Task.Run(() =>
         {
-            hikvisionCameraService.AddCamera("cam1", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam2", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam3", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam4", "192.168.1.107", 8002, "admin", "abcd@1234");
+            _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+          //  _factoryCameraService.AddCamera("cam3", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+           // _factoryCameraService.AddCamera("cam4", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam1", "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam2", "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam3", "192.168.1.109", 8000, "admin", "abcd@1234");
+            // hikvisionCameraService.AddCamera("cam4", "192.168.1.109", 8000, "admin", "abcd@1234");
         });
 
-        _timer = new Timer(UpdateImages, null, 1000, 100);
+        _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
     }
-
-    private void UpdateImages(object state)
+     
+    private async Task UpdateFrame()
     {
-        Image1 = hikvisionCameraService.GetImage("cam1");
-        Image2 = hikvisionCameraService.GetImage("cam2");
-        Image3 = hikvisionCameraService.GetImage("cam3");
-        Image4 = hikvisionCameraService.GetImage("cam4");
-        InvokeAsync(StateHasChanged);
+        async Task Draw(string canvasId, string camId)
+        {
+            var url = _factoryCameraService.CaptureToUrl(camId);
+            if (!string.IsNullOrEmpty(url))
+            {
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
+            }
+        }
+
+        await Task.WhenAll(
+            Draw("cam1Canvas", "cam1"),
+            Draw("cam2Canvas", "cam2"),
+            Draw("cam3Canvas", "cam3"),
+            Draw("cam4Canvas", "cam4")
+        );
     }
+  
 
     public void Dispose()
     {
         _timer?.Dispose();
-        hikvisionCameraService.StopAll();
+      //  _factoryCameraService.StopAll();
     }
 }

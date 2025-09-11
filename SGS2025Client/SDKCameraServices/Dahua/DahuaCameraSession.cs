@@ -1,11 +1,13 @@
-﻿using QuickNV.DahuaNetSDK;
+﻿using JerryShaw.HCNet;
+using QuickNV.DahuaNetSDK;
 using QuickNV.DahuaNetSDK.Api;
+using SGS2025Client.SDKCameraServices.CameraFactory;
 using System;
 using System.Runtime.InteropServices;
 
 namespace SGS2025Client.SDKCameraServices.Dahua
 {
-    public class DahuaCameraSession
+    public class DahuaCameraSession : ICameraSession
     {
         private DhSession _session;
         private bool _initialized = false;
@@ -25,6 +27,11 @@ namespace SGS2025Client.SDKCameraServices.Dahua
         private H264StreamingDecoder _decoder;
         private DateTime _lastFrameTime = DateTime.MinValue;
         private readonly int _frameIntervalMs = 10; // 5 FPS
+
+        private byte[] _latestByteImage;
+        private readonly object _fileLock = new object();
+
+        private readonly string _imageFolder = @"C:\TVS\Images\temp";
         public DahuaCameraSession(string ip, int port, string username, string password)
         {
             _ip = ip;
@@ -50,7 +57,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             _session = DhSession.Login(_ip, _port, _username, _password);
             if (_session == null)
                 throw new Exception("Login failed");
-            NETClient.RealPlay(_session.UserId, 0, IntPtr.Zero);
+          //  NETClient.RealPlay(_session.UserId, 0, IntPtr.Zero);
             StartRealPlay();
 
 
@@ -63,7 +70,8 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             _decoder = new H264StreamingDecoder(path);
             _decoder.FrameDecoded += base64 =>
             {
-                _latestBase64Image = $"data:image/jpeg;base64,{base64}";
+                // _latestBase64Image = $"data:image/jpeg;base64,{base64}";
+                _latestByteImage = base64;
             };
         }
         private void SnapRevCallBack(IntPtr lLoginID, IntPtr pBuf, uint RevLen, uint EncodeType, uint CmdSerial, IntPtr dwUser)
@@ -137,7 +145,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
             {
                 dwSize = (uint)Marshal.SizeOf<NET_IN_REALPLAY>(),
                 nChannelID = channel,
-                rType = EM_RealPlayType.Realplay,//EM_RealPlayType.Realplay,
+                rType = EM_RealPlayType.Realplay_1,//EM_RealPlayType.Realplay, // chuyển sang luồng phụ xem mượt ko
                 hWnd = IntPtr.Zero,
                 dwUser = IntPtr.Zero,
                 cbRealData = _realDataCallback
@@ -224,8 +232,7 @@ namespace SGS2025Client.SDKCameraServices.Dahua
         }
         public string GetBase64Image(int channel = 0)
         {
-          
-            return _latestBase64Image;
+           
             try
             {
                 //_session.PictureService.ManualSnap(channel);
@@ -238,7 +245,24 @@ namespace SGS2025Client.SDKCameraServices.Dahua
                     return _latestBase64Image;
 
                 string base64 = "data:image/jpeg;base64," + Convert.ToBase64String(jpegData);
+                 
+                return base64;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
+        public string GetBase64Image()
+        {
+            try
+            {
+                byte[] jpegData = SnapPicture();
 
+                if (jpegData == null || jpegData.Length == 0)
+                    return _latestBase64Image;
+
+                string base64 = "data:image/jpeg;base64," + Convert.ToBase64String(jpegData);
                 lock (_lock)
                 {
                     _latestBase64Image = base64;
@@ -246,9 +270,70 @@ namespace SGS2025Client.SDKCameraServices.Dahua
 
                 return base64;
             }
+            catch
+            {
+                return null;
+            }
+        }
+        public string GetBase64ImageByConvert(int channel = 0)
+        {
+
+            try
+            {
+                return _latestBase64Image;
+
+               
+            }
             catch (Exception e)
             {
                 return null;
+            }
+        }
+        public string CaptureToUrl(string camId)
+        {
+            try
+            {
+                if (_latestByteImage == null || _latestByteImage.Length == 0) return null;
+
+                string finalPath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                string tempPath = finalPath + ".tmp";
+
+                // Ghi ra file tạm
+                File.WriteAllBytes(tempPath, _latestByteImage);
+
+                // Đổi tên file tạm -> file chính (atomic, không bị denied)
+                File.Move(tempPath, finalPath, true);
+            }
+            catch (Exception ex)
+            {
+              //  Console.WriteLine($"❌ SaveCameraImage error {camId}: {ex.Message}");
+            }
+            return $"https://local.tvs/temp/{camId}.jpg";
+            try
+            {
+
+                string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                string tempPath = filePath + ".tmp";
+                if (_latestByteImage == null) return null;
+                lock (_fileLock)
+                {
+                    using (var fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+                    {
+                        fs.Write(_latestByteImage, 0, _latestByteImage.Length);
+                    }
+                    File.Move(tempPath, filePath, true); // overwrite an toàn
+                }
+
+
+                //string filePath = Path.Combine(_imageFolder, $"{camId}.jpg");
+                //if (_latestByteImage == null) return null;
+                //File.WriteAllBytes(filePath, _latestByteImage);
+
+                // Trả về URL cho Blazor
+                return $"https://local.tvs/temp/{camId}.jpg";
+            }
+            finally
+            {
             }
         }
         public void Logout()

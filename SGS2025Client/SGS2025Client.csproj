@@ -22,7 +22,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <EnableDefaultCssItems>false</EnableDefaultCssItems>
         <Nullable>enable</Nullable>
-
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
         <!-- Display name -->
         <ApplicationTitle>SGS2025Client</ApplicationTitle>
 
@@ -64,25 +65,39 @@
     </ItemGroup>
 
 	<ItemGroup>
+		<Content Remove="Resources\Raw\appsettings.sgs.json" />
 		<Content Remove="runtimes\win-x64\native\AudioRender.dll" />
 		<None Remove="runtimes\win-x64\native\AudioRender.dll" />
 	</ItemGroup>
     <ItemGroup>
+        <PackageReference Include="bblanchon.PDFium" Version="141.0.7388" />
+        <PackageReference Include="bblanchon.PDFium.Win32" Version="141.0.7388" />
         <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
         <PackageReference Include="FFmpeg.AutoGen" Version="7.1.1" />
         <PackageReference Include="JerryShaw.HCNet.SDK" Version="0.0.14" />
+        <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.36" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+        <PackageReference Include="PdfiumPrinter" Version="1.4.1" />
+        <PackageReference Include="PdfiumPrinter.Native" Version="1.0.0" />
+        <PackageReference Include="PdfiumViewer" Version="2.13.0" />
+        <PackageReference Include="PdfiumViewer.Native.x86_64.v8-xfa" Version="2018.4.8.256" />
+        <PackageReference Include="PuppeteerSharp" Version="20.2.2" />
         <PackageReference Include="QuickNV.DahuaNetSDK" Version="1.0.1" />
         <PackageReference Include="QuickNV.DahuaNetSDK.Api" Version="1.0.1" />
         <PackageReference Include="QuickNV.DahuaNetSDK.Native" Version="1.0.1" />
+        <PackageReference Include="RazorLight" Version="2.3.1" />
         <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
     </ItemGroup>
     <ItemGroup>
       <Content Update="Components\Pages\CameraUI.razor">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </Content>
+      <Content Update="Components\PdfTemplates\ScalePdfTemplate6Img.cshtml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <Content Update="wwwroot\images\bs1.png">
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -114,6 +129,7 @@
       </Content>
     </ItemGroup>
     <ItemGroup>
+      <Folder Include="NativeLibs\win-x64\native\" />
       <Folder Include="SDKDahua\" />
       <Folder Include="wwwroot\lib\bootstrap-icons\fonts\" />
       <Folder Include="wwwroot\lib\fonts\" />
@@ -121,7 +137,25 @@
     <ItemGroup>
       <ProjectReference Include="..\CMS_Data\CMS_Data.csproj" />
     </ItemGroup>
- 
+    <ItemGroup>
+      <None Update="Database\SGS2025OFFLINE.db">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="NativeLibs\win-x64\native\DevSdkByCS.dll">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+	<ItemGroup>
+		<Content Include="NativeLibs\win-x64\native\pdfium.dll">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<Link>runtimes\win-x64\native\pdfium.dll</Link>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="DevSdkByCS">
+	    <HintPath>NativeLibs\win-x64\native\DevSdkByCS.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
  
  
 </Project>

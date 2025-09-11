@@ -1,0 +1,111 @@
+﻿@page "/config"
+@inject ConfigService configService
+
+<h3>Cấu hình hệ thống</h3>
+
+@if (config == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="config" OnValidSubmit="SaveConfig">
+        <div class="mb-3">
+            <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#system" type="button">System</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#print" type="button">Print</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#camera" type="button">Camera</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#barrier" type="button">Barrier</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#com" type="button">Com</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content p-3 border bg-light">
+            <!-- System -->
+            <div class="tab-pane fade show active" id="system">
+                <InputCheckbox @bind-Value="config.System.UseBarrier" /> Sử dụng barrier <br />
+                <InputCheckbox @bind-Value="config.System.UseCamera" /> Sử dụng camera <br />
+                <InputCheckbox @bind-Value="config.System.LockScale" /> Khóa cân <br />
+                <InputCheckbox @bind-Value="config.System.AutoScale" /> Tự động cân <br />
+            </div>
+
+            <!-- Print -->
+            <div class="tab-pane fade" id="print">
+                <label>Số bản in:</label>
+                <InputNumber @bind-Value="config.Print.NumCopies" /> <br />
+                <label>Template:</label>
+                <InputText @bind-Value="config.Print.ScalePdfTemplate" /> <br />
+                <InputCheckbox @bind-Value="config.Print.NotView" /> Không xem trước <br />
+            </div>
+
+            <!-- Camera -->
+            <div class="tab-pane fade" id="camera">
+                @foreach (var cam in config.Camera.List)
+                {
+                    <div class="border rounded p-2 mb-2 bg-white">
+                        <b>@cam.Code</b><br />
+                        Url: <InputText @bind-Value="cam.Url" class="form-control" /> <br />
+                        User: <InputText @bind-Value="cam.User" class="form-control" /> <br />
+                        Pass: <InputText @bind-Value="cam.Password" class="form-control" /> <br />
+                        Capture: <InputCheckbox @bind-Value="cam.Capture" /> <br />
+                    </div>
+                }
+            </div>
+
+            <!-- Barrier -->
+            <div class="tab-pane fade" id="barrier">
+                @foreach (var b in config.Barrier)
+                {
+                    <div class="border rounded p-2 mb-2 bg-white">
+                        <label>IP:</label>
+                        <InputText @bind-Value="b.Ip" class="form-control" /> <br />
+                        <label>Port:</label>
+                        <InputNumber @bind-Value="b.Port" class="form-control" /> <br />
+                    </div>
+                }
+            </div>
+
+            <!-- Com -->
+            <div class="tab-pane fade" id="com">
+                <label>Port:</label>
+                <InputText @bind-Value="config.ComConfig.PortName" class="form-control" /> <br />
+                <label>Baud:</label>
+                <InputNumber @bind-Value="config.ComConfig.BaudRate" class="form-control" /> <br />
+                <label>Parity:</label>
+                <InputText @bind-Value="config.ComConfig.Parity" class="form-control" /> <br />
+                <label>DataBits:</label>
+                <InputNumber @bind-Value="config.ComConfig.DataBits" class="form-control" /> <br />
+                <label>StopBits:</label>
+                <InputNumber @bind-Value="config.ComConfig.StopBits" class="form-control" /> <br />
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">💾 Lưu cấu hình</button>
+        </div>
+    </EditForm>
+}
+
+@code {
+    private AppConfig? config;
+
+    protected override async Task OnInitializedAsync()
+    {
+        config = await configService.LoadAsync();
+    }
+
+    private async Task SaveConfig()
+    {
+        await configService.SaveAsync(config);
+    }
+}

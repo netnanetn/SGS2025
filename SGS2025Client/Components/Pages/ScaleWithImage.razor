@@ -1,9 +1,19 @@
 ﻿@page "/scalewithimage"
 
+@using SGS2025Client.Components.HelperService
 @using SGS2025Client.Services
-@inject HikvisionCameraService hikvisionCameraService
+@using SGS2025Client.Components.Shared
+@inject FactoryCameraService _factoryCameraService
 @inject IJSRuntime JS
 @using System.Globalization
+@inject LoadDataService loadDataService
+@inject ScaleService scaleService
+@inject PdfService PdfService
+@inject RazorRenderer RazorRenderer
+@inject ConfigService configService
+@inject ImageStorageService _imageStorageService
+@using PuppeteerSharp
+@implements IDisposable
 
 <div class="container-fluid">
 
@@ -21,12 +31,8 @@
                 CAMERA
             </div>
             <div class="d-flex flex-column align-items-center py-3 gap-3">
-                @if (!string.IsNullOrEmpty(Image1))
-                {
-                    <img src="@Image1" class="img-fluid" />
-                }
-                <img src="/images/scale.jpg" class="img-fluid" />
-                <img src="/images/scale.jpg" class="img-fluid" />
+                <canvas id="cam1Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
+                <canvas id="cam2Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
                 <img src="/images/scale.jpg" class="img-fluid" />
                 <img src="/images/scale.jpg" class="img-fluid" />
             </div>
@@ -34,7 +40,7 @@
 
         <!-- Cột phải: Thông tin phiếu cân và khối lượng cân -->
         <div class="col-10">
-            <div class="row">
+            <div class="row" >
                 <!-- Thông tin phiếu cân -->
                 <div class="col-5 parent" style=" padding-left: unset; height: auto">
                     <div style="    background-color: #558bef;
@@ -51,18 +57,26 @@
                             <div class="col-md-8">
                                 <div class="mb-2 d-flex align-items-center">
                                     <label for="sophieu" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Số phiếu</label>
-                                    <input @bind="scaleData.SoPhieu" type="text" id="sophieu" class="form-control form-control-sm" style="margin-left: 15px;" />
+                                    <input @bind="scaleData.Id" readonly type="text" id="sophieu" class="form-control form-control-sm" style="margin-left: 15px;" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
                                         <i class="bi bi-lightning-charge"></i>
                                     </button>
                                 </div>
                                 <div class="mb-2 d-flex align-items-center">
                                     <label for="bienso" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Biển số</label>
-                                    <input type="text" id="bienso" class="form-control form-control-sm" value="37K55055" style="margin-left: 15px;" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    <AutoCompleteInput T="TblVehicle"
+                                    Items="ModelLoad.Vehicles"
+                                    ItemText="v => v.VehiceCode"
+                                    Placeholder="Nhập biển số..."
+                                    OnSelected="OnVehicleSelected"
+                                    Value="@scaleData.Vehicle"  />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showVehiclePicker = true">
                                         <i class="bi bi-repeat"></i>
                                     </button>
                                 </div>
+
+
+
                             </div>
 
                             <!-- Cột phải: Ảnh biển số -->
@@ -75,63 +89,85 @@
                             <div class="col-md-12">
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="khachhang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Khách hàng</label>
-                                    <input type="text" id="khachhang" class="form-control form-control-sm-custom" value="2390" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    <AutoCompleteInput T="TblCustomer"
+                                    Items="ModelLoad.Customers"
+                                    ItemText="c => c.Name"
+                                    Placeholder="Nhập tên khách hàng..."
+                                    OnSelected="OnCustomerSelected"
+                                    Value="@scaleData.CustomerName"  />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showCustomerPicker = true">
                                         <i class="bi bi-person-badge"></i>
                                     </button>
                                 </div>
 
+
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="loaihang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Loại hàng</label>
-                                    <input type="text" id="loaihang" class="form-control form-control-sm-custom" value="37K55055" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    <AutoCompleteInput T="TblProduct"
+                                    Items="ModelLoad.Products"
+                                    ItemText="p => p.Name"
+                                    Placeholder="Nhập loại hàng..."
+                                    OnSelected="OnProductSelected"
+                                    Value="@scaleData.ProductName" />
+                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showProductPicker = true">
                                         <i class="bi bi-stack"></i>
                                     </button>
-                                </div>
+                                </div> 
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="kieucan" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Kiểu cân</label>
-                                    <input type="text" id="kieucan" class="form-control form-control-sm-custom" value="2390" />
-                                    <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+
+                                    <select id="kieucan"
+                                    class="form-select form-select-sm form-control-sm-custom"
+                                    @bind="scaleData.TypeId">
+                                        <option value="1">Nhập hàng</option>
+                                        <option value="2">Xuất hàng</option>
+                                        <option value="3">Dịch vụ</option>
+                                        <option value="4">Trung chuyển</option>
+                                        <option value="5">Khác</option>
+                                    </select>
+
+                                    <button class="btn btn-sm" type="button"
+                                    style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
                                         <i class="bi bi-tags"></i>
                                     </button>
                                 </div>
 
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="tenlaixe" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Tên lái xe</label>
-                                    <input type="text" id="tenlaixe" class="form-control form-control-sm-custom" value="37K55055" />
+                                    <input type="text" id="tenlaixe" class="form-control form-control-sm-custom" @bind="scaleData.DriverName" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px; opacity: 0;">
                                         <i class="bi bi-dice-1"></i>
                                     </button>
                                 </div>
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="ghichu" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Ghi chú</label>
-                                    <input type="text" id="ghichu" class="form-control form-control-sm-custom" value="Ghi chú" />
+                                    <input type="text" id="ghichu" class="form-control form-control-sm-custom" @bind="scaleData.Note" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px; opacity: 0;">
                                         <i class="bi bi-fire"></i>
                                     </button>
                                 </div>
 
-                            </div>
+                            </div> 
                         </div>
                     </div>
                     <div class="bottom-fixed border-top pt-3 px-3">
                         <div class="row g-2" style="height: 80px">
                             <!-- g-2: khoảng cách giữa các ô -->
                             <div class="col-4">
-                                <button class="btn btn-sm btn-warning w-100"><i class="bi bi-plus-square"></i> Thêm mới</button>
+                                <button class="btn btn-sm btn-warning w-100" @onclick="OnClickThemMoi"><i class="bi bi-plus-square"></i> Thêm mới</button>
                             </div>
                             <div class="col-4">
                                 <button type="button" class="btn btn-sm btn-primary w-100" @onclick="CanLan1"> <i class="bi bi-box-arrow-in-left"></i> Cân lần 1</button>
                             </div>
 
                             <div class="col-4">
-                                <button class="btn btn-sm btn-success w-100"><i class="bi bi-printer-fill"></i> In Phiếu</button>
+                                <button class="btn btn-sm btn-success w-100" @onclick="InPhieu"><i class="bi bi-printer-fill"></i> In Phiếu</button>
                             </div>
                             <div class="col-4">
-                                <button class="btn btn-sm btn-danger w-100"><i class="bi bi-save"></i> Lưu phiếu</button>
+                                <button class="btn btn-sm btn-danger w-100" @onclick="LuuPhieu"><i class="bi bi-save"></i> Lưu phiếu</button>
                             </div>
                             <div class="col-4">
-                                <button class="btn btn-sm btn-secondary w-100"><i class="bi bi-box-arrow-right"></i> Cân lần 2</button>
+                                <button class="btn btn-sm btn-secondary w-100" @onclick="CanLan2"><i class="bi bi-box-arrow-right"></i> Cân lần 2</button>
                             </div>
 
                             <div class="col-4">
@@ -146,7 +182,7 @@
                 <!-- Ô khối lượng cân -->
                 <div class="col-7" style="padding: unset">
                     <div class="row" style="padding: unset">
-                        <div class="col-6" style="padding: 0px 10px">
+                        <div class="col-6"  style="padding: 0px 10px">
                             <div class="digital-display">
                                 256800
                             </div>
@@ -270,19 +306,19 @@
                             <tbody>
                                 @foreach (var p in danhSachPhieu)
                                 {
-                                    <tr>
-                                        <td>@p.SoPhieu</td>
-                                        <td>@p.NgayCan.ToString("dd/MM/yyyy")</td>
-                                        <td>@p.BienSoXe</td>
-                                        <td>@p.KhachHang</td>
-                                        <td>@p.HangHoa</td>
-                                        <td>@p.ThoiGianCan1.ToString(@"hh\:mm")</td>
-                                        <td>@FormatKL(p.KLCan1)</td>
-                                        <td>@p.ThoiGianCan2.ToString(@"hh\:mm")</td>
-                                        <td>@FormatKL(p.KLCan2)</td>
-                                        <td>@FormatKL(p.KhoiLuongHang)</td>
-                                        <td>@FormatCurrency(p.DonGia)</td>
-                                        <td>@FormatCurrency(p.ThanhTien)</td>
+                                    <tr @ondblclick="() => OnRowDoubleClick(p)">
+                                        <td>@p.Id</td>
+                                        <td>@p.CreateDay?.ToString("dd/MM/yyyy")</td>
+                                        <td>@p.Vehicle</td>
+                                        <td>@p.CustomerName</td>
+                                        <td>@p.ProductName</td>
+                                        <td>@p.TimeIn?.ToString(@"hh\:mm")</td>
+                                        <td>@FormatKL(p.WeightIn)</td>
+                                        <td>@p.TimeOut?.ToString(@"hh\:mm")</td>
+                                        <td>@FormatKL(p.WeightOut)</td>
+                                        <td>@FormatKL(p.ProductNumber)</td>
+                                        <td>@FormatCurrency(p.ProductPrice)</td>
+                                        <td>@FormatCurrency(p.TotalMoney)</td>
                                     </tr>
                                 }
                             </tbody>
@@ -294,89 +330,417 @@
     </div>
 </div>
 
+@* <VehiclePicker @bind-Show="ShowPicker" OnSelected="HandleSelected" />  *@
+<VehiclePicker Show="@showVehiclePicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showVehiclePicker = v))" OnSelected="@OnVehicleSelected" />
+<CustomerPicker Show="@showCustomerPicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showCustomerPicker = v))" OnSelected="@OnCustomerSelected" />
+<ProductPicker Show="@showProductPicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showProductPicker = v))" OnSelected="@OnProductSelected" />
+@* <VehiclePicker Show="@showVehiclePicker" ShowChanged="@((v) => showVehiclePicker = v)" OnSelected="@OnVehicleSelected" />
+<CustomerPicker Show="@showCustomerPicker" ShowChanged="@((v) => showCustomerPicker = v)" OnSelected="@OnCustomerSelected" />
+<ProductPicker Show="@showProductPicker" ShowChanged="@((v) => showProductPicker = v)" OnSelected="@OnProductSelected" /> *@
 
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Phiếu thông tin xe</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (pdfBase64 != null)
+                    {
+                        <iframe src="data:application/pdf;base64,@pdfBase64" style="width: 100%; height: 500px; border: none;"></iframe>
+                    }
+                    else
+                    {
+                        <p>Đang tạo PDF...</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Đóng</button>
+                    <button type="button" class="btn btn-primary" @onclick="PrintSilent">In ngầm</button>
+                    <button type="button" class="btn btn-success" @onclick="DownloadPdf">Tải PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
-    public class PhieuCanModel
-    {
-        public int SoPhieu { get; set; }
-        public DateTime NgayCan { get; set; }
-        public string BienSoXe { get; set; }
-        public string KhachHang { get; set; }
-        public string HangHoa { get; set; }
-        public TimeSpan ThoiGianCan1 { get; set; }
-        public double KLCan1 { get; set; }
-        public TimeSpan ThoiGianCan2 { get; set; }
-        public double KLCan2 { get; set; }
-        public double KhoiLuongHang => KLCan1 - KLCan2;
-        public decimal DonGia { get; set; }
-        public decimal ThanhTien => (decimal)KhoiLuongHang * DonGia;
-    }
+
+    private AppConfig? _config;
+
+    private FilterInitViewModel ModelLoad = new();
+
+
     private string Image1, Image2, Image3, Image4;
     private Timer _timer;
 
     private DateTime ngayCan = DateTime.Today;
-    private List<PhieuCanModel> danhSachPhieu = new();
+    private List<TblScale> danhSachPhieu = new();
 
-    private PhieuCanModel scaleData = new();
+    private TblScale scaleData = new();
 
-    protected override void OnInitialized()
+    //print
+    private bool showModal = false;
+    private string? pdfBase64;
+
+
+
+    private void CloseModal()
     {
-        danhSachPhieu = new List<PhieuCanModel>
-    {
-        new() { SoPhieu = 2390, NgayCan = DateTime.Today, BienSoXe = "37H-55055", KhachHang = "Công ty ABC", HangHoa = "Đá 1x2", ThoiGianCan1 = new(8, 15, 0), KLCan1 = 18500, ThoiGianCan2 = new(8, 40, 0), KLCan2 = 10200, DonGia = 250000 },
-        new() { SoPhieu = 2391, NgayCan = DateTime.Today, BienSoXe = "37H-55056", KhachHang = "Công ty XYZ", HangHoa = "Than đá", ThoiGianCan1 = new(9, 00, 0), KLCan1 = 20000, ThoiGianCan2 = new(9, 25, 0), KLCan2 = 11000, DonGia = 300000 },
-        new() { SoPhieu = 2392, NgayCan = DateTime.Today, BienSoXe = "38C-12345", KhachHang = "Cty TNHH Hòa Bình", HangHoa = "Cát xây", ThoiGianCan1 = new(9, 30, 0), KLCan1 = 16000, ThoiGianCan2 = new(9, 50, 0), KLCan2 = 8500, DonGia = 180000 },
-        new() { SoPhieu = 2393, NgayCan = DateTime.Today, BienSoXe = "37H-33333", KhachHang = "CTCP Đầu tư A", HangHoa = "Xi măng", ThoiGianCan1 = new(10, 10, 0), KLCan1 = 22000, ThoiGianCan2 = new(10, 30, 0), KLCan2 = 12000, DonGia = 320000 },
-        new() { SoPhieu = 2394, NgayCan = DateTime.Today, BienSoXe = "36A-99999", KhachHang = "Công ty Trường An", HangHoa = "Đá 0x4", ThoiGianCan1 = new(10, 50, 0), KLCan1 = 17500, ThoiGianCan2 = new(11, 10, 0), KLCan2 = 9500, DonGia = 260000 },
-        new() { SoPhieu = 2395, NgayCan = DateTime.Today, BienSoXe = "29C-88888", KhachHang = "Công ty Lê Minh", HangHoa = "Đá mi", ThoiGianCan1 = new(11, 20, 0), KLCan1 = 14500, ThoiGianCan2 = new(11, 40, 0), KLCan2 = 7000, DonGia = 240000 },
-        new() { SoPhieu = 2396, NgayCan = DateTime.Today, BienSoXe = "30E-44444", KhachHang = "CT TNHH Hải Hà", HangHoa = "Cát vàng", ThoiGianCan1 = new(12, 00, 0), KLCan1 = 18000, ThoiGianCan2 = new(12, 20, 0), KLCan2 = 10500, DonGia = 200000 },
-        new() { SoPhieu = 2397, NgayCan = DateTime.Today, BienSoXe = "34D-56789", KhachHang = "Cty SX VLXD Minh Phát", HangHoa = "Sỏi", ThoiGianCan1 = new(12, 45, 0), KLCan1 = 19500, ThoiGianCan2 = new(13, 10, 0), KLCan2 = 9500, DonGia = 270000 },
-        new() { SoPhieu = 2398, NgayCan = DateTime.Today, BienSoXe = "33A-12321", KhachHang = "Công ty Nam Trung", HangHoa = "Gạch", ThoiGianCan1 = new(13, 30, 0), KLCan1 = 21000, ThoiGianCan2 = new(13, 55, 0), KLCan2 = 12000, DonGia = 310000 },
-        new() { SoPhieu = 2399, NgayCan = DateTime.Today, BienSoXe = "29H-55555", KhachHang = "Cty TMDV Thành Công", HangHoa = "Đá 1x2", ThoiGianCan1 = new(14, 15, 0), KLCan1 = 18500, ThoiGianCan2 = new(14, 35, 0), KLCan2 = 10000, DonGia = 250000 }
-    };
-        Task.Run(() =>
-        {
-            hikvisionCameraService.AddCamera("cam1", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam2", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam3", "192.168.1.107", 8002, "admin", "abcd@1234");
-            hikvisionCameraService.AddCamera("cam4", "192.168.1.107", 8002, "admin", "abcd@1234");
-        });
-
-        _timer = new Timer(UpdateImages, null, 1000, 100);
+        showModal = false;
+        pdfBase64 = null;
     }
 
-    private string FormatCurrency(decimal amount) =>
+    private async Task PrintSilent()
+    {
+        //  await JS.InvokeVoidAsync("printSilent", pdfBase64);
+        await PdfService.PrintPdf(pdfBase64);
+    }
+
+    private async Task DownloadPdf()
+    {
+        await JS.InvokeVoidAsync("saveAsFile", "output.pdf", pdfBase64);
+    }
+    //end print
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _config = await configService.LoadAsync(); 
+        // _config = await configService.LoadAsync();
+
+        // ModelLoad = await loadDataService.LoadAllData();
+        // danhSachPhieu = await scaleService.SearchAsync("", 200);
+
+        // await Task.Run(() =>
+        // {
+        //    // dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
+        //     _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+        //     _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+        // });
+
+        // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // chạy các tác vụ nặng sau khi UI render
+            if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
+                await configService.SaveAsync();
+
+            ModelLoad = await loadDataService.LoadAllData();
+            danhSachPhieu = await scaleService.SearchAsync("", 200);
+
+            await Task.Run(() =>
+            {
+                _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+                _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            });
+
+           _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
+         
+            // refresh UI sau khi có dữ liệu
+            StateHasChanged();
+        }
+    }
+    private async Task UpdateFrame()
+    { 
+        async Task Draw(string canvasId, string camId)
+        {
+            var url = _factoryCameraService.CaptureToUrl(camId);
+            if (!string.IsNullOrEmpty(url))
+            {
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
+            }
+        }
+
+        await Task.WhenAll(
+            Draw("cam1Canvas", "cam1"),
+            Draw("cam2Canvas", "cam2"),
+           Draw("cam3Canvas", "cam3"),
+           Draw("cam4Canvas", "cam4")
+        );
+    }
+    private async Task CanLan1()
+    {
+        var s = "";
+        await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+
+        // xu ly de luu
+
+        if (string.IsNullOrEmpty(scaleData.Code))
+            scaleData.Code = Guid.NewGuid().ToString("N")[..8];
+
+        scaleData.TimeIn ??= DateTime.Now;
+        scaleData.WeightIn = 5500;
+        scaleData.WeightOut = 0;
+        scaleData.IsActive ??= true;
+        scaleData.CreateDay ??= DateTime.Now;
+        scaleData.UpdateDay = DateTime.Now;
+        scaleData.CreateBy ??= "admin";   // hoặc lấy từ User.Identity.Name
+        scaleData.UpdateBy = "admin";
+
+        scaleData.StatusPayment ??= "Chưa thanh toán";
+        scaleData.TotalMoney ??= 0;
+        scaleData.MoneyPayment ??= 0;
+        scaleData.MoneyDiscount ??= 0;
+        scaleData.MoneyDebt ??= 0;
+        scaleData.ProductPrice ??= 0;
+        scaleData.ProductMoney ??= 0;
+
+        //_imageStorageService
+        var img1 = _factoryCameraService.GetImage("cam1");
+        var img2 = _factoryCameraService.GetImage("cam2");
+        scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
+        scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+
+
+        await scaleService.AddAsync(scaleData);
+        danhSachPhieu = await scaleService.SearchAsync("", 200);
+    }
+    private async Task CanLan2()
+    { 
+
+
+        // xu ly de luu
+
+        scaleData.WeightOut = 2500;
+        //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+
+        //_imageStorageService
+        var img1 = _factoryCameraService.GetImage("cam1");
+        var img2 = _factoryCameraService.GetImage("cam2");
+        scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
+        scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
+
+        await scaleService.CanLan2(scaleData);
+        danhSachPhieu = await scaleService.SearchAsync("", 200);
+    }
+    private async Task LuuPhieu()
+    {  
+        await scaleService.LuuPhieu(scaleData);
+        danhSachPhieu = await scaleService.SearchAsync("", 200);
+    }
+    private async Task InPhieu()
+    {
+
+        var modelForPdf = scaleData;
+        modelForPdf.Img11 = _imageStorageService.ConvertImageToBase64(scaleData.Img11);
+        modelForPdf.Img12 = _imageStorageService.ConvertImageToBase64(scaleData.Img12);
+        // Render template thành HTML
+        var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", modelForPdf);
+
+        var pdfBytes = await PdfService.GeneratePdfAsync(html);
+        pdfBase64 = Convert.ToBase64String(pdfBytes);
+         
+        showModal = true;
+
+        //in ko show
+       // await PdfService.PrintPdf(pdfBase64);
+
+    }
+    private async Task InPhieu_bak()
+    {
+        var pdfBytes = await PdfService.GeneratePdfAsync(scaleData);
+        pdfBase64 = Convert.ToBase64String(pdfBytes);
+
+        showModal = true;
+
+        //in ko show
+        // await PdfService.PrintPdf(pdfBase64);
+
+    }
+     
+    private async Task OnClickThemMoi(){
+        scaleData = new TblScale();
+    }
+
+    
+    private string FormatCurrency(double? amount) =>
         string.Format(CultureInfo.GetCultureInfo("vi-VN"), "{0:#,##0} đ", amount);
 
-    private string FormatKL(double kl) =>
+    private string FormatKL(decimal? kl) =>
         string.Format("{0:#,##0} kg", kl);
 
 
- 
-    private void UpdateImages(object state)
+    private bool showVehiclePicker;
+    private TblVehicle? selectedVehicle;
+    private string SelectedText =>
+       selectedVehicle is null ? "(chưa chọn)" : $"{selectedVehicle.VehiceCode} - {selectedVehicle.DriverName} - {selectedVehicle.DriverPhone}";
+
+    private Task OnVehicleSelected(TblVehicle v)
     {
-        Image1 = hikvisionCameraService.GetImage("cam1");
-        Image2 = hikvisionCameraService.GetImage("cam2");
-        Image3 = hikvisionCameraService.GetImage("cam3");
-        Image4 = hikvisionCameraService.GetImage("cam4");
-        InvokeAsync(StateHasChanged);
-    }
-     private async Task CanLan1()
-    {
-        var s = "";
-         await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
-        // var response = await Http.PostAsJsonAsync("/api/phieu/luu", phieu);
-        // if (response.IsSuccessStatusCode)
-        // {
-        //     // Xử lý khi thành công
-        // }
+        selectedVehicle = v;
+        scaleData.Vehicle = v.VehiceCode;
+        bienSoSearch = v.VehiceCode;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
 
+    private bool showCustomerPicker;
+    private TblCustomer? selectedCustomer;
+
+    private Task OnCustomerSelected(TblCustomer c)
+    {
+        selectedCustomer = c;
+        scaleData.CustomerName = c.Name;
+        customerSearch = c.Name;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private bool showProductPicker;
+    private TblProduct? selectedProduct;
+
+    private Task OnProductSelected(TblProduct c)
+    {
+        selectedProduct = c;
+        scaleData.ProductName = c.Name;
+        productSearch = c.Name;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private string bienSoSearch = string.Empty;
+    private List<TblVehicle> filteredVehicles = new();
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        bienSoSearch = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(bienSoSearch))
+        {
+            filteredVehicles.Clear();
+        }
+        else
+        {
+            filteredVehicles = ModelLoad.Vehicles
+                .Where(v => v.VehiceCode.Contains(bienSoSearch, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private void SelectVehicle(TblVehicle vehicle)
+    {
+        bienSoSearch = vehicle.VehiceCode;
+        scaleData.Vehicle = vehicle.VehiceCode; // gán lại vào model chính
+        filteredVehicles.Clear();
+    }
+
+    private string customerSearch = string.Empty;
+    private List<TblCustomer> filteredCustomers = new();
+
+    private void OnCustomerInputChanged(ChangeEventArgs e)
+    {
+        customerSearch = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(customerSearch))
+        {
+            filteredCustomers.Clear();
+        }
+        else
+        {
+            filteredCustomers = ModelLoad.Customers
+                .Where(c => c.Name.Contains(customerSearch, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private void SelectCustomer(TblCustomer customer)
+    {
+        customerSearch = customer.Name;
+        scaleData.CustomerName = customer.Name; // gán lại vào model chính
+        filteredCustomers.Clear();
+    }
+
+    private string productSearch = string.Empty;
+    private List<TblProduct> filteredProducts = new();
+
+    private void OnProductInputChanged(ChangeEventArgs e)
+    {
+        productSearch = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(productSearch))
+        {
+            filteredProducts.Clear();
+        }
+        else
+        {
+            filteredProducts = ModelLoad.Products
+                .Where(p => p.Name.Contains(productSearch, StringComparison.OrdinalIgnoreCase))
+                .Take(10)
+                .ToList();
+        }
+    }
+
+    private void SelectProduct(TblProduct product)
+    {
+        productSearch = product.Name;
+        scaleData.ProductName = product.Name; // gán lại vào model chính
+        filteredProducts.Clear();
+    }
+
+    private void OnRowDoubleClick(TblScale item)
+    {
+        // clone object (tránh tham chiếu trực tiếp)
+        scaleData = new TblScale
+        {
+            Id = item.Id,
+            Code = item.Code,
+            Vehicle = item.Vehicle,
+            DriverName = item.DriverName,
+            TimeIn = item.TimeIn,
+            WeightIn = item.WeightIn,
+            TimeOut = item.TimeOut,
+            WeightOut = item.WeightOut,
+            WeightImpurity = item.WeightImpurity,
+            ProductNumber = item.ProductNumber,
+            ProductName = item.ProductName,
+            CustomerId = item.CustomerId,
+            CustomerName = item.CustomerName,
+            CustomerAddress = item.CustomerAddress,
+            CustomerPhone = item.CustomerPhone,
+            ProductId = item.ProductId,
+            ProductPrice = item.ProductPrice,
+            ProductMoney = item.ProductMoney,
+            Proportion = item.Proportion,
+            Exchange = item.Exchange,
+            Note = item.Note,
+            TypeId = item.TypeId,
+            TopSeal = item.TopSeal,
+            IsActive = item.IsActive,
+            TotalMoney = item.TotalMoney,
+            MoneyPayment = item.MoneyPayment,
+            MoneyDiscount = item.MoneyDiscount,
+            MoneyDebt = item.MoneyDebt,
+            StatusPayment = item.StatusPayment,
+            Img11 = item.Img11,
+            Img12 = item.Img12,
+            Img13 = item.Img13,
+            Img21 = item.Img21,
+            Img22 = item.Img22,
+            Img23 = item.Img23,
+            IndexInDay = item.IndexInDay,
+            CreateDay = item.CreateDay,
+            CreateBy = item.CreateBy,
+            UpdateDay = item.UpdateDay,
+            UpdateBy = item.UpdateBy
+        };
+    }
     public void Dispose()
-    {
-        _timer?.Dispose();
-        hikvisionCameraService.StopAll();
-    }
+    {  
+        _timer?.Dispose();   // ✅ stop timer
+        _timer = null;
+
+        // Nếu có camera service thì stop luôn
+       // dahuaCameraService?.StopAll();
+    } 
+   
 }

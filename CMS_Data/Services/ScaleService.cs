@@ -46,8 +46,29 @@ namespace CMS_Data.Services
             await _db.SaveChangesAsync(ct);
             return v;
         }
-
-
+        public async Task<TblScale> CanLan2(TblScale v, CancellationToken ct = default)
+        {
+            var scaleUpdate = await _db.TblScales.FirstOrDefaultAsync(x => x.Id == v.Id);
+            scaleUpdate.TimeOut = DateTime.Now;
+            scaleUpdate.WeightOut = v.WeightOut;
+            scaleUpdate.Note = v.Note;
+            scaleUpdate.ProductNumber = Math.Abs((decimal)v.WeightOut - (decimal)v.WeightIn);
+            await _db.SaveChangesAsync(ct);
+            return v;
+        }
+        public async Task<TblScale> LuuPhieu(TblScale v, CancellationToken ct = default)
+        {
+            var scaleUpdate = await _db.TblScales.FirstOrDefaultAsync(x => x.Id == v.Id);
+            scaleUpdate.Vehicle = v.Vehicle;
+            scaleUpdate.CustomerName = v.CustomerName;
+            scaleUpdate.ProductName = v.ProductName;
+            scaleUpdate.TypeId = v.TypeId;
+            scaleUpdate.DriverName = v.DriverName;
+            scaleUpdate.Note = v.Note;
+            scaleUpdate.UpdateDay = DateTime.Now;
+            await _db.SaveChangesAsync(ct);
+            return v;
+        }
     }
 
 }

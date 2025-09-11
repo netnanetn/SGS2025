@@ -16,9 +16,12 @@ public unsafe class H264StreamingDecoder : IDisposable
     private bool _disposed;
 
     // Sự kiện trả về JPEG Base64 mỗi khi decode được 1 frame
-    public event Action<string>? FrameDecoded;
+    public event Action<byte[]>? FrameDecoded;
 
     private int _frameCount = 0;
+
+    private DateTime _lastFrameTime = DateTime.MinValue;
+    private readonly int _frameIntervalMs = 200; // ~5 fps 200
 
     public H264StreamingDecoder(string ffmpegDllFolder)
     {
@@ -116,11 +119,24 @@ public unsafe class H264StreamingDecoder : IDisposable
                         }
 
                         _frameCount++;
-                        if (_frameCount % 20 == 0) // lấy mỗi 5 frame
+                        //if (_frameCount % 20 == 0) // lấy mỗi 5 frame
+                        //{
+                        //    string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+                        //    if (b64 != null)
+                        //        FrameDecoded?.Invoke(b64);
+                        //}
+
+                        var now = DateTime.UtcNow;
+                        if ((now - _lastFrameTime).TotalMilliseconds >= _frameIntervalMs)
                         {
-                            string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
-                            if (b64 != null)
-                                FrameDecoded?.Invoke(b64);
+                            _lastFrameTime = now;
+
+                            //string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+                            //if (b64 != null)
+                            //    FrameDecoded?.Invoke(b64);
+                            byte[]? jpegBytes = ConvertFrameToJpegBase64(_frame, ref _sws);
+                            if (jpegBytes != null)
+                                FrameDecoded?.Invoke(jpegBytes);
                         }
 
                         // Convert YUV -> BGR (Bitmap)
@@ -139,7 +155,7 @@ public unsafe class H264StreamingDecoder : IDisposable
         }
     }
 
-    private static string? ConvertFrameToJpegBase64(AVFrame* frame, ref SwsContext* sws)
+    private static string? ConvertFrameToJpegBase64_FullQuantity(AVFrame* frame, ref SwsContext* sws)
     {
         int w = frame->width;
         int h = frame->height;
@@ -172,6 +188,82 @@ public unsafe class H264StreamingDecoder : IDisposable
         bmp.Save(ms, ImageFormat.Jpeg);
         return Convert.ToBase64String(ms.ToArray());
     }
+    private static byte[]? ConvertFrameToJpegBase64(AVFrame* frame, ref SwsContext* sws)
+    {
+        int w = frame->width;
+        int h = frame->height;
+        if (w <= 0 || h <= 0) return null;
+
+        if (sws == null)
+        {
+            sws = ffmpeg.sws_getContext(
+                w, h, (AVPixelFormat)frame->format,
+                w, h, AVPixelFormat.AV_PIX_FMT_BGR24,
+                ffmpeg.SWS_BILINEAR, null, null, null
+            );
+        }
+        if (sws == null) return null;
+
+        using var bmp = new Bitmap(w, h, PixelFormat.Format24bppRgb);
+        var data = bmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+        byte_ptrArray4 dstData = default;
+        int_array4 dstLinesize = default;
+        dstData[0] = (byte*)data.Scan0;
+        dstLinesize[0] = data.Stride;
+
+        ffmpeg.sws_scale(sws, frame->data, frame->linesize, 0, h, dstData, dstLinesize);
+        bmp.UnlockBits(data);
+
+        using var ms = new MemoryStream();
+        // --- set chất lượng JPEG ---
+        var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+        var encoderParams = new EncoderParameters(1);
+        encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 80L); // 0–100
+        bmp.Save(ms, encoder, encoderParams);
+
+        //return Convert.ToBase64String(ms.ToArray());
+        return ms.ToArray();
+    }
+    private static string? ConvertFrameToJpegBase64_new(AVFrame* frame, ref SwsContext* sws)
+    {
+        int targetW = 640;
+        int targetH = 480;
+
+        if (frame->width <= 0 || frame->height <= 0) return null;
+
+        // Tạo SwsContext resize
+        if (sws == null)
+        {
+            sws = ffmpeg.sws_getContext(
+                frame->width, frame->height, (AVPixelFormat)frame->format,
+                targetW, targetH, AVPixelFormat.AV_PIX_FMT_BGR24,
+                ffmpeg.SWS_BILINEAR, null, null, null
+            );
+        }
+        if (sws == null) return null;
+
+        using var bmp = new Bitmap(targetW, targetH, PixelFormat.Format24bppRgb);
+        var data = bmp.LockBits(new Rectangle(0, 0, targetW, targetH), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+        byte_ptrArray4 dstData = default;
+        int_array4 dstLinesize = default;
+        dstData[0] = (byte*)data.Scan0;
+        dstLinesize[0] = data.Stride;
+
+        // scale frame gốc -> frame fixed size
+        ffmpeg.sws_scale(sws, frame->data, frame->linesize, 0, frame->height, dstData, dstLinesize);
+
+        bmp.UnlockBits(data);
+
+        using var ms = new MemoryStream();
+        var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+        var encoderParams = new EncoderParameters(1);
+        encoderParams.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 80L);
+        bmp.Save(ms, encoder, encoderParams);
+
+        return Convert.ToBase64String(ms.ToArray());
+    }
 
     public void Flush()
     {
@@ -187,8 +279,11 @@ public unsafe class H264StreamingDecoder : IDisposable
             if (ret == ffmpeg.AVERROR(ffmpeg.EAGAIN) || ret == ffmpeg.AVERROR_EOF) break;
             if (ret < 0) break;
 
-            string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
-            if (b64 != null) FrameDecoded?.Invoke(b64);
+            //string? b64 = ConvertFrameToJpegBase64(_frame, ref _sws);
+            //if (b64 != null) FrameDecoded?.Invoke(b64);
+            byte[]? jpegBytes = ConvertFrameToJpegBase64(_frame, ref _sws);
+            if (jpegBytes != null)
+                FrameDecoded?.Invoke(jpegBytes);
             ffmpeg.av_frame_unref(_frame);
         }
     }

@@ -1,0 +1,158 @@
+﻿@using CMS_Data.Services
+@using Microsoft.AspNetCore.Components
+@inject VehicleService VehicleService
+@if (Show)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Danh sách xe</h5>
+                    <button type="button" class="btn-close" @onclick="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Tìm kiếm -->
+                    <div class="input-group mb-3">
+                        <input class="form-control" placeholder="Tìm theo biển số, dòng xe, chủ xe..."
+                               @bind="search" @bind:event="oninput" />
+                        <button class="btn btn-outline-secondary" @onclick="DoSearch">Tìm</button>
+                    </div>
+
+                    <!-- Kết quả -->
+                    <div class="table-responsive mb-3" style="max-height:320px; overflow:auto;">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width:150px">Biển số</th>
+                                    <th>Dòng xe</th>
+                                    <th>Chủ xe</th>
+                                    <th style="width:100px"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (items is null)
+                                {
+                                    <tr><td colspan="4">Nhập từ khoá để tìm…</td></tr>
+                                }
+                                else if (items.Count == 0)
+                                {
+                                    <tr><td colspan="4">Không tìm thấy.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var v in items)
+                                    {
+                                        <tr>
+                                            <td>@v.VehiceCode</td>
+                                            <td>@v.DriverName</td>
+                                            <td>@v.DriverPhone</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary" @onclick="() => Select(v)">Chọn</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Thêm mới -->
+                    <details class="mb-2">
+                        <summary class="h6">Thêm xe mới</summary>
+                        <div class="row g-2 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label">Biển số *</label>
+                                <input class="form-control" @bind="createModel.VehiceCode" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Lái xe</label>
+                                <input class="form-control" @bind="createModel.DriverName" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">SĐT</label>
+                                <input class="form-control" @bind="createModel.DriverPhone" />
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button class="btn btn-success" @onclick="AddNew" disabled="@string.IsNullOrWhiteSpace(createModel.VehiceCode)">
+                                    Lưu xe mới
+                                </button>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(error))
+                        {
+                            <div class="text-danger mt-2">@error</div>
+                        }
+                    </details>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="Close">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+    [Parameter] public EventCallback<TblVehicle> OnSelected { get; set; }
+
+    private string? search;
+    private List<TblVehicle>? items;
+    private TblVehicle createModel = new();
+    private string? error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Show && items is null)
+            await DoSearch();
+    }
+
+    private async Task DoSearch()
+    {
+        items = await VehicleService.SearchAsync(search);
+        StateHasChanged();
+    }
+
+    private async Task AddNew()
+    {
+        error = null;
+        try
+        {
+            createModel.VehiceCode = createModel.VehiceCode?.Trim();
+            if (string.IsNullOrWhiteSpace(createModel.VehiceCode))
+            {
+                error = "Biển số bắt buộc.";
+                return;
+            }
+
+            var saved = await VehicleService.AddAsync(createModel);
+            // refresh danh sách và chọn luôn xe vừa thêm (tuỳ ý)
+            await DoSearch();
+            await Select(saved);
+
+            // reset form
+            createModel = new();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private async Task Select(TblVehicle v)
+    {
+        if (OnSelected.HasDelegate)
+            await OnSelected.InvokeAsync(v);
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        items ??= new();
+        if (ShowChanged.HasDelegate)
+            await ShowChanged.InvokeAsync(false);
+    }
+}

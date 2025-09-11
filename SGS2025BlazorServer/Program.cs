@@ -2,6 +2,7 @@
 using CMS_Data.Services;
 using Microsoft.EntityFrameworkCore;
 using SGS2025BlazorServer.Components;
+using SGS2025BlazorServer.Components.LibPDFs;
 
 namespace SGS2025BlazorServer
 {
@@ -25,6 +26,8 @@ namespace SGS2025BlazorServer
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<LoadDataService>();
             builder.Services.AddScoped<ScaleService>();
+
+            builder.Services.AddScoped<PdfService>();
 
             // Add services to the container.
             builder.Services.AddBlazorBootstrap();

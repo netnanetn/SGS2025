@@ -2,23 +2,30 @@
 
 @using SGS2025Client.Services
 @inject DahuaCameraService dahuaCameraService
+@inject IJSRuntime JS
 <h3>Dahua</h3>
+
+
+<canvas id="cam1Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam2Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam3Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
+<canvas id="cam4Canvas" width="240" height="180" style="border:1px solid #ccc;"></canvas>
 @if (!string.IsNullOrEmpty(Image1))
 {
-    <img src="@Image1" style="max-width:480px; height:auto;" />
+    <img src="@Image1" style="width:240px; height:180px; object-fit:cover;" />
 }
 
 @if (!string.IsNullOrEmpty(Image2))
 {
-    <img src="@Image2" style="max-width:480px; height:auto;" />
+    <img src="@Image2" style="width:240px; height:180px; object-fit:cover;" />
 }
 @if (!string.IsNullOrEmpty(Image3))
 {
-    <img src="@Image3" style="max-width:480px; height:auto;" />
+    <img src="@Image3" style="width:240px; height:180px; object-fit:cover;" />
 }
 @if (!string.IsNullOrEmpty(Image4))
 {
-    <img src="@Image4" style="max-width:480px; height:auto;" />
+    <img src="@Image4" style="width:240px; height:180px; object-fit:cover;" />
 } 
 <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="chupanh">
     <i class="bi bi-repeat"></i>
@@ -28,31 +35,56 @@
     private string Image1, Image2, Image3, Image4;
     private Timer _timer;
 
+    
+
     protected override void OnInitialized()
     {
         Task.Run(() =>
         {
             dahuaCameraService.AddCamera("cam1", "192.168.1.109", 37777, "admin", "abcd@1234");
-          //  dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
-          //  dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
+            dahuaCameraService.AddCamera("cam2", "192.168.1.109", 37777, "admin", "abcd@1234");
+         //  dahuaCameraService.AddCamera("cam3", "192.168.1.109", 37777, "admin", "abcd@1234");
           //  dahuaCameraService.AddCamera("cam4", "192.168.1.109", 37777, "admin", "abcd@1234");
         });
 
-        _timer = new Timer(UpdateImages, null, 1000, 50);
+      //  _timer = new Timer(UpdateImages, null, 1000, 100);
+        _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
     }
 
-    private void UpdateImages(object state)
+  
+    private async Task UpdateFrame_new()
     {
-         Image1 = dahuaCameraService.GetImage("cam1");
-        
-      //  Image2 = dahuaCameraService.GetImage("cam2");
-       //  Image3 = dahuaCameraService.GetImage("cam3");
-      //  Image4 = dahuaCameraService.GetImage("cam4");
-        InvokeAsync(StateHasChanged);
+        // byte[] imgBytes = dahuaCameraService.GetImageBytes("cam1"); // trả về JPEG byte[]
+        // if (imgBytes != null && imgBytes.Length > 0)
+        // {
+        //     await JS.InvokeVoidAsync("drawFrameOnCanvasByte", "cam1Canvas", imgBytes);
+        // }
+    }
+    private async Task UpdateFrame()
+    { 
+        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam1Canvas", dahuaCameraService.GetImage("cam1"));
+        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam2Canvas", dahuaCameraService.GetImage("cam2"));
+        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam3Canvas", dahuaCameraService.GetImage("cam3"));
+        // await JS.InvokeVoidAsync("drawFrameOnCanvas", "cam4Canvas", dahuaCameraService.GetImage("cam4"));
+        async Task Draw(string canvasId, string camId)
+        {
+            var img = dahuaCameraService.CaptureToUrl(camId);
+            if (!string.IsNullOrEmpty(img))
+            {
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
+            }
+        }
+
+        await Task.WhenAll(
+            Draw("cam1Canvas", "cam1"),
+            Draw("cam2Canvas", "cam2"),
+            Draw("cam3Canvas", "cam3"),
+            Draw("cam4Canvas", "cam4")
+        );
     }
     private void chupanh()
     {
-        dahuaCameraService.GetImage("cam1");
+        var imageBase64_1 = dahuaCameraService.GetImage("cam1");
     }
     public void Dispose()
     {

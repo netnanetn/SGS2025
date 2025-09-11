@@ -1,0 +1,17 @@
+﻿@page "/test"
+
+@using SGS2025Client.Services
+@inject DahuaCameraService2 dahuaCameraService
+<h3>Dahua</h3>
+<h3>Blazor Hybrid Test</h3>
+
+<button @onclick="OpenNativeCameraPage">Mở CameraPage (MAUI)</button>
+
+@code {
+    private void OpenNativeCameraPage()
+    {
+        var mauiPage = new SGS2025Client.Controls.Dahua.CameraDahuaHostView();
+        (Application.Current.MainPage as NavigationPage)
+         ?.PushAsync(mauiPage);
+    }
+}
