@@ -1,0 +1,144 @@
+﻿@page "/vehicles"
+@inject VehicleService _vehicleService
+
+<div class="input-group mb-3" >
+    <InputText @bind-Value="searchText" class="form-control" placeholder="🔍 Tìm xe..." />
+    <button class="btn btn-primary" @onclick="Search">Tìm</button>
+    <button class="btn btn-secondary" @onclick="ResetSearch">Reset</button>
+</div>
+<button class="btn btn-primary mb-2" @onclick="ShowAddForm">➕ Thêm Xe</button>
+
+@if (vehicles == null)
+{
+    <p><em>Đang tải...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã Xe</th>
+                <th>Tài xế</th>
+                <th>Điện thoại</th>
+                <th>Trọng tải</th>
+                <th>Công ty</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in vehicles)
+            {
+                <tr>
+                    <td>@v.VehiceCode</td>
+                    <td>@v.DriverName</td>
+                    <td>@v.DriverPhone</td>
+                    <td>@v.TonnageDefault</td>
+                    <td>@v.TransportationCompany</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" @onclick="() => Edit(v)">✏️ Sửa</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(v.Id)">🗑️ Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (editVehicle != null)
+{
+    <EditForm Model="editVehicle" OnValidSubmit="Save">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label>Mã Xe:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.VehiceCode" />
+        </div>
+        <div class="mb-2">
+            <label>Tài xế:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.DriverName" />
+        </div>
+        <div class="mb-2">
+            <label>Điện thoại:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.DriverPhone" />
+        </div>
+        <div class="mb-2">
+            <label>Trọng tải:</label>
+            <InputNumber class="form-control" @bind-Value="editVehicle.TonnageDefault" />
+        </div>
+        <div class="mb-2">
+            <label>Công ty:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.TransportationCompany" />
+        </div>
+
+        <button type="submit" class="btn btn-success">💾 Lưu</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
+    </EditForm>
+}
+
+@code {
+    List<TblVehicle>? vehicles;
+    TblVehicle? editVehicle;
+    string searchText = string.Empty; 
+
+    protected override async Task OnInitializedAsync()
+    { 
+        vehicles = await _vehicleService.GetAllAsync(); 
+    }
+    async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            vehicles = await _vehicleService.GetAllAsync();
+        }
+        else
+        {
+            vehicles = await _vehicleService.SearchAsync(searchText);
+        }
+    }
+
+    async Task ResetSearch()
+    {
+        searchText = string.Empty;
+        vehicles = await _vehicleService.GetAllAsync();
+    }
+    void ShowAddForm()
+    {
+        editVehicle = new TblVehicle();
+    }
+
+    void Edit(TblVehicle v)
+    {
+        editVehicle = new TblVehicle
+            {
+                Id = v.Id,
+                VehiceCode = v.VehiceCode,
+                DriverName = v.DriverName,
+                DriverPhone = v.DriverPhone,
+                TonnageDefault = v.TonnageDefault,
+                TransportationCompany = v.TransportationCompany
+            };
+    }
+
+    async Task Save()
+    {
+        if (editVehicle == null) return;
+
+        if (editVehicle.Id == 0)
+            await _vehicleService.AddAsync(editVehicle);
+        else
+            await _vehicleService.UpdateAsync(editVehicle);
+
+        vehicles = await _vehicleService.GetAllAsync();
+        editVehicle = null;
+        StateHasChanged();
+    }
+
+    async Task Delete(int id)
+    {
+        await _vehicleService.DeleteAsync(id);
+        vehicles = await _vehicleService.GetAllAsync();
+    }
+
+    void Cancel() => editVehicle = null;
+}

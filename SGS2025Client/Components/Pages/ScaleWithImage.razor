@@ -453,12 +453,24 @@
     {
         if (firstRender)
         {
-            // chạy các tác vụ nặng sau khi UI render
-            if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
-                await configService.SaveAsync();
+              // 🔹 Vẽ ảnh mặc định ngay lập tức
+            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam1Canvas", "cameraai");
+            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam2Canvas", "cameraai");
+            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam3Canvas", "cameraai");
+            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai");
 
-            ModelLoad = await loadDataService.LoadAllData();
-            danhSachPhieu = await scaleService.SearchAsync("", 200);
+            // 🔹 Chạy các tác vụ nặng song song
+            _ = Task.Run(async () =>
+            {
+                if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
+                    await configService.SaveAsync();
+
+                ModelLoad = await loadDataService.LoadAllData();
+                danhSachPhieu = await scaleService.SearchAsync("", 200);
+            });
+
+            // chạy các tác vụ nặng sau khi UI render
+            
 
             await Task.Run(() =>
             {

@@ -24,19 +24,41 @@ namespace ConsoleApp1
             Console.Write("Gửi kiểu (0=nguyên frame, 1=chunk từng phần): ");
             string sendMode = Console.ReadLine()?.Trim() ?? "0";
 
-            Console.WriteLine($"Đang mở {portName} với protocol {mode}, sendMode={sendMode} ...");
+            Console.Write("Kiểu tạo số cân (0=random, 1=triangle wave): ");
+            string modeWeight = Console.ReadLine()?.Trim() ?? "0";
+
+            Console.WriteLine($"Đang mở {portName} với protocol={mode}, sendMode={sendMode}, weightMode={modeWeight} ...");
 
             using (var sp = new SerialPort(portName, 9600, Parity.None, 8, StopBits.One))
             {
                 sp.Encoding = Encoding.ASCII;
                 sp.Open();
 
-                double weight = 0;
                 var rand = new Random();
+
+                int weight = 11000;
+                bool goingUp = true; // cho triangle wave
 
                 while (true)
                 {
-                    weight = rand.Next(11000, 68001); // random 50–100 kg
+                    // ==== Chọn số cân ====
+                    if (modeWeight == "0") // random
+                    {
+                        weight = rand.Next(11000, 68001);
+                    }
+                    else // triangle wave
+                    {
+                        if (goingUp)
+                        {
+                            weight += 100;
+                            if (weight >= 68000) goingUp = false;
+                        }
+                        else
+                        {
+                            weight -= 100;
+                            if (weight <= 11000) goingUp = true;
+                        }
+                    }
 
                     string frame = BuildFrame(weight, mode);
 
@@ -48,7 +70,7 @@ namespace ConsoleApp1
                     }
                     else
                     {
-                        // Gửi theo chunk
+                        // Gửi từng chunk nhỏ
                         int index = 0;
                         while (index < frame.Length)
                         {
@@ -67,7 +89,7 @@ namespace ConsoleApp1
                         Console.WriteLine($"[FRAME DONE] \"{frame.Replace("\r", "\\r").Replace("\n", "\\n")}\"");
                     }
 
-                    Thread.Sleep(1000);
+                    Thread.Sleep(200); // tốc độ gửi (ms)
                 }
             }
         }

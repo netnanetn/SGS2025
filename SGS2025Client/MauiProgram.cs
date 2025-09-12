@@ -14,6 +14,7 @@ using SGS2025Client.Shared;
 using Microsoft.Web.WebView2.Core;
 using SGS2025Client.SDKCameraServices.Tvt;
 using SGS2025Client.SDKCameraServices.CameraFactory;
+using Microsoft.Data.Sqlite;
 
 namespace SGS2025Client
 {
@@ -52,8 +53,22 @@ namespace SGS2025Client
             var dbPath = Path.Combine("E:\\MyProject\\SGS2025\\Database", "SGS2025OFFLINE.db");
 
             // 🔹 Đăng ký DbContext vào DI
-            builder.Services.AddDbContext<MoDaContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
+            //builder.Services.AddDbContext<MoDaContext>(options =>
+            //    options.UseSqlite($"Data Source={dbPath}"));
+            // 🔹 Đăng ký DbContextFactory thay vì DbContext
+             
+            builder.Services.AddDbContextFactory<MoDaContext>(options =>
+            {
+                var connectionString = $"Data Source={dbPath}";
+                var connection = new SqliteConnection(connectionString);
+
+                // Set BusyTimeout = 5 giây
+                connection.DefaultTimeout = 5; // giây
+
+                options.UseSqlite(connection);
+            });
+
+
             builder.Services.AddScoped<VehicleService>();
               
             builder.Services.AddScoped<CustomerService>();
@@ -62,7 +77,7 @@ namespace SGS2025Client
             builder.Services.AddScoped<ScaleService>();
 
             builder.Services.AddSingleton<RazorRenderer>();
-            builder.Services.AddScoped<PdfService>();
+            builder.Services.AddSingleton<PdfService>();
             builder.Services.AddScoped<ImageStorageService>();
 
 
@@ -84,7 +99,7 @@ namespace SGS2025Client
     		builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
-
+            builder.Services.AddBlazorWebViewDeveloperTools();
 #if WINDOWS
             builder.ConfigureMauiHandlers(handlers =>
             {
@@ -92,8 +107,24 @@ namespace SGS2025Client
             });
 #endif
           
+            var app =  builder.Build();
 
-            return builder.Build();
+            // 🔹 Pre-warm Razor template (compile sẵn, lần in đầu tiên sẽ nhanh)
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var renderer = app.Services.GetRequiredService<RazorRenderer>();
+                    await renderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", new TblScale());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Pre-warm Razor template failed: {ex.Message}");
+                }
+            });
+
+            return app;
+
         }
     }
 }

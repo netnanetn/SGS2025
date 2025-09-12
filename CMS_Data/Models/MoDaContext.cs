@@ -13,6 +13,10 @@ public partial class MoDaContext : DbContext
     public MoDaContext(DbContextOptions<MoDaContext> options)
         : base(options)
     {
+        if (Database.IsSqlite())
+        {
+            Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+        }
     }
 
     public virtual DbSet<TblAcccount> TblAcccounts { get; set; }
