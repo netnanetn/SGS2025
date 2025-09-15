@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace SGS2025Client.Services
+namespace WinFormsAppTestScale
 {
     public enum ScaleProtocol
     {
@@ -166,6 +167,31 @@ namespace SGS2025Client.Services
                             dataPlus += c;
                     }
                     break;
+                case ScaleProtocol.Unknown:
+                    // Bắt số dạng 12.34 hoặc 1234
+                    {
+                        var p = DetectProtocol(content);
+                        if (p != ScaleProtocol.Unknown)
+                        {
+                            protocol = p;
+                            Console.WriteLine($"[AutoDetect] Protocol = {protocol}");
+                        }
+                        else
+                        {
+                            // fallback: thử parse thẳng số luôn, đừng bỏ qua
+                            if (Regex.Match(content, @"[-+]?\d+(\.\d+)?") is Match m && m.Success)
+                            {
+                                if (TryParseLine(m.Value, out double w))
+                                    results.Add(w);
+                            }
+
+                            // giữ lại dữ liệu để lần sau detect tiếp
+                            buffer.Append(content);
+                            return results;
+                        }
+                    
+                    }
+                    break;
             }
 
             return results;
@@ -174,7 +200,7 @@ namespace SGS2025Client.Services
         private static ScaleProtocol DetectProtocol(string sample)
         {
             if (string.IsNullOrEmpty(sample))
-                return 0;
+                return ScaleProtocol.Unknown;
 
             if (sample.Contains("\r\n"))
                 return ScaleProtocol.LineSimple;
@@ -191,7 +217,7 @@ namespace SGS2025Client.Services
             if (sample.Contains("\u0002"))
                 return ScaleProtocol.StxOnly;
 
-            return 0; // chưa chắc chắn
+            return ScaleProtocol.Unknown;
         }
         private static bool TryParseLine(string frame, out double weight)
         {

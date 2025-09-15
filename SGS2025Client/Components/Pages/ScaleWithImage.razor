@@ -418,12 +418,11 @@
     protected override async Task OnInitializedAsync()
     {
         _config = await configService.LoadAsync(); 
-
-        // lấy cấu hình cổng / baud / protocol từ config (fallback nếu null)
+        // danhSachPhieu = await scaleService.SearchAsync("", 200);
+        // StateHasChanged();
         var port = _config?.ComConfig?.PortName ?? "COM3";
         var baud = _config?.ComConfig?.BaudRate ?? 9600;
-
-        // nếu service chưa connect thì connect (Connect idempotent)
+         
         try
         {
             if (!_weighingScaleService.IsConnected)
@@ -433,8 +432,7 @@
             }
         }
         catch (Exception ex)
-        {
-            // log hoặc show error theo nhu cầu
+        { 
             Console.WriteLine($"Cannot connect scale: {ex.Message}");
             WeightDisplay = "Không thể kết nối đầu cân";
         }
@@ -457,16 +455,22 @@
             await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam1Canvas", "cameraai");
             await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam2Canvas", "cameraai");
             await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam3Canvas", "cameraai");
-            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai");
-
+            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai"); 
             // 🔹 Chạy các tác vụ nặng song song
             _ = Task.Run(async () =>
             {
                 if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
                     await configService.SaveAsync();
 
-                ModelLoad = await loadDataService.LoadAllData();
-                danhSachPhieu = await scaleService.SearchAsync("", 200);
+                var ModelLoadInit = await loadDataService.LoadAllData();
+                var danhSachPhieuInit = await scaleService.SearchAsync("", 200);
+
+                await InvokeAsync(() =>
+                {
+                    ModelLoad = ModelLoadInit;
+                    danhSachPhieu = danhSachPhieuInit;
+                    StateHasChanged();
+                });
             });
 
             // chạy các tác vụ nặng sau khi UI render

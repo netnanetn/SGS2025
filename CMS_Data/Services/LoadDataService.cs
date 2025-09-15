@@ -11,16 +11,20 @@ namespace CMS_Data.Services
 {
     public class LoadDataService
     {
-        private readonly MoDaContext _db;
-        public LoadDataService(MoDaContext db) => _db = db;
+        private readonly IDbContextFactory<MoDaContext> _factory;
+        public LoadDataService(IDbContextFactory<MoDaContext> factory)
+        {
+            _factory = factory;
+        }
 
         public async Task<FilterInitViewModel> LoadAllData( CancellationToken ct = default)
         {
+            using var _db = _factory.CreateDbContext();
             var model = new FilterInitViewModel
             {
-                Products = await _db.TblProducts.ToListAsync(),
-                Customers = await _db.TblCustomers.ToListAsync(),
-                Vehicles = await _db.TblVehicles.ToListAsync()
+                Products = await _db.TblProducts.AsNoTracking().ToListAsync(),
+                Customers = await _db.TblCustomers.AsNoTracking().ToListAsync(),
+                Vehicles = await _db.TblVehicles.AsNoTracking().ToListAsync()
             };
             return model;
         }

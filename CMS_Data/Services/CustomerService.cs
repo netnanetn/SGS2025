@@ -10,11 +10,15 @@ namespace CMS_Data.Services
 {
     public class CustomerService
     {
-        private readonly MoDaContext _db;
-        public CustomerService(MoDaContext db) => _db = db;
+        private readonly IDbContextFactory<MoDaContext> _factory;
+        public CustomerService(IDbContextFactory<MoDaContext> factory)
+        {
+            _factory = factory;
+        }
 
         public async Task<List<TblCustomer>> SearchAsync(string? q, int take = 20, CancellationToken ct = default)
         {
+            using var _db = _factory.CreateDbContext();
             var query = _db.TblCustomers.AsQueryable();
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -32,8 +36,12 @@ namespace CMS_Data.Services
 
         public async Task<TblCustomer> AddAsync(TblCustomer v, CancellationToken ct = default)
         {
-            _db.TblCustomers.Add(v);
-            await _db.SaveChangesAsync(ct);
+            await SQLiteWriteLock.RunAsync(async () =>
+            {
+                using var db = _factory.CreateDbContext();
+                db.TblCustomers.Add(v);
+                await db.SaveChangesAsync(ct);
+            });
             return v;
         }
     }

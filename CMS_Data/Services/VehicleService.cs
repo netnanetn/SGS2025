@@ -55,16 +55,16 @@ namespace CMS_Data.Services
                 .ConfigureAwait(false);
         }
 
-        public async Task<TblVehicle> AddAsync(TblVehicle vehicle)
+        public async Task<TblVehicle> AddAsync(TblVehicle v)
         {
             await SQLiteWriteLock.RunAsync(async () =>
             {
                 using var db = _factory.CreateDbContext();
-                db.TblVehicles.Add(vehicle);
+                db.TblVehicles.Add(v);
                 await db.SaveChangesAsync();
                 
             });
-            return vehicle;
+            return v;
         }
 
         public async Task UpdateAsync(TblVehicle vehicle)

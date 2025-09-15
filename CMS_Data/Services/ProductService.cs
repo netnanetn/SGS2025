@@ -10,11 +10,15 @@ namespace CMS_Data.Services
 {
     public class ProductService
     {
-        private readonly MoDaContext _db;
-        public ProductService(MoDaContext db) => _db = db;
+        private readonly IDbContextFactory<MoDaContext> _factory;
+        public ProductService(IDbContextFactory<MoDaContext> factory)
+        {
+            _factory = factory;
+        }
 
         public async Task<List<TblProduct>> SearchAsync(string? q, int take = 20, CancellationToken ct = default)
         {
+            using var _db = _factory.CreateDbContext();
             var query = _db.TblProducts.AsQueryable();
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -31,8 +35,13 @@ namespace CMS_Data.Services
 
         public async Task<TblProduct> AddAsync(TblProduct v, CancellationToken ct = default)
         {
-            _db.TblProducts.Add(v);
-            await _db.SaveChangesAsync(ct);
+            await SQLiteWriteLock.RunAsync(async () =>
+            {
+                using var db = _factory.CreateDbContext();
+                db.TblProducts.Add(v);
+                await db.SaveChangesAsync();
+
+            });
             return v;
         }
     }
