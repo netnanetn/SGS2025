@@ -12,14 +12,19 @@ namespace DahuaNativeViewer
         private IntPtr _real = IntPtr.Zero;
 
         [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string CameraIp { get; set; } = "192.168.1.109";
         [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int CameraPort { get; set; } = 37777;
         [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Username { get; set; } = "admin";
         [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Password { get; set; } = "abcd@1234";
         [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Channel { get; set; } = 0;
 
         protected override void OnHandleCreated(EventArgs e)
