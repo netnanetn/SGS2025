@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SGS2025Client.Services
@@ -220,15 +221,100 @@ namespace SGS2025Client.Services
             return false;
         }
 
-        private static bool TryParseLine_STXETX(string line, out double w)
+        private static bool TryParseLine_STXETX_bak(string line, out double w)
         {
             w = -1;
             var digits = new string(line.Where(c => char.IsDigit(c) || c == '.' || c == ',').ToArray());
-
+            digits = Regex.Match(digits, @"[-+]?\d+(\.\d+)?").Value;
             if (double.TryParse(digits.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out w))
                 return true;
 
             return false;
+        }
+        private static bool TryParseLine_STXETX(string frame, out double weight)
+        {
+            weight = 0;
+            string status = "Unknown";
+
+            if (string.IsNullOrWhiteSpace(frame))
+                return false;
+
+            // Dọn ký tự điều khiển
+            frame = frame.Trim('\u0002', '\u0003', '\r', '\n', ' ');
+
+            if (string.IsNullOrWhiteSpace(frame))
+                return false;
+
+            // Check overload/underload
+            if (frame.Contains("OL", StringComparison.OrdinalIgnoreCase) || frame.Contains("----"))
+            {
+                status = "Overload";
+                return false;
+            }
+
+            // Lấy ký tự cuối nếu là flag
+            char lastChar = frame.Last();
+            string flag = "";
+            if (char.IsLetter(lastChar) || lastChar == '%')
+            {
+                flag = lastChar.ToString().ToUpperInvariant();
+                frame = frame.Substring(0, frame.Length - 1).Trim();
+            }
+
+            // Regex bắt số
+            string numericPart = Regex.Match(frame, @"[-+]?\d+(\.\d+)?").Value;
+            if (!string.IsNullOrEmpty(numericPart) && double.TryParse(numericPart, out double val))
+            {
+                weight = val;
+            }
+            else
+            {
+                // Không có số
+                return false;
+            }
+
+            // Xử lý flag
+            switch (flag)
+            {
+                case "B": // Balance/Zero
+                case "Z":
+                    weight = 0;
+                    status = "Zero";
+                    return true;
+
+                case "N": // Net
+                    status = "Net";
+                    return true;
+
+                case "G": // Gross
+                    status = "Gross";
+                    return true;
+
+                case "T": // Tare
+                    status = "Tare";
+                    return true;
+
+                case "S": // Stable
+                    status = "Stable";
+                    return true;
+
+                case "U": // Unstable
+                case "M": // Motion
+                    status = "Unstable";
+                    return true;
+
+                case "O": // Overload
+                    status = "Overload";
+                    return false;
+
+                case "%": // phần trăm tải
+                    status = "Percent";
+                    return true;
+
+                default:
+                    status = string.IsNullOrEmpty(flag) ? "NoFlag" : $"UnknownFlag({flag})";
+                    return true;
+            }
         }
     }
 }
