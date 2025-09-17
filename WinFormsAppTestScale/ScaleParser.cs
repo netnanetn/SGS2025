@@ -28,14 +28,12 @@ namespace WinFormsAppTestScale
             string content = buffer.ToString();
             buffer.Clear();
 
-            // Nếu chưa detect → thử auto-detect dựa trên content
-            if (protocol == 0)
+            // Nếu chưa detect protocol -> thử auto-detect
+            if (protocol == ScaleProtocol.Unknown)
             {
                 protocol = DetectProtocol(content);
-                if (protocol != 0)
-                {
+                if (protocol != ScaleProtocol.Unknown)
                     Console.WriteLine($"[AutoDetect] Protocol = {protocol}");
-                }
             }
 
             switch (protocol)
@@ -50,104 +48,100 @@ namespace WinFormsAppTestScale
                         if (TryParseLine(line, out double w))
                             results.Add(w);
                     }
-                    buffer.Append(content); // phần còn dư chưa đủ CRLF
+                    buffer.Append(content); // giữ phần dư chưa đủ CRLF
                     break;
 
                 case ScaleProtocol.StxOnly:
+                    dataPlus += content;
+                    while (true)
                     {
-                        int stIndex = content.IndexOf('\u0002'); // STX
-                        if (stIndex >= 0)
+                        int stIndex = dataPlus.IndexOf('\u0002'); // STX
+                        if (stIndex < 0)
+                            break;
+
+                        string tmp = dataPlus.Substring(stIndex + 1); // bỏ STX
+                        if (tmp.Length > 5 && TryParseLine(tmp, out double w))
                         {
-                            dataPlus = content.Substring(stIndex + 1);
-                            if (dataPlus.Length > 5 && TryParseLine(dataPlus, out double w))
-                            {
-                                results.Add(w);
-                                dataPlus = "";
-                            }
+                            results.Add(w);
+                            dataPlus = "";
                         }
                         else
                         {
-                            dataPlus += content;
-                            if (dataPlus.Length > 5 && TryParseLine(dataPlus, out double w))
-                            {
-                                results.Add(w);
-                                dataPlus = "";
-                            }
+                            dataPlus = tmp; // giữ fragment
+                            break;
                         }
                     }
                     break;
 
                 case ScaleProtocol.STXETX:
-                    foreach (char c in content)
+                    dataPlus += content;
+                    while (true)
                     {
-                        if (c == '\u0002') // STX
-                            dataPlus = "";
-                        else if (c == '\u0003') // ETX
+                        int stIndex = dataPlus.IndexOf('\u0002');
+                        int etIndex = dataPlus.IndexOf('\u0003');
+
+                        if (stIndex >= 0 && etIndex > stIndex)
                         {
-                            if (TryParseLine(dataPlus, out double w))
+                            string frame = dataPlus.Substring(stIndex + 1, etIndex - stIndex - 1);
+                            if (TryParseLine_STXETX(frame, out double w))
                                 results.Add(w);
-                            dataPlus = "";
+
+                            dataPlus = dataPlus.Substring(etIndex + 1);
+                        }
+                        else if (etIndex >= 0 && (stIndex < 0 || etIndex < stIndex))
+                        {
+                            // ETX trước STX -> loại bỏ rác
+                            dataPlus = dataPlus.Substring(etIndex + 1);
                         }
                         else
-                            dataPlus += c;
+                        {
+                            break;
+                        }
                     }
                     break;
 
                 case ScaleProtocol.LineWithSTAndKg:
                     dataPlus += content;
-
                     while (true)
                     {
-                        // Tìm ST đầu tiên
                         int idxSt = dataPlus.IndexOf("ST", StringComparison.OrdinalIgnoreCase);
-
                         if (idxSt < 0)
                         {
-                            // Nếu không có ST, nhưng có "kg" thì có thể là fragment bắt đầu từ giữa frame
                             int idxKgOnly = dataPlus.IndexOf("kg", StringComparison.OrdinalIgnoreCase);
                             if (idxKgOnly >= 0)
                             {
-                                // xử lý phần trước "kg" như 1 frame (dù thiếu "ST"), tránh kẹt buffer
                                 string frame = dataPlus.Substring(0, idxKgOnly + 2);
-                                if (TryParseLine(frame, out double w))
+                                if (TryParseLine_STKG(frame, out double w))
                                     results.Add(w);
 
                                 dataPlus = dataPlus.Substring(idxKgOnly + 2);
                                 continue;
                             }
-
-                            // không có ST và không có kg -> chờ thêm dữ liệu
                             break;
                         }
 
-                        // Có ST, tìm "kg" **sau** ST
                         int idxKgAfterSt = dataPlus.IndexOf("kg", idxSt, StringComparison.OrdinalIgnoreCase);
-
                         if (idxKgAfterSt > idxSt)
                         {
-                            // Tìm được 1 frame hoàn chỉnh ST ... kg
                             string frame = dataPlus.Substring(idxSt, idxKgAfterSt - idxSt + 2);
-                            if (TryParseLine(frame, out double w))
+                            if (TryParseLine_STKG(frame, out double w))
                                 results.Add(w);
-                            // bỏ phần đã xử lý, tiếp tục lặp để tách frame kế tiếp
+
                             dataPlus = dataPlus.Substring(idxKgAfterSt + 2);
                             continue;
                         }
 
-                        // Trường hợp: có ST nhưng chưa có kg sau đó => chưa đủ dữ liệu, chờ lần sau
-                        // Tuy nhiên có thể tồn tại một "kg" trước ST (đã bỏ qua), xử lý để không kẹt
                         int idxKgBefore = dataPlus.IndexOf("kg", StringComparison.OrdinalIgnoreCase);
                         if (idxKgBefore >= 0 && idxKgBefore < idxSt)
                         {
-                            // xử lý phần trước kg (nếu có số) rồi tiếp tục
                             string frame = dataPlus.Substring(0, idxKgBefore + 2);
-                            if (TryParseLine(frame, out double w))
+                            if (TryParseLine_STKG(frame, out double w))
                                 results.Add(w);
+
                             dataPlus = dataPlus.Substring(idxKgBefore + 2);
                             continue;
                         }
 
-                        // Chưa đủ để tạo frame hoàn chỉnh (ST có nhưng kg chưa có) -> thoát chờ dữ liệu tiếp
                         break;
                     }
                     break;
@@ -155,9 +149,9 @@ namespace WinFormsAppTestScale
                 case ScaleProtocol.STXColon:
                     foreach (char c in content)
                     {
-                        if (c == '\u0002') // STX
+                        if (c == '\u0002')
                             dataPlus = "";
-                        else if (c == ':') // kết thúc frame
+                        else if (c == ':')
                         {
                             if (TryParseLine(dataPlus, out double w))
                                 results.Add(w);
@@ -167,36 +161,22 @@ namespace WinFormsAppTestScale
                             dataPlus += c;
                     }
                     break;
-                case ScaleProtocol.Unknown:
-                    // Bắt số dạng 12.34 hoặc 1234
-                    {
-                        var p = DetectProtocol(content);
-                        if (p != ScaleProtocol.Unknown)
-                        {
-                            protocol = p;
-                            Console.WriteLine($"[AutoDetect] Protocol = {protocol}");
-                        }
-                        else
-                        {
-                            // fallback: thử parse thẳng số luôn, đừng bỏ qua
-                            if (Regex.Match(content, @"[-+]?\d+(\.\d+)?") is Match m && m.Success)
-                            {
-                                if (TryParseLine(m.Value, out double w))
-                                    results.Add(w);
-                            }
 
-                            // giữ lại dữ liệu để lần sau detect tiếp
-                            buffer.Append(content);
-                            return results;
-                        }
-                    
-                    }
+                case ScaleProtocol.Unknown:
+                default:
+                    buffer.Append(content); // chưa biết protocol, giữ lại
                     break;
             }
 
             return results;
         }
 
+        private static bool TryParseLine(string line, out double weight)
+        {
+            weight = 0;
+            line = line.Trim().Replace("kg", "").Replace("+", "").Replace(",", "").Trim();
+            return double.TryParse(line, out weight);
+        }
         private static ScaleProtocol DetectProtocol(string sample)
         {
             if (string.IsNullOrEmpty(sample))
@@ -219,7 +199,7 @@ namespace WinFormsAppTestScale
 
             return ScaleProtocol.Unknown;
         }
-        private static bool TryParseLine(string frame, out double weight)
+        private static bool TryParseLine_STKG(string frame, out double weight)
         {
             weight = 0;
 
@@ -241,15 +221,100 @@ namespace WinFormsAppTestScale
             return false;
         }
 
-        private static bool TryParseLine_bak(string line, out double w)
+        private static bool TryParseLine_STXETX_bak(string line, out double w)
         {
             w = -1;
             var digits = new string(line.Where(c => char.IsDigit(c) || c == '.' || c == ',').ToArray());
-
+            digits = Regex.Match(digits, @"[-+]?\d+(\.\d+)?").Value;
             if (double.TryParse(digits.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out w))
                 return true;
 
             return false;
+        }
+        private static bool TryParseLine_STXETX(string frame, out double weight)
+        {
+            weight = 0;
+            string status = "Unknown";
+
+            if (string.IsNullOrWhiteSpace(frame))
+                return false;
+
+            // Dọn ký tự điều khiển
+            frame = frame.Trim('\u0002', '\u0003', '\r', '\n', ' ');
+
+            if (string.IsNullOrWhiteSpace(frame))
+                return false;
+
+            // Check overload/underload
+            if (frame.Contains("OL", StringComparison.OrdinalIgnoreCase) || frame.Contains("----"))
+            {
+                status = "Overload";
+                return false;
+            }
+
+            // Lấy ký tự cuối nếu là flag
+            char lastChar = frame.Last();
+            string flag = "";
+            if (char.IsLetter(lastChar) || lastChar == '%')
+            {
+                flag = lastChar.ToString().ToUpperInvariant();
+                frame = frame.Substring(0, frame.Length - 1).Trim();
+            }
+
+            // Regex bắt số
+            string numericPart = Regex.Match(frame, @"[-+]?\d+(\.\d+)?").Value;
+            if (!string.IsNullOrEmpty(numericPart) && double.TryParse(numericPart, out double val))
+            {
+                weight = val;
+            }
+            else
+            {
+                // Không có số
+                return false;
+            }
+
+            // Xử lý flag
+            switch (flag)
+            {
+                case "B": // Balance/Zero
+                case "Z":
+                    weight = 0;
+                    status = "Zero";
+                    return true;
+
+                case "N": // Net
+                    status = "Net";
+                    return true;
+
+                case "G": // Gross
+                    status = "Gross";
+                    return true;
+
+                case "T": // Tare
+                    status = "Tare";
+                    return true;
+
+                case "S": // Stable
+                    status = "Stable";
+                    return true;
+
+                case "U": // Unstable
+                case "M": // Motion
+                    status = "Unstable";
+                    return true;
+
+                case "O": // Overload
+                    status = "Overload";
+                    return false;
+
+                case "%": // phần trăm tải
+                    status = "Percent";
+                    return true;
+
+                default:
+                    status = string.IsNullOrEmpty(flag) ? "NoFlag" : $"UnknownFlag({flag})";
+                    return true;
+            }
         }
     }
 }

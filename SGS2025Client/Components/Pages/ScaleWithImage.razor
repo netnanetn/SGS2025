@@ -417,7 +417,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _config = await configService.LoadAsync(); 
+        try
+        {
+            _config = await configService.LoadAsync();
+        }
+        catch (Exception e)
+        {
+            
+        }
         // danhSachPhieu = await scaleService.SearchAsync("", 200);
         // StateHasChanged();
         var port = _config?.ComConfig?.PortName ?? "COM3";
@@ -474,17 +481,50 @@
             });
 
             // chạy các tác vụ nặng sau khi UI render
+
+            _ = Task.Run(() =>
+                   {
+                       try
+                       {
+                           _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+
+                           // Nếu thành công thì start timer
+                           _timer = new Timer(async _ =>
+                           {
+                               try
+                               {
+                                   await UpdateFrame();
+                               }
+                               catch (Exception ex)
+                               {
+                                   Console.WriteLine($"UpdateFrame error: {ex.Message}");
+                               }
+                           }, null, 1000, 50);
+
+                           InvokeAsync(StateHasChanged);
+                       }
+                       catch (Exception ex)
+                       {
+                           Console.WriteLine($"Camera connect failed: {ex.Message}");
+                           // Option: show thông báo UI
+                           InvokeAsync(() =>
+                           {
+                             //  _cameraError = true;
+                               StateHasChanged();
+                           });
+                       }
+                   });
             
 
-            await Task.Run(() =>
-            {
-              //  _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-              //  _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-            });
+           //  await Task.Run(() =>
+           //  {
+           //      _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+           //    //  _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+           //  });
 
-           _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
+           // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
          
-            StateHasChanged();
+           //  StateHasChanged();
         }
     }
     private async Task UpdateFrame()
@@ -520,7 +560,7 @@
             scaleData.Code = Guid.NewGuid().ToString("N")[..8];
 
         scaleData.TimeIn ??= DateTime.Now;
-        scaleData.WeightIn = 5500;
+        scaleData.WeightIn = (decimal)WeightRealTime;
         scaleData.WeightOut = 0;
         scaleData.IsActive ??= true;
         scaleData.CreateDay ??= DateTime.Now;
@@ -552,7 +592,7 @@
 
         // xu ly de luu
 
-        scaleData.WeightOut = 2500;
+        scaleData.WeightOut = (decimal)WeightRealTime;
         //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         //_imageStorageService

@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SGS2025Client.Services
@@ -31,7 +32,12 @@ namespace SGS2025Client.Services
                 throw new FileNotFoundException("Không tìm thấy file cấu hình", _filePath);
 
             var json = await File.ReadAllTextAsync(_filePath);
-            _config = JsonSerializer.Deserialize<AppConfig>(json)
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
+            _config = JsonSerializer.Deserialize<AppConfig>(json, options)
                        ?? throw new InvalidOperationException("Không load được cấu hình");
 
             return _config;

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using SGS2025Client.SDKCameraServices.CameraFactory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SGS2025Client.Models
@@ -71,13 +73,16 @@ namespace SGS2025Client.Models
     public class CameraItem
     {
         public string Code { get; set; }
-        public string TypeCamera { get; set; }
+        //public string TypeCamera { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public CameraType TypeCamera { get; set; }
         public int DauGhiPort { get; set; }
         public string Url { get; set; }
         public string User { get; set; }
         public string Password { get; set; }
         public int Channel { get; set; }
         public bool Capture { get; set; }
+        public bool IsEnabled { get; set; } = true;
     }
 
 }

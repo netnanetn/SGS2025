@@ -1,5 +1,7 @@
 ﻿@page "/vehicles"
 @inject VehicleService _vehicleService
+@inject ExcelVehicleService _excelVehicleService
+@inject IJSRuntime JS
 
 <div class="input-group mb-3" >
     <InputText @bind-Value="searchText" class="form-control" placeholder="🔍 Tìm xe..." />
@@ -7,6 +9,40 @@
     <button class="btn btn-secondary" @onclick="ResetSearch">Reset</button>
 </div>
 <button class="btn btn-primary mb-2" @onclick="ShowAddForm">➕ Thêm Xe</button>
+<button class="btn btn-primary mb-2" @onclick="ExportExcel">Xuất excel</button>
+<button class="btn btn-primary mb-2" @onclick="ImportExcel">Nhập từ Excel</button>
+
+@if (editVehicle != null)
+{
+    <EditForm Model="editVehicle" OnValidSubmit="Save">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label>Mã Xe:</label>
+            <InputText id="vehicleCodeInput" class="form-control" @bind-Value="editVehicle.VehiceCode" />
+        </div>
+        <div class="mb-2">
+            <label>Tài xế:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.DriverName" />
+        </div>
+        <div class="mb-2">
+            <label>Điện thoại:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.DriverPhone" />
+        </div>
+        <div class="mb-2">
+            <label>Trọng tải:</label>
+            <InputNumber class="form-control" @bind-Value="editVehicle.TonnageDefault" />
+        </div>
+        <div class="mb-2">
+            <label>Công ty:</label>
+            <InputText class="form-control" @bind-Value="editVehicle.TransportationCompany" />
+        </div>
+
+        <button type="submit" class="btn btn-success">💾 Lưu</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
+    </EditForm>
+}
 
 @if (vehicles == null)
 {
@@ -44,42 +80,12 @@ else
     </table>
 }
 
-@if (editVehicle != null)
-{
-    <EditForm Model="editVehicle" OnValidSubmit="Save">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="mb-2">
-            <label>Mã Xe:</label>
-            <InputText class="form-control" @bind-Value="editVehicle.VehiceCode" />
-        </div>
-        <div class="mb-2">
-            <label>Tài xế:</label>
-            <InputText class="form-control" @bind-Value="editVehicle.DriverName" />
-        </div>
-        <div class="mb-2">
-            <label>Điện thoại:</label>
-            <InputText class="form-control" @bind-Value="editVehicle.DriverPhone" />
-        </div>
-        <div class="mb-2">
-            <label>Trọng tải:</label>
-            <InputNumber class="form-control" @bind-Value="editVehicle.TonnageDefault" />
-        </div>
-        <div class="mb-2">
-            <label>Công ty:</label>
-            <InputText class="form-control" @bind-Value="editVehicle.TransportationCompany" />
-        </div>
-
-        <button type="submit" class="btn btn-success">💾 Lưu</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
-    </EditForm>
-}
 
 @code {
     List<TblVehicle>? vehicles;
     TblVehicle? editVehicle;
     string searchText = string.Empty; 
+    bool shouldFocus = true;     // đánh dấu cần focus
 
     protected override async Task OnInitializedAsync()
     { 
@@ -102,12 +108,42 @@ else
         searchText = string.Empty;
         vehicles = await _vehicleService.GetAllAsync();
     }
-    void ShowAddForm()
+    async Task ShowAddForm()
     {
         editVehicle = new TblVehicle();
+        shouldFocus = true;     // đánh dấu cần focus
     }
+    private async Task ExportExcel()
+    {
+        var path = await _excelVehicleService.ExportToDownloadsAsync(vehicles);
+        // Có thể mở luôn sau khi export
+        await Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(path)
+            });
+    }
+    private async Task ImportExcel()
+    {
+        var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+    {
+        { DevicePlatform.iOS, new[] { "com.microsoft.excel.xlsx" } },     // UTI Excel
+        { DevicePlatform.Android, new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" } }, // MIME type
+        { DevicePlatform.WinUI, new[] { ".xlsx" } },                      // Windows extension
+        { DevicePlatform.MacCatalyst, new[] { "com.microsoft.excel.xlsx" } }
+    });
 
-    void Edit(TblVehicle v)
+        var file = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Chọn file Excel",
+                FileTypes = customFileType
+            });
+
+        if (file != null)
+        {
+            vehicles = await _excelVehicleService.ImportFromExcelAsync(file.FullPath);
+        }
+    }
+    async Task Edit(TblVehicle v)
     {
         editVehicle = new TblVehicle
             {
@@ -118,8 +154,16 @@ else
                 TonnageDefault = v.TonnageDefault,
                 TransportationCompany = v.TransportationCompany
             };
+        shouldFocus = true;     // đánh dấu cần focus
     }
-
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (shouldFocus)
+        {
+            shouldFocus = false; // reset flag
+            await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "vehicleCodeInput", null);
+        }
+    }
     async Task Save()
     {
         if (editVehicle == null) return;

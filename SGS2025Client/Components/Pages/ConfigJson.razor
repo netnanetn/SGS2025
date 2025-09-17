@@ -52,13 +52,42 @@ else
             <div class="tab-pane fade" id="camera">
                 @foreach (var cam in config.Camera.List)
                 {
-                    <div class="border rounded p-2 mb-2 bg-white">
+                    @* <div class="border rounded p-2 mb-2 bg-white">
                         <b>@cam.Code</b><br />
                         Url: <InputText @bind-Value="cam.Url" class="form-control" /> <br />
                         User: <InputText @bind-Value="cam.User" class="form-control" /> <br />
                         Pass: <InputText @bind-Value="cam.Password" class="form-control" /> <br />
                         Capture: <InputCheckbox @bind-Value="cam.Capture" /> <br />
-                    </div>
+                    </div> *@
+                    <div class="border rounded p-2 mb-2 bg-white">
+                    <b>@cam.Code</b><br />
+
+                    <!-- Dropdown chọn loại camera -->
+                    <label>Loại Camera:</label>
+                    <InputSelect @bind-Value="cam.TypeCamera" class="form-select">
+                        @foreach (var type in Enum.GetValues<CameraType>())
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    </InputSelect>
+                    <br />
+
+                    <!-- Trạng thái sử dụng -->
+                    <label>Sử dụng:</label>
+                    <InputCheckbox @bind-Value="cam.IsEnabled" /> <br />
+
+                    Url:
+                    <InputText @bind-Value="cam.Url" class="form-control" /> <br />
+
+                    User:
+                    <InputText @bind-Value="cam.User" class="form-control" /> <br />
+
+                    Pass:
+                    <InputText @bind-Value="cam.Password" class="form-control" /> <br />
+
+                    Capture:
+                    <InputCheckbox @bind-Value="cam.Capture" /> <br />
+                </div>
                 }
             </div>
 

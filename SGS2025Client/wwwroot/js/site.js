@@ -100,3 +100,32 @@ window.drawFrameOnCanvasUrl = (canvasId, camId) => {
     // 👉 thêm query để tránh cache
     img.src = `https://local.tvs/temp/${camId}.jpg?t=${Date.now()}`;
 };
+window.siteHelpers = {
+    focusAndScroll: function (elementId, scrollContainerId) {
+        try {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            // nếu có container truyền vào thì cuộn container, ngược lại cuộn trang
+            if (scrollContainerId) {
+                const container = document.getElementById(scrollContainerId);
+                if (container) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // ensure container scrolling if needed
+                    // container.scrollTop = el.offsetTop - container.offsetTop;
+                } else {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            } else {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // đặt focus (một chút delay để DOM ổn định)
+            setTimeout(() => {
+                el.focus();
+            }, 50);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+};

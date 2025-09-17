@@ -18,6 +18,7 @@ namespace SGS2025Client.Services
 
         public bool IsConnected => _serialPort?.IsOpen ?? false;
         public event Action<double>? DataReceived;
+        public event Action<string>? RawReceived;
 
         public WeighingScaleService()
         {
@@ -59,7 +60,7 @@ namespace SGS2025Client.Services
             {
                 string chunk = _serialPort.ReadExisting();
                 if (string.IsNullOrEmpty(chunk)) return;
-
+                RawReceived?.Invoke(chunk);
                 _buffer.Append(chunk);
 
                 // Auto detect nếu chưa xác định protocol
