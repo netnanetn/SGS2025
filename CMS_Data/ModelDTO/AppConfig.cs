@@ -1,4 +1,4 @@
-﻿using SGS2025Client.SDKCameraServices.CameraFactory;
+﻿using CMS_Data.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +6,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace SGS2025Client.Models
+namespace CMS_Data.ModelDTO
 {
- 
     public class AppConfig
     {
         public SystemConfig System { get; set; }
@@ -84,5 +83,4 @@ namespace SGS2025Client.Models
         public bool Capture { get; set; }
         public bool IsEnabled { get; set; } = true;
     }
-
 }

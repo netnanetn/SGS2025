@@ -1,13 +1,13 @@
-﻿using Microsoft.Identity.Client;
-using SGS2025Client.Models;
-using System;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
+using System.Text;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
+using CMS_Data.ModelDTO;
 
-namespace SGS2025Client.Services
+namespace SGS2025.Core.Services.ShareServices
 {
     public class ConfigService
     {

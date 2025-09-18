@@ -8,13 +8,13 @@ using SGS2025Client.Components.HelperService;
 using SGS2025Client.Components.LibPDFs;
 using SGS2025Client.SDKCameraServices.Dahua;
 using SGS2025Client.SDKCameraServices.Hik;
-using SGS2025Client.Services;
 using SGS2025Client.Shared;
 //using SGS2025Client.Services;
 using Microsoft.Web.WebView2.Core;
 using SGS2025Client.SDKCameraServices.Tvt;
 using SGS2025Client.SDKCameraServices.CameraFactory;
 using Microsoft.Data.Sqlite;
+using SGS2025.Core.Services.ShareServices;
 
 namespace SGS2025Client
 {

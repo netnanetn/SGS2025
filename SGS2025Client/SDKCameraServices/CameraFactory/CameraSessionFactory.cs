@@ -1,4 +1,5 @@
-﻿using SGS2025Client.SDKCameraServices.Dahua;
+﻿using CMS_Data.Enums;
+using SGS2025Client.SDKCameraServices.Dahua;
 using SGS2025Client.SDKCameraServices.Hik;
 using SGS2025Client.SDKCameraServices.Tvt;
 using System;
@@ -9,12 +10,7 @@ using System.Threading.Tasks;
 
 namespace SGS2025Client.SDKCameraServices.CameraFactory
 {
-    public enum CameraType
-    {
-        Hikvision,
-        Dahua,
-        Tvt
-    }
+    
     public static class CameraSessionFactory
     {
         public static ICameraSession Create(CameraType type, string ip, int port, string user, string pass)

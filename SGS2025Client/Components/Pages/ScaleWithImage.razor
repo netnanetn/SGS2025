@@ -1,7 +1,6 @@
 ﻿@page "/scalewithimage"
 
 @using SGS2025Client.Components.HelperService
-@using SGS2025Client.Services
 @using SGS2025Client.Components.Shared
 @inject FactoryCameraService _factoryCameraService
 @inject IJSRuntime JS
@@ -618,8 +617,15 @@
         // Render template thành HTML
         var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", modelForPdf);
 
-        var pdfBytes = await PdfService.GeneratePdfAsync(html);
-        pdfBase64 = Convert.ToBase64String(pdfBytes);
+       try
+        {
+            var pdfBytes = await PdfService.GeneratePdfAsync(html);
+            pdfBase64 = Convert.ToBase64String(pdfBytes);
+        }
+        catch (Exception e)
+        {
+             
+        }
          
         showModal = true;
 

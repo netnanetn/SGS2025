@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGS2025Client.Services
+namespace SGS2025.Core.Services.ShareServices
 { 
     public class ExcelVehicleService
     {

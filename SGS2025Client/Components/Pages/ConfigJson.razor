@@ -52,64 +52,98 @@ else
             <div class="tab-pane fade" id="camera">
                 @foreach (var cam in config.Camera.List)
                 {
-                   
-                    <div class="border rounded p-2 mb-2 bg-white">
-                    <b>@cam.Code</b><br />
+                    <div class="card mb-2 p-2">
+                        <div class="row align-items-center g-2">
+                            <div class="col-auto">
+                                <b>@cam.Code</b>
+                            </div>
 
-                    <!-- Dropdown chọn loại camera -->
-                    <label>Loại Camera:</label>
-                    <InputSelect @bind-Value="cam.TypeCamera" class="form-select">
-                        @foreach (var type in Enum.GetValues<CameraType>())
-                        {
-                            <option value="@type">@type</option>
-                        }
-                    </InputSelect>
-                    <br />
+                            <div class="col-auto">
+                                <InputSelect @bind-Value="cam.TypeCamera" class="form-select form-select-sm">
+                                    @foreach (var type in Enum.GetValues<CameraType>())
+                                    {
+                                        <option value="@type">@type</option>
+                                    }
+                                </InputSelect>
+                            </div>
 
-                    <!-- Trạng thái sử dụng -->
-                    <label>Sử dụng:</label>
-                    <InputCheckbox @bind-Value="cam.IsEnabled" /> <br />
+                            <div class="col-auto">
+                                <label class="me-1">Bật</label>
+                                <InputCheckbox @bind-Value="cam.IsEnabled" />
+                            </div>
 
-                    Url:
-                    <InputText @bind-Value="cam.Url" class="form-control" /> <br />
+                            <div class="col-auto">
+                                <InputText @bind-Value="cam.Url" class="form-control form-control-sm" placeholder="Url" style="width: 400px" />
+                            </div>
 
-                    User:
-                    <InputText @bind-Value="cam.User" class="form-control" /> <br />
+                            <div class="col-auto">
+                                <InputText @bind-Value="cam.User" class="form-control form-control-sm" placeholder="User" style="width:100px" />
+                            </div>
 
-                    Pass:
-                    <InputText @bind-Value="cam.Password" class="form-control" /> <br />
+                            <div class="col">
+                                <InputText @bind-Value="cam.Password" class="form-control form-control-sm" placeholder="Pass" />
+                            </div>
 
-                    Capture:
-                    <InputCheckbox @bind-Value="cam.Capture" /> <br />
-                </div>
+                            <div class="col-auto">
+                                <label class="me-1">Chụp ảnh</label>
+                                <InputCheckbox @bind-Value="cam.Capture" />
+                            </div>
+                        </div>
+                    </div>
                 }
             </div>
 
             <!-- Barrier -->
             <div class="tab-pane fade" id="barrier">
-                @foreach (var b in config.Barrier)
-                {
-                    <div class="border rounded p-2 mb-2 bg-white">
-                        <label>IP:</label>
-                        <InputText @bind-Value="b.Ip" class="form-control" /> <br />
-                        <label>Port:</label>
-                        <InputNumber @bind-Value="b.Port" class="form-control" /> <br />
-                    </div>
-                }
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>IP</th>
+                            <th>Port</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in config.Barrier)
+                        {
+                            <tr>
+                                <td>
+                                    <InputText @bind-Value="b.Ip" class="form-control form-control-sm" />
+                                </td>
+                                <td>
+                                    <InputNumber @bind-Value="b.Port" class="form-control form-control-sm" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
 
             <!-- Com -->
             <div class="tab-pane fade" id="com">
-                <label>Port:</label>
-                <InputText @bind-Value="config.ComConfig.PortName" class="form-control" /> <br />
-                <label>Baud:</label>
-                <InputNumber @bind-Value="config.ComConfig.BaudRate" class="form-control" /> <br />
-                <label>Parity:</label>
-                <InputText @bind-Value="config.ComConfig.Parity" class="form-control" /> <br />
-                <label>DataBits:</label>
-                <InputNumber @bind-Value="config.ComConfig.DataBits" class="form-control" /> <br />
-                <label>StopBits:</label>
-                <InputNumber @bind-Value="config.ComConfig.StopBits" class="form-control" /> <br />
+                <div class="card p-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col">
+                            <label class="form-label">Port</label>
+                            <InputText @bind-Value="config.ComConfig.PortName" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Baud</label>
+                            <InputNumber @bind-Value="config.ComConfig.BaudRate" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Parity</label>
+                            <InputText @bind-Value="config.ComConfig.Parity" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label">DataBits</label>
+                            <InputNumber @bind-Value="config.ComConfig.DataBits" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label">StopBits</label>
+                            <InputNumber @bind-Value="config.ComConfig.StopBits" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
