@@ -186,8 +186,8 @@
                 <div class="col-7" style="padding: unset">
                     <div class="row" style="padding: unset">
                         <div class="col-6"  style="padding: 0px 10px; text-align: center">
-                            <div class="digital-display">
-                                @WeightRealTime
+                            <div class="digital-display" id="weightDisplay">
+                                @* @WeightRealTime *@
                             </div>
                         </div>
                         <div class="col-6" style="padding: unset">
@@ -394,6 +394,10 @@
     private string WeightDisplay = "Đang chờ dữ liệu...";
     private double WeightRealTime = 0;
 
+    private DateTime _lastUpdate = DateTime.MinValue;
+    private string port = "COM3";
+    private int baud = 9600;
+     
 
     private void CloseModal()
     {
@@ -403,7 +407,6 @@
 
     private async Task PrintSilent()
     {
-        //  await JS.InvokeVoidAsync("printSilent", pdfBase64);
         await PdfService.PrintPdf(pdfBase64);
     }
 
@@ -411,7 +414,6 @@
     {
         await JS.InvokeVoidAsync("saveAsFile", "output.pdf", pdfBase64);
     }
-    //end print
 
 
     protected override async Task OnInitializedAsync()
@@ -424,10 +426,8 @@
         {
             
         }
-        // danhSachPhieu = await scaleService.SearchAsync("", 200);
-        // StateHasChanged();
-        var port = _config?.ComConfig?.PortName ?? "COM3";
-        var baud = _config?.ComConfig?.BaudRate ?? 9600;
+        port = _config?.ComConfig?.PortName ?? "COM2";
+        baud = _config?.ComConfig?.BaudRate ?? 9600;
          
         try
         {
@@ -444,14 +444,42 @@
         }
     
     }
-    private void OnDataReceived(double data)
+  
+    private async void OnDataReceived(double data)
     { 
-        InvokeAsync(() =>
+
+        try
         {
+            await JS.InvokeVoidAsync("updateWeight", $"{data}");
             WeightRealTime = data;
-            WeightDisplay = $"{data:N2} kg";
-            StateHasChanged();
-        });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"JSInterop error: {ex.Message}");
+        }
+        // var now = DateTime.Now;
+        // if ((now - _lastUpdate).TotalMilliseconds < 100){
+
+        // }else{
+        //     _lastUpdate = now;
+
+        //     InvokeAsync(() =>
+        //     {
+        //         WeightRealTime = data;
+        //         WeightDisplay = $"{data:N2} kg";
+        //         StateHasChanged(); 
+        //     });
+        // }
+          
+          
+        // InvokeAsync(() =>
+        // {
+        //    // WeightRealTime = data;
+        //    // WeightDisplay = $"{data:N2} kg";
+        //    // StateHasChanged();
+        //     _scaleState.SetWeight(data);
+        //     WeightRealTime = _scaleState.Weight;
+        // });
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -465,8 +493,9 @@
             // 🔹 Chạy các tác vụ nặng song song
             _ = Task.Run(async () =>
             {
-                if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
-                    await configService.SaveAsync();
+                // sẵn hàm nếu cần update json config
+                // if (configService.UpdateCameraUrl("cam1", "rtsp://192.168.1.100:554/stream1"))
+                //     await configService.SaveAsync();
 
                 var ModelLoadInit = await loadDataService.LoadAllData();
                 var danhSachPhieuInit = await scaleService.SearchAsync("", 200);
@@ -484,8 +513,14 @@
             _ = Task.Run(() =>
                    {
                        try
-                       {
-                           _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+                       { 
+                           foreach (var camItem in _config.Camera.List)
+                            {
+                                if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url)){
+                                    _factoryCameraService.AddCamera(camItem.Code, camItem.TypeCamera, camItem.Url, camItem.DauGhiPort, camItem.User, camItem.Password);
+                                }
+                            }
+                          
 
                            // Nếu thành công thì start timer
                            _timer = new Timer(async _ =>
@@ -498,7 +533,7 @@
                                {
                                    Console.WriteLine($"UpdateFrame error: {ex.Message}");
                                }
-                           }, null, 1000, 50);
+                           }, null, 1000, 100);
 
                            InvokeAsync(StateHasChanged);
                        }
@@ -576,10 +611,27 @@
         scaleData.ProductMoney ??= 0;
 
         //_imageStorageService
-        var img1 = _factoryCameraService.GetImage("cam1");
-        var img2 = _factoryCameraService.GetImage("cam2");
-        scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
-        scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+      
+        
+
+        // var img1 = _factoryCameraService.GetImage("cam1");
+        // var img2 = _factoryCameraService.GetImage("cam2");
+        // scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
+        // scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
+            is { IsEnabled: true, Capture: true } cam1Config
+            && !string.IsNullOrEmpty(cam1Config.Url))
+        {
+            var img1 = _factoryCameraService.GetImage("cam1");
+            scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
+        }
+        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam2")
+        is { IsEnabled: true, Capture: true } cam2Config
+        && !string.IsNullOrEmpty(cam2Config.Url))
+        {
+            var img2 = _factoryCameraService.GetImage("cam2");
+            scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+        }
 
 
         await scaleService.AddAsync(scaleData);
@@ -595,10 +647,24 @@
         //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         //_imageStorageService
-        var img1 = _factoryCameraService.GetImage("cam1");
-        var img2 = _factoryCameraService.GetImage("cam2");
-        scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
-        scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
+        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
+           is { IsEnabled: true, Capture: true } cam1Config
+           && !string.IsNullOrEmpty(cam1Config.Url))
+        {
+            var img1 = _factoryCameraService.GetImage("cam1");
+            scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
+        }
+        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam2")
+       is { IsEnabled: true, Capture: true } cam2Config
+       && !string.IsNullOrEmpty(cam2Config.Url))
+        {
+            var img2 = _factoryCameraService.GetImage("cam2");
+            scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
+        }
+        // var img1 = _factoryCameraService.GetImage("cam1");
+        // var img2 = _factoryCameraService.GetImage("cam2");
+        // scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
+        // scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
 
         await scaleService.CanLan2(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
@@ -614,6 +680,8 @@
         var modelForPdf = scaleData;
         modelForPdf.Img11 = _imageStorageService.ConvertImageToBase64(scaleData.Img11);
         modelForPdf.Img12 = _imageStorageService.ConvertImageToBase64(scaleData.Img12);
+        modelForPdf.Img21 = _imageStorageService.ConvertImageToBase64(scaleData.Img21);
+        modelForPdf.Img22 = _imageStorageService.ConvertImageToBase64(scaleData.Img22);
         // Render template thành HTML
         var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", modelForPdf);
 
@@ -826,7 +894,7 @@
     public void Dispose()
     {  
         _timer?.Dispose();   // ✅ stop timer
-        _timer = null;
+        _timer = null; 
         _weighingScaleService.DataReceived -= OnDataReceived;
         _weighingScaleService.Disconnect();
         // Nếu có camera service thì stop luôn

@@ -65,6 +65,10 @@ namespace CMS_Data.Services
                 scaleUpdate.WeightOut = v.WeightOut;
                 scaleUpdate.Note = v.Note;
                 scaleUpdate.ProductNumber = Math.Abs((decimal)v.WeightOut - (decimal)v.WeightIn);
+                scaleUpdate.Img21 = v.Img21;
+                scaleUpdate.Img22 = v.Img22;
+                scaleUpdate.Img23 = v.Img23;
+                _db.TblScales.Update(scaleUpdate);
                 await _db.SaveChangesAsync(ct);
 
             });
@@ -83,6 +87,7 @@ namespace CMS_Data.Services
                 scaleUpdate.DriverName = v.DriverName;
                 scaleUpdate.Note = v.Note;
                 scaleUpdate.UpdateDay = DateTime.Now;
+                _db.TblScales.Update(scaleUpdate);
                 await _db.SaveChangesAsync(ct);
 
             });

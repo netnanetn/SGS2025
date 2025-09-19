@@ -129,3 +129,6 @@ window.siteHelpers = {
         }
     }
 };
+window.updateWeight = (text) => {
+    document.getElementById("weightDisplay").innerText = text;
+};
