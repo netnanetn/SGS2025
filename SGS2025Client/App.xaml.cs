@@ -1,17 +1,21 @@
 ﻿using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.Maui.Controls.PlatformConfiguration;
+using SGS2025.Core.Services.ShareServices;
+using SGS2025Client.Components.Pages;
 using SGS2025Client.SDKCameraServices.CameraFactory;
 
 namespace SGS2025Client
 {
     public partial class App : Application
     {
-        public App()
+        private readonly AuthService _authService;
+        public App(AuthService authService)
         {
             InitializeComponent();
-
+            _authService = authService;
+            MainPage = new NavigationPage(new LoginPage(_authService));
             // MainPage = new MainPage();
-            MainPage = new NavigationPage(new MainPage()); // MainPage có BlazorWebView
+            // MainPage = new NavigationPage(new MainPage()); // MainPage có BlazorWebView
         }
         
         protected override Window CreateWindow(IActivationState activationState)

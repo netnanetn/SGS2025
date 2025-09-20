@@ -15,6 +15,9 @@ using SGS2025Client.SDKCameraServices.Tvt;
 using SGS2025Client.SDKCameraServices.CameraFactory;
 using Microsoft.Data.Sqlite;
 using SGS2025.Core.Services.ShareServices;
+using Microsoft.Maui.LifecycleEvents;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
 
 namespace SGS2025Client
 {
@@ -68,6 +71,7 @@ namespace SGS2025Client
                 options.UseSqlite(connection);
             });
 
+            builder.Services.AddSingleton<AuthService>();
 
             builder.Services.AddScoped<VehicleService>();
               
@@ -109,7 +113,28 @@ namespace SGS2025Client
                 handlers.AddHandler<CameraHostView, CameraHostViewHandler>();
             });
 #endif
-          
+            builder.ConfigureLifecycleEvents(events =>
+            {
+#if WINDOWS
+                events.AddWindows(w =>
+                    w.OnWindowCreated(window =>
+                    {
+                        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                        var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                        var appWindow = AppWindow.GetFromWindowId(id);
+
+                        // Đặt kích thước nhỏ cho Login
+                        appWindow.Resize(new SizeInt32(800, 500));
+
+                        // Căn giữa màn hình
+                        var displayArea = DisplayArea.GetFromWindowId(id, DisplayAreaFallback.Primary);
+                        var centerX = (displayArea.WorkArea.Width - 600) / 2;
+                        var centerY = (displayArea.WorkArea.Height - 600) / 2;
+                        appWindow.Move(new PointInt32(centerX, centerY));
+                    }));
+#endif
+            });
+
             var app =  builder.Build();
 
             // 🔹 Pre-warm Razor template (compile sẵn, lần in đầu tiên sẽ nhanh)
