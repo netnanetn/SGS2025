@@ -171,11 +171,32 @@ namespace WinFormsAppTestScale
             return results;
         }
 
-        private static bool TryParseLine(string line, out double weight)
+        private static bool TryParseLine(string frame, out double weight)
         {
             weight = 0;
-            line = line.Trim().Replace("kg", "").Replace("+", "").Replace(",", "").Trim();
-            return double.TryParse(line, out weight);
+
+            if (string.IsNullOrWhiteSpace(frame)) return false;
+
+            // Bỏ STX/ETX
+            frame = frame.Trim('\u0002', '\u0003', '\r', '\n', ' ');
+
+            // Ít nhất phải có dấu và vài số
+            if (frame.Length < 3) return false;
+
+            // Lấy dấu
+            char sign = frame[0];
+            if (sign != '+' && sign != '-') return false;
+
+            // Bỏ dấu + bỏ 2 số cuối
+            string numberPart = frame.Substring(1, frame.Length - 3);
+
+            if (int.TryParse(numberPart, out int val))
+            {
+                weight = (sign == '-') ? -val : val;
+                return true;
+            }
+
+            return false;
         }
         private static ScaleProtocol DetectProtocol(string sample)
         {
@@ -231,7 +252,7 @@ namespace WinFormsAppTestScale
 
             return false;
         }
-        private static bool TryParseLine_STXETX(string frame, out double weight)
+        private static bool TryParseLine_STXETX_bak2(string frame, out double weight)
         {
             weight = 0;
             string status = "Unknown";
@@ -315,6 +336,38 @@ namespace WinFormsAppTestScale
                     status = string.IsNullOrEmpty(flag) ? "NoFlag" : $"UnknownFlag({flag})";
                     return true;
             }
+        }
+        private static bool TryParseLine_STXETX(string frame, out double weight)
+        {
+            weight = 0;
+
+            // Dọn ký tự điều khiển STX, ETX, xuống dòng, khoảng trắng
+            frame = frame.Trim('\u0002', '\u0003', '\r', '\n', ' ');
+
+            if (frame.Length < 2) return false;
+
+            // Nếu ký tự cuối là flag chữ cái (E, S, B, F...)
+            char lastChar = frame[^1];
+            if (char.IsLetter(lastChar))
+            {
+                frame = frame[..^1];
+            }
+
+            // Dấu ở đầu
+            char sign = frame[0];
+            if (sign != '+' && sign != '-') return false;
+
+            // Lấy phần số còn lại (bỏ dấu, bỏ 2 số cuối vì là thập phân)
+            if (frame.Length < 3) return false;
+            string numberPart = frame.Substring(1, frame.Length - 3);
+
+            if (int.TryParse(numberPart, out int val))
+            {
+                weight = (sign == '-') ? -val : val;
+                return true;
+            }
+
+            return false;
         }
     }
 }

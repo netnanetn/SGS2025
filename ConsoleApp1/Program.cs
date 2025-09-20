@@ -8,6 +8,11 @@ namespace ConsoleApp1
     using System.Text;
     using System.Threading;
 
+    using System;
+    using System.IO.Ports;
+    using System.Text;
+    using System.Threading;
+
     internal class Program
     {
         static void Main(string[] args)
@@ -18,8 +23,8 @@ namespace ConsoleApp1
             Console.Write("Nhập COM port (ví dụ COM2): ");
             string portName = Console.ReadLine()?.Trim() ?? "COM2";
 
-            Console.Write("Chọn protocol (1=Line, 2=STX-only, 3=STX+ETX, 4=ST/kg, 5=STX+:): ");
-            string mode = Console.ReadLine()?.Trim() ?? "1";
+            Console.Write("Chọn protocol (1=Line, 2=STX-only, 3=STX+ETX, 4=ST/kg, 5=STX+:, 6=STXETX fixed): ");
+            string mode = Console.ReadLine()?.Trim() ?? "6";
 
             Console.Write("Noise mode (0=nguyên frame, 1=chunk như ReadExisting): ");
             string noiseMode = Console.ReadLine()?.Trim() ?? "0";
@@ -64,14 +69,16 @@ namespace ConsoleApp1
 
                     if (noiseMode == "0")
                     {
-                        // Gửi nguyên frame
-                        sp.Write(frame);
-                        Console.WriteLine($"[SEND] {frame.Replace("\r", "\\r").Replace("\n", "\\n")}");
+                        // Gửi nguyên frame, nối 5 lần như thực tế
+                        string full = string.Concat(Enumerable.Repeat(frame, 5));
+                        sp.Write(full);
+                        Console.WriteLine($"[SEND] {full.Replace("\r", "\\r").Replace("\n", "\\n")}");
                     }
                     else
                     {
                         // Gửi frame theo chunk noise (mô phỏng ReadExisting)
-                        SendFrameWithNoise(sp, frame, rand);
+                        string full = string.Concat(Enumerable.Repeat(frame, 5));
+                        SendFrameWithNoise(sp, full, rand);
                     }
 
                     Thread.Sleep(200); // tốc độ gửi (ms)
@@ -79,29 +86,33 @@ namespace ConsoleApp1
             }
         }
 
-        private static string BuildFrame(double weight, string mode)
+        private static string BuildFrame(int weight, string mode)
         {
-            string val = weight.ToString();
-
             switch (mode)
             {
                 case "1": // CRLF
-                    return $"{val} kg\r\n";
+                    return $"{weight} kg\r\n";
 
-                case "2": // STX only (0x02)
-                    return "\u0002" + $"{val} kg";
+                case "2": // STX only
+                    return "\u0002" + $"{weight} kg";
 
                 case "3": // STX ... ETX
-                    return "\u0002" + $"{val} kg" + "\u0003";
+                    return "\u0002" + $"{weight} kg" + "\u0003";
 
                 case "4": // ST ... kg
-                    return $"ST,GS,+ {val}kg";
+                    return $"ST,GS,+ {weight}kg";
 
                 case "5": // STX + colon
-                    return "\u0002" + $"{val}:kg";
+                    return "\u0002" + $"{weight}:kg";
+
+                case "6": // STXETX fixed length: 1 sign + 6 số nguyên + 2 số thập phân + flag
+                    string val = weight.ToString("D6"); // 6 chữ số
+                    string decimalPart = "01";          // giả lập phần thập phân
+                    string flag = "E";                  // có thể thay B, S, F, tùy trạng thái
+                    return $"\u0002+{val}{decimalPart}{flag}\u0003";
 
                 default:
-                    return $"{val} kg\r\n";
+                    return $"{weight} kg\r\n";
             }
         }
 
