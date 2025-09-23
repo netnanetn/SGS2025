@@ -66,9 +66,7 @@ public partial class MoDaContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.CustomerAddress).HasMaxLength(500);
             entity.Property(e => e.CustomerId).HasDefaultValue(0);
             entity.Property(e => e.CustomerName).HasMaxLength(500);
@@ -93,9 +91,7 @@ public partial class MoDaContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.Name).HasMaxLength(500);
             entity.Property(e => e.Note).HasMaxLength(500);
             entity.Property(e => e.TypeId)
@@ -115,9 +111,7 @@ public partial class MoDaContext : DbContext
             entity.Property(e => e.AccOnline).HasMaxLength(50);
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.Email).HasMaxLength(50);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Name).HasMaxLength(500);
@@ -137,9 +131,7 @@ public partial class MoDaContext : DbContext
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CompanyId).HasDefaultValue(0);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.DebtFirst).HasDefaultValue(0.0);
             entity.Property(e => e.Email).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(500);
@@ -155,9 +147,7 @@ public partial class MoDaContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.Name).HasMaxLength(500);
             entity.Property(e => e.PriceInput).HasDefaultValue(0.0);
             entity.Property(e => e.PriceOutput).HasDefaultValue(0.0);
@@ -177,9 +167,7 @@ public partial class MoDaContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.CustomerAddress).HasMaxLength(500);
             entity.Property(e => e.CustomerId).HasDefaultValue(0);
             entity.Property(e => e.CustomerName).HasMaxLength(500);
@@ -224,9 +212,7 @@ public partial class MoDaContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.Name).HasMaxLength(250);
             entity.Property(e => e.Status).HasDefaultValue(true);
             entity.Property(e => e.UpdateBy).HasMaxLength(50);
@@ -241,9 +227,7 @@ public partial class MoDaContext : DbContext
 
             entity.Property(e => e.VehiceCode).HasMaxLength(50);
             entity.Property(e => e.CreateBy).HasMaxLength(50);
-            entity.Property(e => e.CreateDay)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("TEXT");
+            entity.Property(e => e.CreateDay).HasColumnType("TEXT");
             entity.Property(e => e.DriverName).HasMaxLength(250);
             entity.Property(e => e.DriverPhone).HasMaxLength(50);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();

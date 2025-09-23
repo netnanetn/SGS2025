@@ -26,7 +26,9 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
         <!-- Display name -->
-        <ApplicationTitle>SGS2025Client</ApplicationTitle>
+        <ApplicationTitle>SmartScale_BK</ApplicationTitle>
+		<!-- Tên app hiển thị trong Start Menu, Taskbar, App list -->
+		<ApplicationDisplayName>SmartScale_BK</ApplicationDisplayName>
 
         <!-- App Identifier -->
         <ApplicationId>com.companyname.sgs2025client</ApplicationId>
@@ -52,6 +54,7 @@
  
 
     <ItemGroup>
+	 
         <!-- App Icon -->
         <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 
@@ -81,6 +84,7 @@
         <PackageReference Include="bblanchon.PDFium.Win32" Version="142.0.7415" />
         <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
         <PackageReference Include="ClosedXML" Version="0.105.0" />
+        <PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
         <PackageReference Include="FFmpeg.AutoGen" Version="7.1.1" />
         <PackageReference Include="JerryShaw.HCNet.SDK" Version="0.0.14" />
         <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="6.0.36" />
@@ -170,6 +174,5 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
- 
 	
 </Project>

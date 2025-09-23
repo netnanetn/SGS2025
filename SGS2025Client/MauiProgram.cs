@@ -18,6 +18,7 @@ using SGS2025.Core.Services.ShareServices;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
+using CommunityToolkit.Maui;
 
 namespace SGS2025Client
 {
@@ -79,6 +80,7 @@ namespace SGS2025Client
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<LoadDataService>();
             builder.Services.AddScoped<ScaleService>();
+            builder.Services.AddScoped<CompanyService>();
 
             builder.Services.AddSingleton<RazorRenderer>();
             builder.Services.AddSingleton<PdfService>();
@@ -134,7 +136,7 @@ namespace SGS2025Client
                     }));
 #endif
             });
-
+            builder.UseMauiApp<App>().UseMauiCommunityToolkit();
             var app =  builder.Build();
 
             // 🔹 Pre-warm Razor template (compile sẵn, lần in đầu tiên sẽ nhanh)
@@ -150,6 +152,8 @@ namespace SGS2025Client
                     Console.WriteLine($"Pre-warm Razor template failed: {ex.Message}");
                 }
             });
+
+            
 
             return app;
 

@@ -182,17 +182,14 @@ namespace SGS2025.Core.Services.ShareServices
 
             // Ít nhất phải có dấu và vài số
             if (frame.Length < 3) return false;
-
-            // Lấy dấu
-            char sign = frame[0];
-            if (sign != '+' && sign != '-') return false;
+             
 
             // Bỏ dấu + bỏ 2 số cuối
             string numberPart = frame.Substring(1, frame.Length - 3);
 
             if (int.TryParse(numberPart, out int val))
             {
-                weight = (sign == '-') ? -val : val;
+                weight =  val;
                 return true;
             }
 

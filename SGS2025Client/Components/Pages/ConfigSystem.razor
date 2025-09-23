@@ -1,5 +1,4 @@
-﻿@page "/test2"
-
+﻿@page "/system"
 @inject CompanyService companyService
 
 <h3>Cập nhật thông tin công ty</h3>
@@ -63,7 +62,7 @@ else
         }
         catch (Exception e)
         {
-
+             
         }
     }
 
@@ -71,12 +70,12 @@ else
     {
         if (company == null) return;
 
-        await companyService.UpdateAsync(company, "current_user");
-
+         await companyService.UpdateAsync(company, "current_user");
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
+        await toast.Show();
     }
 
-    private async void Back()
-    {
+    private async void Back(){
         company = await companyService.GetByIdAsync();
     }
 

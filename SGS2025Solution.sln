@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsAppTestScale", "Win
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SGS2025.Core", "SGS2025.Core\SGS2025.Core.csproj", "{0650F736-48B6-43EE-9112-9957437CEF78}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsAppTest", "WinFormsAppTest\WinFormsAppTest.csproj", "{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,14 @@ Global
 		{0650F736-48B6-43EE-9112-9957437CEF78}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0650F736-48B6-43EE-9112-9957437CEF78}.Release|x64.ActiveCfg = Release|Any CPU
 		{0650F736-48B6-43EE-9112-9957437CEF78}.Release|x64.Build.0 = Release|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Debug|x64.Build.0 = Debug|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|x64.ActiveCfg = Release|Any CPU
+		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
