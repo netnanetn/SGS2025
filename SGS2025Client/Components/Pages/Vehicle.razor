@@ -176,12 +176,16 @@ else
         vehicles = await _vehicleService.GetAllAsync();
         editVehicle = null;
         StateHasChanged();
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
+        await toast.Show();
     }
 
     async Task Delete(int id)
     {
         await _vehicleService.DeleteAsync(id);
         vehicles = await _vehicleService.GetAllAsync();
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã xóa thành công!", ToastDuration.Short, 14);
+        await toast.Show();
     }
 
     void Cancel() => editVehicle = null;

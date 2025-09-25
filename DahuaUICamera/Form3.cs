@@ -27,7 +27,7 @@ namespace DahuaUICamera
         private Int32 m_lRealHandle1 = -1;
         private int lVoiceComHandle1 = -1;
         private string str1;
-         
+
 
 
         private uint iLastErr2 = 0;
@@ -38,7 +38,7 @@ namespace DahuaUICamera
         private Int32 m_lRealHandle2 = -1;
         private int lVoiceComHandle2 = -1;
         private string str2;
-         
+
 
         private uint iLastErr3 = 0;
         private Int32 m_lUserID3 = -1;
@@ -48,7 +48,7 @@ namespace DahuaUICamera
         private Int32 m_lRealHandle3 = -1;
         private int lVoiceComHandle3 = -1;
         private string str3;
-         
+
         private NET_SDK_DEVICEINFO oNET_SDK_DEVICEINFO;
         private static LIVE_DATA_CALLBACK myldc = null;
         private int playHandle1, playHandle2, playHandle3;
@@ -61,7 +61,7 @@ namespace DahuaUICamera
                 MessageBox.Show("SDK init failed!");
                 return;
             }
-            CameraUrl1 = "192.168.1.107"; ;
+            CameraUrl1 = "192.168.10.233"; ;
             CameraUser1 = "admin";
             CameraPassword1 = "A123456a@";
 
@@ -69,7 +69,7 @@ namespace DahuaUICamera
         }
         private void LivePlayTVT01()
         {
-            
+
             bool isConnected = false;
             int Port = Int32.Parse(this.DauGhiPort);
             if (1 == 1)
@@ -105,6 +105,60 @@ namespace DahuaUICamera
                     }
                 }
             }
+        }
+        private bool m_bManualAlarm = false;
+        private void btnAlarm_Click(object sender, EventArgs e)
+        {
+            int lManualCount = oNET_SDK_DEVICEINFO.sensorOutputNum;
+            int[] pChannel = new int[lManualCount];
+            int[] pValue = new int[lManualCount];
+            if (!m_bManualAlarm)
+            {
+                for (int i = 0; i < lManualCount; i++)
+                {
+                    pChannel[i] = i;
+                    pValue[i] = 1;
+                }
+                bool ret = DevSdkHelper.NET_SDK_SetDeviceManualAlarm(m_lUserID1, pChannel, pValue, lManualCount, true);
+                if (ret)
+                {
+                    //((Button)sender).Text = "CleanAlarm";
+                    m_bManualAlarm = true;
+                }
+                else
+                {
+                    MessageBox.Show("Alarm ON error");
+                }
+            }
+            else
+            {
+                for (int i = 0; i < lManualCount; i++)
+                {
+                    pChannel[i] = i;
+                    pValue[i] = 0;
+                }
+                bool ret = DevSdkHelper.NET_SDK_SetDeviceManualAlarm(m_lUserID1, pChannel, pValue, lManualCount, false);
+                if (ret)
+                {
+                    //((Button)sender).Text = "ManualAlarm";
+                    m_bManualAlarm = false;
+                }
+                else
+                {
+                    MessageBox.Show("Alarm OFF error");
+                }
+            }
+        }
+
+        private void btnSetTime_Click(object sender, EventArgs e)
+        { 
+            int timestamp = (int)(DateTime.UtcNow.AddDays(-10) - new DateTime(1970, 1, 1)).TotalSeconds;
+
+            bool result = DevSdkHelper.NET_SDK_ChangTime(m_lUserID1, timestamp);
+            if (result)
+                Console.WriteLine("Set thời gian thành công!");
+            else
+                Console.WriteLine("Set thời gian thất bại!");
         }
     }
 }

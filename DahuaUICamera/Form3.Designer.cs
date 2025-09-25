@@ -30,6 +30,8 @@
         {
             cameraPreview1 = new PictureBox();
             StatusCamera1 = new Label();
+            btnAlarm = new Button();
+            btnSetTime = new Button();
             ((System.ComponentModel.ISupportInitialize)cameraPreview1).BeginInit();
             SuspendLayout();
             // 
@@ -50,11 +52,33 @@
             StatusCamera1.TabIndex = 1;
             StatusCamera1.Text = "label1";
             // 
+            // btnAlarm
+            // 
+            btnAlarm.Location = new Point(662, 35);
+            btnAlarm.Name = "btnAlarm";
+            btnAlarm.Size = new Size(75, 23);
+            btnAlarm.TabIndex = 2;
+            btnAlarm.Text = "Alarm";
+            btnAlarm.UseVisualStyleBackColor = true;
+            btnAlarm.Click += btnAlarm_Click;
+            // 
+            // btnSetTime
+            // 
+            btnSetTime.Location = new Point(662, 103);
+            btnSetTime.Name = "btnSetTime";
+            btnSetTime.Size = new Size(75, 23);
+            btnSetTime.TabIndex = 3;
+            btnSetTime.Text = "SetTime";
+            btnSetTime.UseVisualStyleBackColor = true;
+            btnSetTime.Click += btnSetTime_Click;
+            // 
             // Form3
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(btnSetTime);
+            Controls.Add(btnAlarm);
             Controls.Add(StatusCamera1);
             Controls.Add(cameraPreview1);
             Name = "Form3";
@@ -68,5 +92,7 @@
 
         private PictureBox cameraPreview1;
         private Label StatusCamera1;
+        private Button btnAlarm;
+        private Button btnSetTime;
     }
 }

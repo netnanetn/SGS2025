@@ -1,7 +1,7 @@
 ﻿@page "/tvt"
 
 @using SGS2025Client.SDKCameraServices.Tvt
-@inject TvtCameraService _tvtCameraService
+@inject FactoryCameraService _factoryCameraService
 @inject IJSRuntime JS
 <h3>TVT</h3>
 
@@ -41,10 +41,11 @@
     {
         Task.Run(() =>
         {
-            _tvtCameraService.AddCamera("cam1", "192.168.1.107", 9008, "admin", "A123456a@");
-            _tvtCameraService.AddCamera("cam2", "192.168.1.107", 9008, "admin", "A123456a@");
-            _tvtCameraService.AddCamera("cam3", "192.168.1.107", 9008, "admin", "A123456a@");
-            _tvtCameraService.AddCamera("cam4", "192.168.1.107", 9008, "admin", "A123456a@");
+          //  _tvtCameraService.AddCamera("cam1", "192.168.10.233", 9008, "admin", "A123456a@");
+            _factoryCameraService.AddCamera("cam1", CameraType.Tvt, "192.168.10.233", 9008, "admin", "A123456a@");
+           // _tvtCameraService.AddCamera("cam2", "192.168.1.107", 9008, "admin", "A123456a@");
+           // _tvtCameraService.AddCamera("cam3", "192.168.1.107", 9008, "admin", "A123456a@");
+           // _tvtCameraService.AddCamera("cam4", "192.168.1.107", 9008, "admin", "A123456a@");
         });
          
         _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50); // 10fps
@@ -53,30 +54,33 @@
   
     
     private async Task UpdateFrame()
-    { 
+    {
         async Task Draw(string canvasId, string camId)
         {
-            var url = _tvtCameraService.CaptureToUrl(camId);
+            var url = _factoryCameraService.CaptureToUrl(camId);
             if (!string.IsNullOrEmpty(url))
             {
                 await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, "cameraai");
             }
         }
 
         await Task.WhenAll(
             Draw("cam1Canvas", "cam1"),
             Draw("cam2Canvas", "cam2"),
-            Draw("cam3Canvas", "cam3"),
-            Draw("cam4Canvas", "cam4")
+           Draw("cam3Canvas", "cam3"),
+           Draw("cam4Canvas", "cam4")
         );
     }
     private void chupanh()
     {
-        var imageBase64_1 = _tvtCameraService.GetImage("cam1");
+         
     }
     public void Dispose()
     {
-        _timer?.Dispose();
-        _tvtCameraService.StopAll();
+        _timer?.Dispose(); 
     }
 }

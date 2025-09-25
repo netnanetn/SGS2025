@@ -1,0 +1,183 @@
+﻿@page "/products"
+
+@inject ProductService _productService
+@inject IJSRuntime JS
+
+<div class="input-group mb-3">
+    <InputText @bind-Value="searchText" class="form-control" placeholder="🔍 Tìm sản phẩm..." />
+    <button class="btn btn-primary" @onclick="Search">Tìm</button>
+    <button class="btn btn-secondary" @onclick="ResetSearch">Reset</button>
+</div>
+
+<button class="btn btn-primary mb-2" @onclick="ShowAddForm">➕ Thêm Sản phẩm</button>
+
+@if (editProduct != null)
+{
+    <EditForm Model="editProduct" OnValidSubmit="Save">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label>Mã sản phẩm:</label>
+            <InputText id="productCodeInput" class="form-control" @bind-Value="editProduct.Code" />
+        </div>
+        <div class="mb-2">
+            <label>Tên sản phẩm:</label>
+            <InputText class="form-control" @bind-Value="editProduct.Name" />
+        </div>
+        <div class="mb-2">
+            <label>Đơn vị:</label>
+            <InputText class="form-control" @bind-Value="editProduct.UnitName" />
+        </div>
+        <div class="mb-2">
+            <label>Tỉ lệ:</label>
+            <InputNumber class="form-control" @bind-Value="editProduct.Proportion" />
+        </div>
+        <div class="mb-2">
+            <label>Giá nhập:</label>
+            <InputNumber class="form-control" @bind-Value="editProduct.PriceInput" />
+        </div>
+        <div class="mb-2">
+            <label>Giá bán:</label>
+            <InputNumber class="form-control" @bind-Value="editProduct.PriceOutput" />
+        </div>
+        <div class="mb-2">
+            <label>Loại sản phẩm:</label>
+            <InputNumber class="form-control" @bind-Value="editProduct.TypeProduct" />
+        </div>
+        <div class="mb-2">
+            <label>Công ty:</label>
+            <InputNumber class="form-control" @bind-Value="editProduct.CompanyId" />
+        </div>
+
+        <button type="submit" class="btn btn-success">💾 Lưu</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
+    </EditForm>
+}
+
+@if (products == null)
+{
+    <p><em>Đang tải...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã SP</th>
+                <th>Tên</th>
+                <th>Đơn vị</th>
+                <th>Tỉ lệ</th>
+                <th>Giá nhập</th>
+                <th>Giá bán</th>
+                <th>Loại</th>
+                <th>Công ty</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in products)
+            {
+                <tr>
+                    <td>@p.Code</td>
+                    <td>@p.Name</td>
+                    <td>@p.UnitName</td>
+                    <td>@p.Proportion</td>
+                    <td>@p.PriceInput</td>
+                    <td>@p.PriceOutput</td>
+                    <td>@p.TypeProduct</td>
+                    <td>@p.CompanyId</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" @onclick="() => Edit(p)">✏️ Sửa</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(p.Id)">🗑️ Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<TblProduct>? products;
+    TblProduct? editProduct;
+    string searchText = string.Empty;
+    bool shouldFocus = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await _productService.GetAllAsync();
+    }
+
+    async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            products = await _productService.GetAllAsync();
+        else
+            products = await _productService.SearchAsync(searchText);
+    }
+
+    async Task ResetSearch()
+    {
+        searchText = string.Empty;
+        products = await _productService.GetAllAsync();
+    }
+
+    async Task ShowAddForm()
+    {
+        editProduct = new TblProduct();
+        shouldFocus = true;
+    }
+
+    async Task Edit(TblProduct p)
+    {
+        editProduct = new TblProduct
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                UnitId = p.UnitId,
+                UnitName = p.UnitName,
+                Proportion = p.Proportion,
+                PriceInput = p.PriceInput,
+                PriceOutput = p.PriceOutput,
+                TypeProduct = p.TypeProduct,
+                CompanyId = p.CompanyId
+            };
+        shouldFocus = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (shouldFocus)
+        {
+            shouldFocus = false;
+            await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "productCodeInput", null);
+        }
+    }
+
+    async Task Save()
+    {
+        if (editProduct == null) return;
+
+        if (editProduct.Id == 0)
+            await _productService.AddAsync(editProduct);
+        else
+            await _productService.UpdateAsync(editProduct);
+
+        products = await _productService.GetAllAsync();
+        editProduct = null;
+        StateHasChanged();
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
+        await toast.Show();
+    }
+
+    async Task Delete(int id)
+    {
+        await _productService.DeleteAsync(id);
+        products = await _productService.GetAllAsync();
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã xóa thành công!", ToastDuration.Short, 14);
+        await toast.Show();
+    }
+
+    void Cancel() => editProduct = null;
+}

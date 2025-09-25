@@ -66,11 +66,13 @@
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => rtxtLog.AppendText(raw)));
+              //  BeginInvoke(new Action(() => rtxtLog.AppendText(raw)));
+                BeginInvoke(new Action(() => rtxtLog.AppendText(raw + Environment.NewLine)));
             }
             else
             {
-                rtxtLog.AppendText(raw);
+                // rtxtLog.AppendText(raw);
+                rtxtLog.AppendText(raw + Environment.NewLine);
             }
         }
         private void btnClear_Click(object sender, EventArgs e)

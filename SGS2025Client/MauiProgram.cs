@@ -19,6 +19,7 @@ using Microsoft.Maui.LifecycleEvents;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using CommunityToolkit.Maui;
+using WinRT.Interop;
 
 namespace SGS2025Client
 {
@@ -32,7 +33,7 @@ namespace SGS2025Client
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                });
+                }) ;
 
             // 🔹 cấu hình hệ thống
             var folder = @"C:\TVS\Config";
@@ -74,8 +75,11 @@ namespace SGS2025Client
 
             builder.Services.AddSingleton<AuthService>();
 
+            builder.Services.AddScoped<AccountService>();
             builder.Services.AddScoped<VehicleService>();
-              
+            
+
+
             builder.Services.AddScoped<CustomerService>();
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<LoadDataService>();

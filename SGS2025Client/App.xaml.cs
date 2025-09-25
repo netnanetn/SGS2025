@@ -16,8 +16,8 @@ namespace SGS2025Client
             MainPage = new NavigationPage(new LoginPage(_authService));
             // MainPage = new MainPage();
             // MainPage = new NavigationPage(new MainPage()); // MainPage có BlazorWebView
+
         }
-        
         protected override Window CreateWindow(IActivationState activationState)
         {
             var window = base.CreateWindow(activationState);

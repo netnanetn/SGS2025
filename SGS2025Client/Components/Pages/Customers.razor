@@ -1,4 +1,4 @@
-﻿@page "/test2"
+﻿@page "/customers"
 
 @inject CustomerService _customerService
 @inject IJSRuntime JS
@@ -108,7 +108,7 @@ else
     bool shouldFocus = true;
 
     protected override async Task OnInitializedAsync()
-    {  
+    {
         customers = await _customerService.GetAllAsync();
     }
 
@@ -171,12 +171,16 @@ else
         customers = await _customerService.GetAllAsync();
         editCustomer = null;
         StateHasChanged();
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
+        await toast.Show();
     }
 
     async Task Delete(int id)
     {
         await _customerService.DeleteAsync(id);
         customers = await _customerService.GetAllAsync();
+        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã xóa thành công!", ToastDuration.Short, 14);
+        await toast.Show();
     }
 
     void Cancel() => editCustomer = null;

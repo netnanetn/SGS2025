@@ -6,17 +6,20 @@
     <Sidebar @ref="sidebar"
     Href="/"
     IconName="IconName.Power"
-    Title="SGS"
+    Title="SmartScale_BK"
     DataProvider="SidebarDataProvider"/>
-    <div class="sidebar-toggle-icon" >
-        <Icon Name="IconName.List" Color="IconColor.Danger" role="button" @onclick="ToggleSidebar" />
-    </div>
+ 
     <main>
-       @*  <div class="bb-top-row px-4 d-flex justify-content-between" >
-            <Icon Name="IconName.List" role="button" @onclick="ToggleSidebar" />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+    
+        <div class="bb-top-row px-4 d-flex justify-content-between align-items-center" style="background-color: #4e01e5">
+            <!-- Toggle Sidebar -->
+            <Icon Name="IconName.List" Color="IconColor.Danger" role="button" @onclick="ToggleSidebar" />
+
+            <!-- Logout -->
+            <button class="btn btn-sm btn-danger" @onclick="OnLogoutClicked">
+                <Icon Name="IconName.BoxArrowRight" /> Đăng xuất
+            </button>
         </div>
- *@
         <article class="content px-4">
             <div class="py-2">@Body</div>
         </article>
@@ -61,15 +64,27 @@
             // new NavItem { Id = "6", Href = "/breadcrumb", IconName = IconName.SegmentedNav, Text = "Breadcrumb", ParentId="4"},
             // new NavItem { Id = "7", Href = "/sidebar", IconName = IconName.LayoutSidebarInset, Text = "Sidebar", ParentId="4"},
 
-             new NavItem { Id = "8", IconName = IconName.WindowPlus, Text = "Danh mục", IconColor = IconColor.Danger },
-             new NavItem { Id = "9", Href = "/vehicles", IconName = IconName.BadgeVoFill, Text = "Danh sách xe", ParentId="8"},
-            // new NavItem { Id = "10", Href = "/currency-input", IconName = IconName.CurrencyDollar, Text = "Currency Input", ParentId="8"},
-            // new NavItem { Id = "11", Href = "/number-input", IconName = IconName.InputCursor, Text = "Number Input", ParentId="8"},
+             new NavItem { Id = "20", IconName = IconName.WindowPlus, Text = "Danh mục", IconColor = IconColor.Danger },
+             new NavItem { Id = "21", Href = "/vehicles", IconName = IconName.BadgeVoFill, Text = "Xe", ParentId="20"},
+             new NavItem { Id = "22", Href = "/products", IconName = IconName.Projector, Text = "Sản phẩm", ParentId="20"},
+              new NavItem { Id = "23", Href = "/customers", IconName = IconName.Person, Text = "Khách hàng", ParentId="20"},
             // new NavItem { Id = "12", Href = "/switch", IconName = IconName.ToggleOn, Text = "Switch", ParentId="8"},
         };
 
         return navItems;
     }
+    private async Task OnLogoutClicked()
+    {
+        // Xóa thông tin đăng nhập đã lưu
+        SecureStorage.Remove("username");
+        SecureStorage.Remove("password_hash");
 
+        // Quay lại trang Login
+        if (Application.Current is App app)
+        {
+            var authService = IPlatformApplication.Current.Services.GetRequiredService<AuthService>();
+            app.MainPage = new NavigationPage(new LoginPage(authService));
+        }
+    }
     private void ToggleSidebar() => sidebar.ToggleSidebar();
 }

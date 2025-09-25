@@ -19,6 +19,10 @@ namespace WinFormsAppTestScale
     }
     public static class ScaleParser
     {
+        private static readonly Dictionary<ScaleProtocol, int> _voteCounter = new();
+        private static int _sampleCount = 0;
+        private const int ThresholdSamples = 5; // số frame tối thiểu để auto-detect
+
         private static string dataPlus = "";
         private static ScaleProtocol? detected = null; // null = chưa biết
 
@@ -29,11 +33,25 @@ namespace WinFormsAppTestScale
             buffer.Clear();
 
             // Nếu chưa detect protocol -> thử auto-detect
+            //if (protocol == ScaleProtocol.Unknown)
+            //{
+            //    protocol = DetectProtocol(content);
+            //    if (protocol != ScaleProtocol.Unknown)
+            //        Console.WriteLine($"[AutoDetect] Protocol = {protocol}");
+            //}
             if (protocol == ScaleProtocol.Unknown)
             {
-                protocol = DetectProtocol(content);
-                if (protocol != ScaleProtocol.Unknown)
-                    Console.WriteLine($"[AutoDetect] Protocol = {protocol}");
+                var detected = DetectLoop(content);
+                if (detected != ScaleProtocol.Unknown)
+                {
+                    protocol = detected;
+                }
+                else
+                {
+                    // chưa đủ dữ liệu để quyết định -> giữ lại buffer
+                    buffer.Append(content);
+                    return results;
+                }
             }
 
             switch (protocol)
@@ -194,6 +212,30 @@ namespace WinFormsAppTestScale
             }
 
             return false;
+        }
+        public static ScaleProtocol DetectLoop(string sample)
+        {
+            var proto = DetectProtocol(sample);
+
+            if (proto != ScaleProtocol.Unknown)
+            {
+                if (!_voteCounter.ContainsKey(proto))
+                    _voteCounter[proto] = 0;
+
+                _voteCounter[proto]++;
+            }
+
+            _sampleCount++;
+
+            // Nếu đủ số lượng sample thì chọn protocol có điểm cao nhất
+            if (_sampleCount >= ThresholdSamples && _voteCounter.Count > 0)
+            {
+                var best = _voteCounter.OrderByDescending(x => x.Value).First().Key;
+                Console.WriteLine($"[AutoDetect] Locked protocol = {best}");
+                return best;
+            }
+
+            return ScaleProtocol.Unknown;
         }
         private static ScaleProtocol DetectProtocol(string sample)
         {

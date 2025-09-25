@@ -517,7 +517,23 @@
                            foreach (var camItem in _config.Camera.List)
                             {
                                 if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url)){
-                                    _factoryCameraService.AddCamera(camItem.Code, camItem.TypeCamera, camItem.Url, camItem.DauGhiPort, camItem.User, camItem.Password);
+                                   // _factoryCameraService.AddCamera(camItem.Code, camItem.TypeCamera, camItem.Url, camItem.DauGhiPort, camItem.User, camItem.Password);
+                                   try
+                                   {
+                                       _factoryCameraService.AddCamera(
+                                       camItem.Code,
+                                       camItem.TypeCamera,
+                                       camItem.Url,
+                                       camItem.DauGhiPort,
+                                       camItem.User,
+                                       camItem.Password
+                                   );
+                                   }
+                                   catch (Exception exCam)
+                                   {
+                                       Console.WriteLine($"Camera {camItem.Code} connect failed: {exCam.Message}");
+                                       // Có thể log thêm hoặc đánh dấu camera này bị lỗi
+                                   }
                                 }
                             }
                           
