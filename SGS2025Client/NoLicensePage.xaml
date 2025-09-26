@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SGS2025Client.NoLicensePage"
+             Title="Kích hoạt phần mềm">
+    <VerticalStackLayout Padding="20" Spacing="15">
+        <Label Text="Phần mềm chưa được kích hoạt."
+               FontSize="18"
+               TextColor="Red" />
+
+        <Label Text="Mã phần cứng (Hardware ID):"
+               FontAttributes="Bold"/>
+
+        <Entry x:Name="HardwareIdEntry"
+               IsReadOnly="True"
+               FontSize="16"/>
+
+        <Button Text="Copy Hardware ID"
+                Clicked="OnCopyClicked"/>
+        <Button Text="Nhập file license được cấp"
+        Clicked="OnImportLicenseClicked"/>
+        <Label Text="Vui lòng gửi Hardware ID cho nhà cung cấp để nhận license file." 
+               FontSize="14" 
+               TextColor="Gray"/>
+    </VerticalStackLayout>
+</ContentPage>

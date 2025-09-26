@@ -9,15 +9,35 @@ namespace SGS2025Client
     public partial class App : Application
     {
         private readonly AuthService _authService;
-        public App(AuthService authService)
+        private readonly LicenseService _licenseService;
+        public App(AuthService authService, LicenseService licenseService)
         {
             InitializeComponent();
+           _licenseService = licenseService;
             _authService = authService;
-            MainPage = new NavigationPage(new LoginPage(_authService));
+
+
+            bool valid = _licenseService.ValidateLicense();
+
+            if (!valid)
+            {
+                string hwId = _licenseService.GetLocalHardwareId();
+                MainPage = new NoLicensePage(hwId, _licenseService);
+            }
+            else
+            {
+                MainPage = new NavigationPage(new LoginPage(_authService));
+            }
+
+            //_authService = authService;
+            //MainPage = new NavigationPage(new LoginPage(_authService));
+
             // MainPage = new MainPage();
             // MainPage = new NavigationPage(new MainPage()); // MainPage có BlazorWebView
 
         }
+
+         
         protected override Window CreateWindow(IActivationState activationState)
         {
             var window = base.CreateWindow(activationState);

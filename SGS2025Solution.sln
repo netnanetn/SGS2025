@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SGS2025.Core", "SGS2025.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsAppTest", "WinFormsAppTest\WinFormsAppTest.csproj", "{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScaleKey", "ScaleKey\ScaleKey.csproj", "{4794CAE6-36F7-4EE5-925C-D4720FBC062F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,14 @@ Global
 		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|x64.ActiveCfg = Release|Any CPU
 		{8DFD9A81-92D1-4942-AD0D-BFF75E919A88}.Release|x64.Build.0 = Release|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Debug|x64.Build.0 = Debug|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Release|x64.ActiveCfg = Release|Any CPU
+		{4794CAE6-36F7-4EE5-925C-D4720FBC062F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

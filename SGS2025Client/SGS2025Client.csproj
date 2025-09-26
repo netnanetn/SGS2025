@@ -165,12 +165,18 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
+	  <EmbeddedResource Include="Keys\public.pem" />
+	</ItemGroup>
+	<ItemGroup>
 	  <Reference Include="DevSdkByCS">
 	    <HintPath>NativeLibs\win-x64\native\DevSdkByCS.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 	<ItemGroup>
 	  <MauiXaml Update="LoginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="NoLicensePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

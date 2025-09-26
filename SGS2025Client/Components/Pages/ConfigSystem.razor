@@ -1,6 +1,7 @@
 ﻿@page "/system"
 @inject CompanyService companyService
-
+@inject LicenseService _licenseService
+@inject IJSRuntime JS
 <h3>Cập nhật thông tin công ty</h3>
 
 @if (company == null)
@@ -47,7 +48,8 @@ else
             <button type="submit" class="btn btn-primary">Lưu</button>
             <button type="button" class="btn btn-secondary" @onclick="Back">Hủy</button>
         </div>
-    </EditForm>
+    </EditForm> 
+    <button class="btn btn-primary" @onclick="OnUpdateLicenseClicked">Cập nhật License</button>
 }
 
 @code {
@@ -78,5 +80,53 @@ else
     private async void Back(){
         company = await companyService.GetByIdAsync();
     }
+    private async Task OnUpdateLicenseClicked()
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Chọn license file",
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        { DevicePlatform.WinUI, new[] { ".lic" } },
+                        { DevicePlatform.Android, new[] { "application/octet-stream" } },
+                        { DevicePlatform.iOS, new[] { "public.data" } },
+                        { DevicePlatform.MacCatalyst, new[] { "public.data" } }
+                    })
+                });
 
+            if (result != null)
+            {
+                using var stream = await result.OpenReadAsync();
+                using var reader = new StreamReader(stream);
+                var licenseContent = await reader.ReadToEndAsync();
+
+                // Lưu file vào local storage
+                var licensePath = Path.Combine(FileSystem.AppDataDirectory, "license.lic");
+                File.WriteAllText(licensePath, licenseContent);
+                 
+                var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã import license. Khởi động lại ứng dụng!", ToastDuration.Short, 14);
+                await toast.Show();
+
+                // Thử validate lại
+                var valid = _licenseService.ValidateLicense();
+                if (valid)
+                { 
+                      toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã kiểm tra license hợp lệ. Vui lòng Khởi động lại ứng dụng!", ToastDuration.Short, 14);
+                    await toast.Show();
+                }
+                else
+                {
+                      toast = CommunityToolkit.Maui.Alerts.Toast.Make("License không hợp lệ!", ToastDuration.Short, 14);
+                    await toast.Show();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var toast = CommunityToolkit.Maui.Alerts.Toast.Make($"Không thể cập nhật license: {ex.Message}", ToastDuration.Short, 14);
+            await toast.Show();
+        }
+    }
 }

@@ -90,8 +90,7 @@ namespace SGS2025Client
             builder.Services.AddSingleton<PdfService>();
             builder.Services.AddScoped<ImageStorageService>();
             builder.Services.AddScoped<ExcelVehicleService>();
-
-            
+            builder.Services.AddScoped<LicenseService>();
 
 
             // ✅ Đăng ký DI (Dependency Injection)
