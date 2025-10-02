@@ -397,7 +397,7 @@
     private DateTime _lastUpdate = DateTime.MinValue;
     private string port = "COM3";
     private int baud = 9600;
-     
+
 
     private void CloseModal()
     {
@@ -421,14 +421,15 @@
         try
         {
             _config = await configService.LoadAsync();
+            OnDataReceived(0);
         }
         catch (Exception e)
         {
-            
+
         }
         port = _config?.ComConfig?.PortName ?? "COM2";
         baud = _config?.ComConfig?.BaudRate ?? 9600;
-         
+
         try
         {
             if (!_weighingScaleService.IsConnected)
@@ -442,14 +443,14 @@
             Console.WriteLine($"Cannot connect scale: {ex.Message}");
             WeightDisplay = "Không thể kết nối đầu cân";
         }
-    
+
     }
-  
+
     private async void OnDataReceived(double data)
     { 
 
         try
-        {
+        { 
             await JS.InvokeVoidAsync("updateWeight", $"{data}");
             WeightRealTime = data;
         }

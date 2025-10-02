@@ -330,7 +330,7 @@ namespace SGS2025Client.Components.LibPDFs
             return await page.PdfDataAsync(new PdfOptions
             {
                 Format = pageSize == "A4" ? PaperFormat.A4 : PaperFormat.A5,
-                PrintBackground = true,
+                PrintBackground = true,  
                 MarginOptions = new MarginOptions
                 {
                     Top = "0mm",
