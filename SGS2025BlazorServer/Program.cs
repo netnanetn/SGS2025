@@ -54,7 +54,7 @@ namespace SGS2025BlazorServer
             builder.Services.AddScoped<ScaleService>(); 
             builder.Services.AddSingleton<PdfService>();
             builder.Services.AddScoped<ImageStorageService>();
-            builder.Services.AddScoped<ExcelVehicleService>();
+            builder.Services.AddScoped<ExcelService>();
              
 
 

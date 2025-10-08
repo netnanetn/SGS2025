@@ -1,6 +1,7 @@
 ﻿@page "/products"
 
 @inject ProductService _productService
+@inject ExcelService _excelService
 @inject IJSRuntime JS
 
 <div class="input-group mb-3">
@@ -10,6 +11,7 @@
 </div>
 
 <button class="btn btn-primary mb-2" @onclick="ShowAddForm">➕ Thêm Sản phẩm</button>
+<button class="btn btn-primary mb-2" @onclick="ExportExcel">Xuất excel</button>
 
 @if (editProduct != null)
 {
@@ -17,42 +19,92 @@
         <DataAnnotationsValidator />
         <ValidationSummary />
 
-        <div class="mb-2">
-            <label>Mã sản phẩm:</label>
-            <InputText id="productCodeInput" class="form-control" @bind-Value="editProduct.Code" />
-        </div>
-        <div class="mb-2">
-            <label>Tên sản phẩm:</label>
-            <InputText class="form-control" @bind-Value="editProduct.Name" />
-        </div>
-        <div class="mb-2">
-            <label>Đơn vị:</label>
-            <InputText class="form-control" @bind-Value="editProduct.UnitName" />
-        </div>
-        <div class="mb-2">
-            <label>Tỉ lệ:</label>
-            <InputNumber class="form-control" @bind-Value="editProduct.Proportion" />
-        </div>
-        <div class="mb-2">
-            <label>Giá nhập:</label>
-            <InputNumber class="form-control" @bind-Value="editProduct.PriceInput" />
-        </div>
-        <div class="mb-2">
-            <label>Giá bán:</label>
-            <InputNumber class="form-control" @bind-Value="editProduct.PriceOutput" />
-        </div>
-        <div class="mb-2">
-            <label>Loại sản phẩm:</label>
-            <InputNumber class="form-control" @bind-Value="editProduct.TypeProduct" />
-        </div>
-        <div class="mb-2">
-            <label>Công ty:</label>
-            <InputNumber class="form-control" @bind-Value="editProduct.CompanyId" />
-        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white fw-semibold">
+                📦 Thông tin sản phẩm
+            </div>
 
-        <button type="submit" class="btn btn-success">💾 Lưu</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Cột trái -->
+                    <div class="col-md-6">
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Mã sản phẩm:</label>
+                            <div class="col-sm-8">
+                                <InputText id="productCodeInput" class="form-control" @bind-Value="editProduct.Code" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Tên sản phẩm:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editProduct.Name" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Đơn vị:</label>
+                            <div class="col-sm-8">
+                                <InputSelect @bind-Value="editProduct.UnitName" class="form-select form-select-sm">
+                                    <option value="">-- Chọn đơn vị --</option>
+                                    <option value="KG">KG</option>
+                                    <option value="M3">M3</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Tỉ lệ:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editProduct.Proportion" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải -->
+                    <div class="col-md-6">
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Giá nhập:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editProduct.PriceInput" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Giá bán:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editProduct.PriceOutput" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Loại sản phẩm:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editProduct.TypeProduct" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Công ty:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editProduct.CompanyId" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer text-end bg-light">
+                <button type="submit" class="btn btn-success me-2">
+                    <i class="bi bi-save"></i> Lưu
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
+            </div>
+        </div>
     </EditForm>
+
 }
 
 @if (products == null)
@@ -127,7 +179,15 @@ else
         editProduct = new TblProduct();
         shouldFocus = true;
     }
-
+    private async Task ExportExcel()
+    {
+        var path = await _excelService.ExportProductToDownloadsAsync(products);
+        // Có thể mở luôn sau khi export
+        await Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(path)
+            });
+    }
     async Task Edit(TblProduct p)
     {
         editProduct = new TblProduct

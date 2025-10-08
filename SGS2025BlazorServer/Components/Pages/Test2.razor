@@ -1,183 +1,433 @@
 ﻿@page "/test2"
+@using System.Globalization
 
-@inject CustomerService _customerService
+@inject ScaleService scaleService
+@inject LoadDataService loadDataService
 @inject IJSRuntime JS
 
-<div class="input-group mb-3">
-    <InputText @bind-Value="searchText" class="form-control" placeholder="🔍 Tìm khách hàng..." />
-    <button class="btn btn-primary" @onclick="Search">Tìm</button>
-    <button class="btn btn-secondary" @onclick="ResetSearch">Reset</button>
+<h4 class="mb-3">📊 Báo cáo cân hàng</h4>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+
+        <!-- Bộ lọc tìm kiếm -->
+        <EditForm Model="@filter" OnValidSubmit="LoadData">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Từ khóa</label>
+                    <InputText class="form-control form-control-sm" @bind-Value="filter.Keyword" placeholder="Biển số, khách hàng, hàng hóa..." />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Từ ngày</label>
+                    <InputDate class="form-control form-control-sm" @bind-Value="filter.FromDate" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Đến ngày</label>
+                    <InputDate class="form-control form-control-sm" @bind-Value="filter.ToDate" />
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm mt-3">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm mt-3" @onclick="ResetFilter">
+                        <i class="bi bi-x-circle"></i> Xóa lọc
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+
+        <hr />
+
+        <!-- Bảng dữ liệu -->
+        @if (isLoading)
+        {
+            <div class="text-muted fst-italic">Đang tải dữ liệu...</div>
+        }
+        else if (danhSachPhieu.Count == 0)
+        {
+            <div class="alert alert-warning">Không có dữ liệu phiếu cân!</div>
+        }
+        else
+        {
+            <div style="overflow-x: auto; max-width: 100%;">
+                <table class="table table-bordered table-striped table-sm" style="font-size: 0.85rem; white-space: nowrap;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Số phiếu</th>
+                            <th>Ngày cân</th>
+                            <th>Biển số xe</th>
+                            <th>Khách hàng</th>
+                            <th>Hàng hóa</th>
+                            <th>Thời gian cân 1</th>
+                            <th>KL cân 1</th>
+                            <th>Thời gian cân 2</th>
+                            <th>KL cân 2</th>
+                            <th>KL hàng</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                            <th style="width:100px; text-align:center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in danhSachPhieu)
+                        {
+                            <tr @ondblclick="() => OnRowDoubleClick(p)" style="cursor: pointer;">
+                                <td>@p.Id</td>
+                                <td>@p.CreateDay?.ToString("dd/MM/yyyy")</td>
+                                <td>@p.Vehicle</td>
+                                <td>@p.CustomerName</td>
+                                <td>@p.ProductName</td>
+                                <td>@p.TimeIn?.ToString(@"hh\:mm")</td>
+                                <td>@FormatKL(p.WeightIn)</td>
+                                <td>@p.TimeOut?.ToString(@"hh\:mm")</td>
+                                <td>@FormatKL(p.WeightOut)</td>
+                                <td class="fw-semibold">@FormatKL(p.ProductNumber)</td>
+                                <td>@FormatCurrency(p.ProductPrice)</td>
+                                <td class="fw-bold text-success">@FormatCurrency(p.TotalMoney)</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary me-1" title="Sửa" @onclick="() => Edit(p)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Xóa" @onclick="() => Delete(p)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <p class="mt-2 fw-semibold">@WeightDisplay</p>
+            </div>
+        }
+    </div>
 </div>
-
-<button class="btn btn-primary mb-2" @onclick="ShowAddForm">➕ Thêm Khách hàng</button>
-
-@if (editCustomer != null)
+<!-- Modal sửa phiếu -->
+@if (editPhieu != null)
 {
-    <EditForm Model="editCustomer" OnValidSubmit="Save">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="modal fade show d-block" tabindex="-1" style="background-color:rgba(0,0,0,0.5)">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-2">
+                    <h6 class="modal-title">✏️ Sửa phiếu @editPhieu.Code</h6>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+                </div>
 
-        <div class="mb-2">
-            <label>Mã KH:</label>
-            <InputText id="customerCodeInput" class="form-control" @bind-Value="editCustomer.Code" />
-        </div>
-        <div class="mb-2">
-            <label>Tên KH:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Name" />
-        </div>
-        <div class="mb-2">
-            <label>Địa chỉ:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Address" />
-        </div>
-        <div class="mb-2">
-            <label>Điện thoại:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Phone" />
-        </div>
-        <div class="mb-2">
-            <label>Email:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Email" />
-        </div>
-        <div class="mb-2">
-            <label>Công nợ đầu kỳ:</label>
-            <InputNumber class="form-control" @bind-Value="editCustomer.DebtFirst" />
-        </div>
-        <div class="mb-2">
-            <label>Tài khoản NH:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.BankAccount" />
-        </div>
-        <div class="mb-2">
-            <label>Ghi chú:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Note" />
-        </div>
-        <div class="mb-2">
-            <label>Công ty:</label>
-            <InputNumber class="form-control" @bind-Value="editCustomer.CompanyId" />
-        </div>
+                <div class="modal-body">
+                    <EditForm Model="@editPhieu" OnValidSubmit="SaveEdit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
 
-        <button type="submit" class="btn btn-success">💾 Lưu</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
-    </EditForm>
-}
+                        <div class="row g-2">
+                            <!-- Cột trái -->
+                            <div class="col-md-6">
+                                <div class="form-row">
+                                    <label class="form-label label-col">Mã phiếu</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.Code"  disabled />
+                                </div>
 
-@if (customers == null)
-{
-    <p><em>Đang tải...</em></p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Mã KH</th>
-                <th>Tên</th>
-                <th>Điện thoại</th>
-                <th>Email</th>
-                <th>Địa chỉ</th>
-                <th>Công nợ</th>
-                <th>Ngân hàng</th>
-                <th>Ghi chú</th>
-                <th>Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var c in customers)
-            {
-                <tr>
-                    <td>@c.Code</td>
-                    <td>@c.Name</td>
-                    <td>@c.Phone</td>
-                    <td>@c.Email</td>
-                    <td>@c.Address</td>
-                    <td>@c.DebtFirst</td>
-                    <td>@c.BankAccount</td>
-                    <td>@c.Note</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" @onclick="() => Edit(c)">✏️ Sửa</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(c.Id)">🗑️ Xóa</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                                <div class="form-row">
+                                    <label class="form-label label-col">Biển số xe</label>
+                                    <AutoCompleteInput T="TblVehicle"
+                                    Items="ModelLoad.Vehicles"
+                                    ItemText="v => v.VehiceCode"
+                                    Placeholder="Nhập biển số..."
+                                    OnSelected="OnVehicleSelected"
+                                    Value="@editPhieu.Vehicle" />
+                                    @*  <InputText class="form-control form-control-sm" @bind-Value="editPhieu.Vehicle" /> *@
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Khách hàng</label>
+                                    <AutoCompleteInput T="TblCustomer"
+                                                       Items="ModelLoad.Customers"
+                                                       ItemText="v => v.Name"
+                                                       Placeholder="Nhập khác hàng..."
+                                                       OnSelected="OnCustomerSelected"
+                                                       Value="@editPhieu.CustomerName" />
+                                    @* <InputText class="form-control form-control-sm" @bind-Value="editPhieu.CustomerName" /> *@
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Điện thoại KH</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.CustomerPhone" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Thời gian cân vào</label>
+                                    <input type="datetime-local"
+                                    class="form-control form-control-sm"
+                                    value="@FormatDateTime(editPhieu.TimeIn)"
+                                    @onchange="e => ParseDateTime(e, v => editPhieu.TimeIn = v)" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Khối lượng vào</label>
+                                    <InputNumber class="form-control form-control-sm"
+                                    @bind-Value="editPhieu.WeightIn"
+                                    @onblur="OnWeightChanged" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Đơn giá</label>
+                                    <InputNumber class="form-control form-control-sm"
+                                    @bind-Value="editPhieu.ProductPrice"
+                                    @onblur="OnPriceChanged" />
+                                </div>
+                            </div>
+
+                            <!-- Cột phải -->
+                            <div class="col-md-6">
+                                <div class="form-row">
+                                    <label class="form-label label-col">Ngày cân</label>
+                                    <input type="datetime-local"
+                                    class="form-control form-control-sm"
+                                    value="@FormatDateTime(editPhieu.CreateDay)"
+                                    @onchange="e => ParseDateTime(e, v => editPhieu.CreateDay = v)" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Tài xế</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.DriverName" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Địa chỉ KH</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.CustomerAddress" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Thời gian cân ra</label>
+                                    <input type="datetime-local"
+                                    class="form-control form-control-sm"
+                                    value="@FormatDateTime(editPhieu.TimeOut)"
+                                    @onchange="e => ParseDateTime(e, v => editPhieu.TimeOut = v)" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Khối lượng ra</label>
+                                    <InputNumber class="form-control form-control-sm"
+                                    @bind-Value="editPhieu.WeightOut"
+                                    @onblur="OnWeightChanged" />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Khối lượng hàng</label>
+                                    <InputNumber class="form-control form-control-sm"
+                                    @bind-Value="editPhieu.ProductNumber"
+                                    disabled />
+                                </div>
+
+                                <div class="form-row">
+                                    <label class="form-label label-col">Ghi chú</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.Note" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-end">
+                            <h6 class="fw-bold text-success">💰 Tổng tiền: @FormattedTotalMoney</h6>
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-success btn-sm me-2">💾 Lưu</button>
+                            <button type="button" class="btn btn-secondary btn-sm" @onclick="CloseModal">❌ Hủy</button>
+                        </div>
+                    </EditForm>
+                </div>
+
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    List<TblCustomer>? customers;
-    TblCustomer? editCustomer;
-    string searchText = string.Empty;
-    bool shouldFocus = true;
+    private FilterInitViewModel ModelLoad = new();
+    private List<TblScale> danhSachPhieu = new();
+    private bool isLoading = false;
+    private string WeightDisplay = string.Empty;
+    private TblScale? editPhieu;
+
+    private FilterModel filter = new()
+        {
+            FromDate = DateTime.Today.AddDays(-90),
+            ToDate = DateTime.Today
+        };
 
     protected override async Task OnInitializedAsync()
-    {  
-        customers = await _customerService.GetAllAsync();
-    }
-
-    async Task Search()
     {
-        if (string.IsNullOrWhiteSpace(searchText))
-            customers = await _customerService.GetAllAsync();
-        else
-            customers = await _customerService.SearchAsync(searchText);
+        await LoadData();
+        await LoadDataInit();
     }
-
-    async Task ResetSearch()
+    private async Task LoadData()
     {
-        searchText = string.Empty;
-        customers = await _customerService.GetAllAsync();
-    }
-
-    async Task ShowAddForm()
-    {
-        editCustomer = new TblCustomer();
-        shouldFocus = true;
-    }
-
-    async Task Edit(TblCustomer c)
-    {
-        editCustomer = new TblCustomer
-            {
-                Id = c.Id,
-                Code = c.Code,
-                Name = c.Name,
-                Address = c.Address,
-                Phone = c.Phone,
-                Email = c.Email,
-                DebtFirst = c.DebtFirst,
-                BankAccount = c.BankAccount,
-                Note = c.Note,
-                CompanyId = c.CompanyId
-            };
-        shouldFocus = true;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (shouldFocus)
+        isLoading = true;
+        try
         {
-            shouldFocus = false;
-            await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "customerCodeInput", null);
+            // Giả sử SearchAsync có hỗ trợ filter (nếu chưa, bạn lọc thủ công sau khi lấy)
+            danhSachPhieu = await scaleService.SearchByDateAsync(filter.Keyword ?? "", filter.FromDate, filter.ToDate, 2000);
+
+
+
+            WeightDisplay = $"Tổng số phiếu: {danhSachPhieu.Count}";
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
-
-    async Task Save()
+    private async Task LoadDataInit()
     {
-        if (editCustomer == null) return;
+        try
+        {
+            ModelLoad = await loadDataService.LoadAllData();
 
-        if (editCustomer.Id == 0)
-            await _customerService.AddAsync(editCustomer);
+        
+        }
+        finally
+        {
+        }
+    }
+    private void OnVehicleSelected(TblVehicle? vehicle)
+    {
+        if (vehicle == null) return;
+
+        editPhieu.Vehicle = vehicle.VehiceCode;
+        editPhieu.DriverName = vehicle.DriverName;
+        editPhieu.CustomerName = vehicle.TransportationCompany;  
+        editPhieu.CustomerPhone = vehicle.DriverPhone;
+        StateHasChanged(); 
+    }
+    private void OnCustomerSelected(TblCustomer? c)
+    {
+        if (c == null) return;
+
+        editPhieu.CustomerName = c.Name;
+        editPhieu.CustomerAddress = c.Address;
+        editPhieu.CustomerId = c.Id;  
+        editPhieu.CustomerPhone = c.Phone;
+        StateHasChanged();  
+    }
+    private void ResetFilter()
+    {
+        filter = new FilterModel
+            {
+                FromDate = DateTime.Today.AddDays(-90),
+                ToDate = DateTime.Today
+            };
+        _ = LoadData();
+    }
+
+    private void OnRowDoubleClick(TblScale p)
+    {
+        Console.WriteLine($"Double-click phiếu: {p.Id}");
+    }
+    private void Edit(TblScale p)
+    {
+        // Clone để tránh sửa trực tiếp list
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(p);
+            editPhieu = System.Text.Json.JsonSerializer.Deserialize<TblScale>(json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Lỗi Edit: " + ex.Message);
+        }
+    }
+    private string FormatDateTime(DateTime? dt)
+    {
+        return dt.HasValue ? dt.Value.ToString("yyyy-MM-ddTHH:mm") : string.Empty;
+    }
+
+    private void ParseDateTime(ChangeEventArgs e, Action<DateTime?> setter)
+    {
+        if (DateTime.TryParse(e?.Value?.ToString(), out var parsed))
+            setter(parsed);
         else
-            await _customerService.UpdateAsync(editCustomer);
-
-        customers = await _customerService.GetAllAsync();
-        editCustomer = null;
-        StateHasChanged();
+            setter(null);
     }
-
-    async Task Delete(int id)
+    private void OnWeightChanged()
     {
-        await _customerService.DeleteAsync(id);
-        customers = await _customerService.GetAllAsync();
+        if (editPhieu == null) return;
+        decimal weightIn = editPhieu.WeightIn ?? 0;
+        decimal weightOut = editPhieu.WeightOut ?? 0;
+        editPhieu.ProductNumber = weightIn - weightOut;
+
+        // Nếu có đơn giá thì tính lại thành tiền
+        double price = editPhieu.ProductPrice ?? 0;
+        editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
+    }
+  
+
+    private void OnPriceChanged()
+    {
+        if (editPhieu == null) return;
+        double price = editPhieu.ProductPrice ?? 0;
+        editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
+    }
+    private async Task SaveEdit()
+    {
+        if (editPhieu == null) return;
+        editPhieu.UpdateDay = DateTime.Now;
+        editPhieu.UpdateBy = "Admin"; // tuỳ user hiện tại
+        await scaleService.UpdateScaleAsynnc(editPhieu);
+        await LoadData();
+        CloseModal();
     }
 
-    void Cancel() => editCustomer = null;
+    private void CloseModal() => editPhieu = null;
+
+    private async Task Delete(TblScale p)
+    {
+        if (await JsConfirm($"Bạn có chắc muốn xóa phiếu {p.Id}?"))
+        {
+            await scaleService.DeleteAsync(p.Id);
+            await LoadData();
+        }
+    }
+    private async Task<bool> JsConfirm(string message)
+    {
+        // nếu dùng Blazor Server:
+        return await JS.InvokeAsync<bool>("confirm", message);
+    }
+    private class FilterModel
+    {
+        public string? Keyword { get; set; }
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+    }
+    private string FormattedTotalMoney =>
+       (editPhieu?.TotalMoney ?? 0).ToString("N0", new System.Globalization.CultureInfo("vi-VN")) + " ₫";
+
+    private string FormatCurrency(double? amount) =>
+        string.Format(CultureInfo.GetCultureInfo("vi-VN"), "{0:#,##0} đ", amount);
+
+    private string FormatKL(decimal? kl) =>
+        string.Format("{0:#,##0} kg", kl);
 }
+@code {
+    // ... code C# của bạn ...
+}
+
+<style>
+    .form-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .label-col {
+        width: 30%;
+        min-width: 120px;
+        margin-bottom: 0;
+        font-weight: 500;
+    }
+
+    .form-control-sm {
+        flex: 1;
+    }
+</style>

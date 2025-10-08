@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
+using Microsoft.Win32;
 
 namespace SGS2025Client
 {
@@ -38,6 +39,7 @@ namespace SGS2025Client
          
         public bool ValidateLicense()
         {
+            return true;
             // 1) tìm license file: có thể ở AppDataDirectory/license.lic
             var licensePath = Path.Combine(FileSystem.AppDataDirectory, "license.lic");
             if (!File.Exists(licensePath))
@@ -95,7 +97,7 @@ namespace SGS2025Client
             File.WriteAllText(path, DateTime.UtcNow.ToString("O"));
             return true;
         }
-        public string GetLocalHardwareId()
+        public string GetLocalHardwareId_BAK()
         {
         #if WINDOWS
                     var mac = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
@@ -110,7 +112,29 @@ namespace SGS2025Client
                 return "UNKNOWN";
         #endif
         }
-         
+        public  string GetLocalHardwareId()
+        {
+            try
+            {
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography"))
+                {
+                    if (key != null)
+                    {
+                        object guid = key.GetValue("MachineGuid");
+                        if (guid != null)
+                        {
+                            return guid.ToString();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error reading MachineGuid: " + ex.Message);
+            }
+            return "UNKNOWN";
+        }
+
     }
     public class LicenseInfo
     {

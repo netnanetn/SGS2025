@@ -89,7 +89,7 @@ namespace SGS2025Client
             builder.Services.AddSingleton<RazorRenderer>();
             builder.Services.AddSingleton<PdfService>();
             builder.Services.AddScoped<ImageStorageService>();
-            builder.Services.AddScoped<ExcelVehicleService>();
+            builder.Services.AddScoped<ExcelService>();
             builder.Services.AddScoped<LicenseService>();
 
 

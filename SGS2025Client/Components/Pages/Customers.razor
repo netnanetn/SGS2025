@@ -1,5 +1,6 @@
 ﻿@page "/customers"
 
+@inject ExcelService _excelService
 @inject CustomerService _customerService
 @inject IJSRuntime JS
 
@@ -10,6 +11,7 @@
 </div>
 
 <button class="btn btn-primary mb-2" @onclick="ShowAddForm">➕ Thêm Khách hàng</button>
+<button class="btn btn-primary mb-2" @onclick="ExportExcel">Xuất excel</button>
 
 @if (editCustomer != null)
 {
@@ -17,46 +19,95 @@
         <DataAnnotationsValidator />
         <ValidationSummary />
 
-        <div class="mb-2">
-            <label>Mã KH:</label>
-            <InputText id="customerCodeInput" class="form-control" @bind-Value="editCustomer.Code" />
-        </div>
-        <div class="mb-2">
-            <label>Tên KH:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Name" />
-        </div>
-        <div class="mb-2">
-            <label>Địa chỉ:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Address" />
-        </div>
-        <div class="mb-2">
-            <label>Điện thoại:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Phone" />
-        </div>
-        <div class="mb-2">
-            <label>Email:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Email" />
-        </div>
-        <div class="mb-2">
-            <label>Công nợ đầu kỳ:</label>
-            <InputNumber class="form-control" @bind-Value="editCustomer.DebtFirst" />
-        </div>
-        <div class="mb-2">
-            <label>Tài khoản NH:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.BankAccount" />
-        </div>
-        <div class="mb-2">
-            <label>Ghi chú:</label>
-            <InputText class="form-control" @bind-Value="editCustomer.Note" />
-        </div>
-        <div class="mb-2">
-            <label>Công ty:</label>
-            <InputNumber class="form-control" @bind-Value="editCustomer.CompanyId" />
-        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-semibold">
+                ✏️ Thông tin khách hàng
+            </div>
 
-        <button type="submit" class="btn btn-success">💾 Lưu</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancel">❌ Hủy</button>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Cột trái -->
+                    <div class="col-md-6">
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Mã KH:</label>
+                            <div class="col-sm-8">
+                                <InputText id="customerCodeInput" class="form-control" @bind-Value="editCustomer.Code" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Tên KH:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editCustomer.Name" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Địa chỉ:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editCustomer.Address" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Điện thoại:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editCustomer.Phone" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải -->
+                    <div class="col-md-6">
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Email:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editCustomer.Email" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Công nợ đầu kỳ:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editCustomer.DebtFirst" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Tài khoản NH:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editCustomer.BankAccount" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Ghi chú:</label>
+                            <div class="col-sm-8">
+                                <InputText class="form-control" @bind-Value="editCustomer.Note" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2 align-items-center">
+                            <label class="col-sm-4 col-form-label">Công ty:</label>
+                            <div class="col-sm-8">
+                                <InputNumber class="form-control" @bind-Value="editCustomer.CompanyId" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer text-end bg-light">
+                <button type="submit" class="btn btn-success me-2">
+                    <i class="bi bi-save"></i> Lưu
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
+            </div>
+        </div>
     </EditForm>
+
 }
 
 @if (customers == null)
@@ -131,7 +182,15 @@ else
         editCustomer = new TblCustomer();
         shouldFocus = true;
     }
-
+    private async Task ExportExcel()
+    {
+        var path = await _excelService.ExportCustomerToDownloadsAsync(customers);
+        // Có thể mở luôn sau khi export
+        await Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(path)
+            });
+    }
     async Task Edit(TblCustomer c)
     {
         editCustomer = new TblCustomer

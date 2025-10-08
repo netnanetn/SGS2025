@@ -15,7 +15,8 @@ namespace SGS2025Client.Components.LibPDFs
             _browserTask = Puppeteer.LaunchAsync(new LaunchOptions
             {
                 Headless = true,
-                Args = new[] { "--no-sandbox" }
+                Args = new[] { "--no-sandbox" },
+              //  ExecutablePath = Path.Combine(AppContext.BaseDirectory, "Chrome", "chrome.exe")
             });
         }
         public async Task<byte[]> GeneratePdfAsync(TblScale scale, string pageSize = "A4")

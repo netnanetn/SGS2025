@@ -13,6 +13,7 @@
 @inject WeighingScaleService _weighingScaleService
 @inject ImageStorageService _imageStorageService
 @using PuppeteerSharp
+@using System.Text.Json
 @implements IDisposable
 
 
@@ -629,26 +630,29 @@
 
         //_imageStorageService
       
-        
-
-        // var img1 = _factoryCameraService.GetImage("cam1");
-        // var img2 = _factoryCameraService.GetImage("cam2");
-        // scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
-        // scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
-        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
-            is { IsEnabled: true, Capture: true } cam1Config
-            && !string.IsNullOrEmpty(cam1Config.Url))
+        try
         {
-            var img1 = _factoryCameraService.GetImage("cam1");
-            scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
+            if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
+           is { IsEnabled: true, Capture: true } cam1Config
+           && !string.IsNullOrEmpty(cam1Config.Url))
+            {
+                var img1 = _factoryCameraService.GetImage("cam1");
+                scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
+            }
+            if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam2")
+            is { IsEnabled: true, Capture: true } cam2Config
+            && !string.IsNullOrEmpty(cam2Config.Url))
+            {
+                var img2 = _factoryCameraService.GetImage("cam2");
+                scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+            }
         }
-        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam2")
-        is { IsEnabled: true, Capture: true } cam2Config
-        && !string.IsNullOrEmpty(cam2Config.Url))
-        {
-            var img2 = _factoryCameraService.GetImage("cam2");
-            scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
+        catch (Exception e)
+        { 
+            
         }
+         
+       
 
 
         await scaleService.AddAsync(scaleData);
@@ -694,7 +698,10 @@
     private async Task InPhieu()
     {
 
-        var modelForPdf = scaleData;
+      //  var modelForPdf = scaleData;
+        var modelForPdf = JsonSerializer.Deserialize<TblScale>(
+            JsonSerializer.Serialize(scaleData)
+            );
         modelForPdf.Img11 = _imageStorageService.ConvertImageToBase64(scaleData.Img11);
         modelForPdf.Img12 = _imageStorageService.ConvertImageToBase64(scaleData.Img12);
         modelForPdf.Img21 = _imageStorageService.ConvertImageToBase64(scaleData.Img21);
@@ -709,7 +716,9 @@
         }
         catch (Exception e)
         {
-             
+            await JS.InvokeVoidAsync("console.log", e.StackTrace);
+            await JS.InvokeVoidAsync("console.log", e.Message);
+
         }
          
         showModal = true;
