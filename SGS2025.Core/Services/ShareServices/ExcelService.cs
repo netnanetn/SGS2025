@@ -205,6 +205,77 @@ namespace SGS2025.Core.Services.ShareServices
 
             return filePath;
         }
+        //ExportReportScaleToDownloadsAsync
+        public async Task<string> ExportReportScaleToDownloadsAsync(List<TblScale> scales)
+        {
+            // 📂 Lấy thư mục Downloads (Windows)
+            var downloadsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "Downloads");
+
+            if (!Directory.Exists(downloadsPath))
+                Directory.CreateDirectory(downloadsPath);
+
+            // 📄 Tạo tên file
+            var fileName = $"Baocaocanhang_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+            var filePath = Path.Combine(downloadsPath, fileName);
+
+            using (var workbook = new XLWorkbook())
+            {
+                var ws = workbook.Worksheets.Add("Cân hàng");
+
+                // 📝 Header
+                ws.Cell(1, 1).Value = "STT";
+                ws.Cell(1, 2).Value = "Ngày cân";
+                ws.Cell(1, 3).Value = "Biển số xe";
+                ws.Cell(1, 4).Value = "Khách hàng";
+                ws.Cell(1, 5).Value = "Địa chỉ";
+                ws.Cell(1, 6).Value = "Hàng hóa";
+                ws.Cell(1, 7).Value = "Giá bán";
+                ws.Cell(1, 8).Value = "Cân lần 1";
+                ws.Cell(1, 9).Value = "KL cân lần 1";
+                ws.Cell(1, 10).Value = "Cân lần 2";
+                ws.Cell(1, 11).Value = "KL cân lần 2";
+                ws.Cell(1, 12).Value = "KL hàng";
+                ws.Cell(1, 13).Value = "Thành tiền";
+
+                // 📌 Format header
+                var headerRange = ws.Range(1, 1, 1, 12);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                // 📊 Đổ dữ liệu
+                int row = 2;
+                var stt = 0;
+                foreach (var v in scales)
+                {
+                    stt++;
+                    ws.Cell(row, 1).Value = stt;
+                    ws.Cell(row, 2).Value = v.CreateDay?.ToString("dd-MM-yyyy HH:mm");
+                    ws.Cell(row, 3).Value = v.Vehicle;
+                    ws.Cell(row, 4).Value = v.CustomerName;
+                    ws.Cell(row, 5).Value = v.CustomerAddress;
+                    ws.Cell(row, 6).Value = v.ProductName;
+                    ws.Cell(row, 7).Value = v.ProductPrice;
+                    ws.Cell(row, 8).Value = v.TimeIn?.ToString("dd-MM-yyyy HH:mm");
+                    ws.Cell(row, 9).Value = v.WeightIn;
+                    ws.Cell(row, 10).Value = v.TimeOut?.ToString("dd-MM-yyyy HH:mm");
+                    ws.Cell(row, 12).Value = v.WeightOut;
+                    ws.Cell(row, 12).Value = v.ProductNumber;
+                    ws.Cell(row, 13).Value = v.TotalMoney;
+
+
+                    row++;
+                }
+
+                // 📐 Auto fit
+                ws.Columns().AdjustToContents();
+
+                workbook.SaveAs(filePath);
+            }
+
+            return filePath;
+        }
 
         //private bool? ParseStatus(string status)
         //{

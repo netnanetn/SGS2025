@@ -1,15 +1,14 @@
-﻿@page "/test2"
+﻿@page "/report-scales"
 @using System.Globalization
 
 @inject ScaleService scaleService
 @inject LoadDataService loadDataService
+@inject ExcelService _excelService
 @inject IJSRuntime JS
-
-<h4 class="mb-3">📊 Báo cáo cân hàng</h4>
-
+ 
 <div class="card shadow-sm border-0">
     <div class="card-body">
-      
+
         <!-- Bộ lọc tìm kiếm -->
         <EditForm Model="@filter" OnValidSubmit="LoadData">
             <div class="row g-2 align-items-end">
@@ -41,6 +40,9 @@
                     <button type="button" class="btn btn-success btn-sm mt-3" @onclick="AddNew">
                         <i class="bi bi-plus-circle"></i> Thêm phiếu mới
                     </button>
+                    <button class="btn btn-primary mb-2" @onclick="ExportExcel"> 
+                        <i class="bi bi-exposure"></i> Xuất excel
+                     </button>
                 </div>
             </div>
         </EditForm>
@@ -135,38 +137,38 @@
                             <div class="col-md-6">
                                 <div class="form-row">
                                     <label class="form-label label-col">Mã phiếu</label>
-                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.Code"  disabled />
+                                    <InputText class="form-control form-control-sm" @bind-Value="editPhieu.Code" disabled />
                                 </div>
 
                                 <div class="form-row">
                                     <label class="form-label label-col">Biển số xe</label>
                                     <AutoCompleteInput T="TblVehicle"
-                                    Items="ModelLoad.Vehicles"
-                                    ItemText="v => v.VehiceCode"
-                                    Placeholder="Nhập biển số..."
-                                    OnSelected="OnVehicleSelected"
-                                    Value="@editPhieu.Vehicle" />
+                                                       Items="ModelLoad.Vehicles"
+                                                       ItemText="v => v.VehiceCode"
+                                                       Placeholder="Nhập biển số..."
+                                                       OnSelected="OnVehicleSelected"
+                                                       Value="@editPhieu.Vehicle" />
                                     @*  <InputText class="form-control form-control-sm" @bind-Value="editPhieu.Vehicle" /> *@
                                 </div>
 
                                 <div class="form-row">
                                     <label class="form-label label-col">Khách hàng</label>
                                     <AutoCompleteInput T="TblCustomer"
-                                    Items="ModelLoad.Customers"
-                                    ItemText="v => v.Name"
-                                    Placeholder="Nhập khác hàng..."
-                                    OnSelected="OnCustomerSelected"
-                                    Value="@editPhieu.CustomerName" />
+                                                       Items="ModelLoad.Customers"
+                                                       ItemText="v => v.Name"
+                                                       Placeholder="Nhập khác hàng..."
+                                                       OnSelected="OnCustomerSelected"
+                                                       Value="@editPhieu.CustomerName" />
                                     @* <InputText class="form-control form-control-sm" @bind-Value="editPhieu.CustomerName" /> *@
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label label-col">Hàng hóa</label>
                                     <AutoCompleteInput T="TblProduct"
-                                    Items="ModelLoad.Products"
-                                    ItemText="v => v.Name"
-                                    Placeholder="Nhập hàng hóa..."
-                                    OnSelected="OnProductSelected"
-                                    Value="@editPhieu.ProductName" />
+                                                       Items="ModelLoad.Products"
+                                                       ItemText="v => v.Name"
+                                                       Placeholder="Nhập hàng hóa..."
+                                                       OnSelected="OnProductSelected"
+                                                       Value="@editPhieu.ProductName" />
                                     @* <InputText class="form-control form-control-sm" @bind-Value="editPhieu.CustomerName" /> *@
                                 </div>
                                 <div class="form-row">
@@ -177,23 +179,23 @@
                                 <div class="form-row">
                                     <label class="form-label label-col">Thời gian cân vào</label>
                                     <input type="datetime-local"
-                                    class="form-control form-control-sm"
-                                    value="@FormatDateTime(editPhieu.TimeIn)"
-                                    @onchange="e => ParseDateTime(e, v => editPhieu.TimeIn = v)" />
+                                           class="form-control form-control-sm"
+                                           value="@FormatDateTime(editPhieu.TimeIn)"
+                                           @onchange="e => ParseDateTime(e, v => editPhieu.TimeIn = v)" />
                                 </div>
 
                                 <div class="form-row">
                                     <label class="form-label label-col">Khối lượng vào</label>
                                     <InputNumber class="form-control form-control-sm"
-                                    @bind-Value="editPhieu.WeightIn"
-                                    @onblur="OnWeightChanged" />
+                                                 @bind-Value="editPhieu.WeightIn"
+                                                 @onblur="OnWeightChanged" />
                                 </div>
 
                                 <div class="form-row">
                                     <label class="form-label label-col">Đơn giá</label>
                                     <InputNumber class="form-control form-control-sm"
-                                    @bind-Value="editPhieu.ProductPrice"
-                                    @onblur="OnPriceChanged" />
+                                                 @bind-Value="editPhieu.ProductPrice"
+                                                 @onblur="OnPriceChanged" />
                                 </div>
                             </div>
 
@@ -202,9 +204,9 @@
                                 <div class="form-row">
                                     <label class="form-label label-col">Ngày cân</label>
                                     <input type="datetime-local"
-                                    class="form-control form-control-sm"
-                                    value="@FormatDateTime(editPhieu.CreateDay)"
-                                    @onchange="e => ParseDateTime(e, v => editPhieu.CreateDay = v)" />
+                                           class="form-control form-control-sm"
+                                           value="@FormatDateTime(editPhieu.CreateDay)"
+                                           @onchange="e => ParseDateTime(e, v => editPhieu.CreateDay = v)" />
                                 </div>
 
                                 <div class="form-row">
@@ -220,23 +222,23 @@
                                 <div class="form-row">
                                     <label class="form-label label-col">Thời gian cân ra</label>
                                     <input type="datetime-local"
-                                    class="form-control form-control-sm"
-                                    value="@FormatDateTime(editPhieu.TimeOut)"
-                                    @onchange="e => ParseDateTime(e, v => editPhieu.TimeOut = v)" />
+                                           class="form-control form-control-sm"
+                                           value="@FormatDateTime(editPhieu.TimeOut)"
+                                           @onchange="e => ParseDateTime(e, v => editPhieu.TimeOut = v)" />
                                 </div>
 
                                 <div class="form-row">
                                     <label class="form-label label-col">Khối lượng ra</label>
                                     <InputNumber class="form-control form-control-sm"
-                                    @bind-Value="editPhieu.WeightOut"
-                                    @onblur="OnWeightChanged" />
+                                                 @bind-Value="editPhieu.WeightOut"
+                                                 @onblur="OnWeightChanged" />
                                 </div>
 
                                 <div class="form-row">
                                     <label class="form-label label-col">Khối lượng hàng</label>
                                     <InputNumber class="form-control form-control-sm"
-                                    @bind-Value="editPhieu.ProductNumber"
-                                    disabled />
+                                                 @bind-Value="editPhieu.ProductNumber"
+                                                 disabled />
                                 </div>
 
                                 <div class="form-row">
@@ -315,7 +317,7 @@
 
         editPhieu.Vehicle = vehicle.VehiceCode;
         editPhieu.DriverName = vehicle.DriverName;
-        StateHasChanged(); 
+        StateHasChanged();
     }
     private void OnCustomerSelected(TblCustomer? c)
     {
@@ -323,9 +325,9 @@
 
         editPhieu.CustomerName = c.Name;
         editPhieu.CustomerAddress = c.Address;
-        editPhieu.CustomerId = c.Id;  
+        editPhieu.CustomerId = c.Id;
         editPhieu.CustomerPhone = c.Phone;
-        StateHasChanged();  
+        StateHasChanged();
     }
     private void OnProductSelected(TblProduct? p)
     {
@@ -387,7 +389,7 @@
         double price = editPhieu.ProductPrice ?? 0;
         editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
     }
-  
+
 
     private void OnPriceChanged()
     {
@@ -460,8 +462,18 @@
 
     private string FormatKL(decimal? kl) =>
         string.Format("{0:#,##0} kg", kl);
+
+    private async Task ExportExcel()
+    {
+        var path = await _excelService.ExportReportScaleToDownloadsAsync(danhSachPhieu);
+        // Có thể mở luôn sau khi export
+        await Launcher.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(path)
+            });
+    }
 }
- 
+
 
 <style>
     .form-row {

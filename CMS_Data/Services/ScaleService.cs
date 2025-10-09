@@ -37,6 +37,8 @@ namespace CMS_Data.Services
         }
         public async Task<List<TblScale>> SearchByDateAsync(string? q, DateTime? FromDate, DateTime? ToDate, int take = 20, CancellationToken ct = default)
         {
+            FromDate = FromDate?.Date.AddDays(-1).AddTicks(-1) ?? DateTime.MaxValue;
+            ToDate = ToDate?.Date.AddDays(1).AddTicks(-1) ?? DateTime.MaxValue;
             using var _db = _factory.CreateDbContext();
             var query = _db.TblScales.AsNoTracking().AsQueryable();
             query = query.Where(p =>
@@ -130,6 +132,27 @@ namespace CMS_Data.Services
                 scaleUpdate.UpdateDay = DateTime.Now;
                 _db.TblScales.Update(scaleUpdate);
                 await _db.SaveChangesAsync(ct);
+
+            });
+            return v;
+        }
+        //CreateScaleAsync
+        public async Task<TblScale> CreateScaleAsync(TblScale v, CancellationToken ct = default)
+        {
+            await SQLiteWriteLock.RunAsync(async () =>
+            {
+                using var _db = _factory.CreateDbContext();
+                if (v.IndexInDay == null)
+                {
+                    var today = DateTime.Today;
+                    var lastIndex = await _db.TblScales.AsNoTracking()
+                        .Where(x => x.CreateDay >= today)
+                        .MaxAsync(x => (int?)x.IndexInDay) ?? 0;
+
+                    v.IndexInDay = lastIndex + 1;
+                }
+                _db.TblScales.Add(v);
+                await _db.SaveChangesAsync();
 
             });
             return v;
