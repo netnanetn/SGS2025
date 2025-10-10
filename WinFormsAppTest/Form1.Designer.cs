@@ -38,6 +38,7 @@
             btnDendo = new Button();
             lbSensor1 = new Label();
             lbSensor2 = new Label();
+            lbSensor3 = new Label();
             SuspendLayout();
             // 
             // btnConnect
@@ -136,11 +137,21 @@
             lbSensor2.TabIndex = 9;
             lbSensor2.Text = "Cảm biến 2";
             // 
+            // lbSensor3
+            // 
+            lbSensor3.AutoSize = true;
+            lbSensor3.Location = new Point(655, 143);
+            lbSensor3.Name = "lbSensor3";
+            lbSensor3.Size = new Size(67, 15);
+            lbSensor3.TabIndex = 10;
+            lbSensor3.Text = "Cảm biến 3";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(lbSensor3);
             Controls.Add(lbSensor2);
             Controls.Add(lbSensor1);
             Controls.Add(btnDendo);
@@ -170,5 +181,6 @@
         private Button btnDendo;
         private Label lbSensor1;
         private Label lbSensor2;
+        private Label lbSensor3;
     }
 }

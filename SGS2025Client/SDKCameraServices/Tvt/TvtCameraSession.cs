@@ -76,6 +76,7 @@ namespace SGS2025Client.SDKCameraServices.Tvt
         void InitDecoder()
         {
             var path = AppDomain.CurrentDomain.BaseDirectory.Replace("AppX\\", "");
+            //var path = AppDomain.CurrentDomain.BaseDirectory;
             _decoder = new H264StreamingDecoder(path);
             _decoder.FrameDecoded += base64 =>
             {

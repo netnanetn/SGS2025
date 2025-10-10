@@ -34,11 +34,36 @@
                             padding: 5px;border-radius: 5px;">
                 CAMERA
             </div>
-            <div class="d-flex flex-column align-items-center py-3 gap-3">
+            @* <div class="d-flex flex-column align-items-center py-3 gap-3">
                 <canvas id="cam1Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
                 <canvas id="cam2Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
                 <canvas id="cam3Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
                 <canvas id="cam4Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
+            </div> *@
+            <div class="d-flex flex-column align-items-center py-3 gap-3">
+                @foreach (var cam in Cameras)
+                {
+                    <div class="camera-container position-relative">
+                        <canvas id="@($"{cam.Code}Canvas")" class="img-fluid" style="border:1px solid #ccc; width: 320px; height: 240px;"></canvas>
+
+                        @if (cam.Status == CameraStatus.Loading)
+                        {
+                            <i class="bi bi-arrow-repeat spinner-border text-info position-absolute top-0 end-0 m-1"></i>
+                        }
+                        else if (cam.Status == CameraStatus.Active)
+                        {
+                            <i class="bi bi-check-circle-fill text-success position-absolute top-0 end-0 m-1"></i>
+                        }
+                        else if (cam.Status == CameraStatus.Error)
+                        {
+                            <i class="bi bi-exclamation-triangle-fill text-danger position-absolute top-0 end-0 m-1"></i>
+                        }
+                        else if (cam.Status == CameraStatus.Disable)
+                        {
+                            <i class="bi bi-exclamation-triangle-fill text-disable position-absolute top-0 end-0 m-1"></i>
+                        }
+                    </div>
+                }
             </div>
         </div>
 
@@ -379,7 +404,21 @@
 
     private FilterInitViewModel ModelLoad = new();
 
+    enum CameraStatus { Loading, Active, Error, Disable }
 
+    class CameraItemStatus
+    {
+        public string Code { get; set; } = "";
+        public string Url { get; set; } = "";
+        public CameraStatus Status { get; set; } = CameraStatus.Loading;
+    }
+    private List<CameraItemStatus> Cameras = new()
+    {
+        new() { Code = "cam1" },
+        new() { Code = "cam2" },
+        new() { Code = "cam3" },
+        new() { Code = "cam4" }
+    };
     private string Image1, Image2, Image3, Image4;
     private Timer _timer;
 
@@ -488,10 +527,14 @@
         if (firstRender)
         {
               // 🔹 Vẽ ảnh mặc định ngay lập tức
-            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam1Canvas", "cameraai");
-            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam2Canvas", "cameraai");
-            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam3Canvas", "cameraai");
-            await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai"); 
+            // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam1Canvas", "cameraai");
+            // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam2Canvas", "cameraai");
+            // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam3Canvas", "cameraai");
+            // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai"); 
+            foreach (var cam in Cameras)
+            {
+                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", $"{cam.Code}Canvas", "cameraai");
+            }
             // 🔹 Chạy các tác vụ nặng song song
             _ = Task.Run(async () =>
             {
@@ -512,16 +555,23 @@
 
             // chạy các tác vụ nặng sau khi UI render
 
-            _ = Task.Run(() =>
+            _ = Task.Run( async() =>
                    {
                        try
                        { 
                            foreach (var camItem in _config.Camera.List)
                             {
+                               var cam = Cameras.First(x => x.Code == camItem.Code);
                                 if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url)){
                                    // _factoryCameraService.AddCamera(camItem.Code, camItem.TypeCamera, camItem.Url, camItem.DauGhiPort, camItem.User, camItem.Password);
                                    try
                                    {
+                                       await InvokeAsync(() =>
+                                        {
+                                            cam.Status = CameraStatus.Loading;
+                                            StateHasChanged();
+                                        });
+
                                        _factoryCameraService.AddCamera(
                                        camItem.Code,
                                        camItem.TypeCamera,
@@ -530,12 +580,29 @@
                                        camItem.User,
                                        camItem.Password
                                    );
+
+                                      await InvokeAsync(() =>
+                                       {
+                                           cam.Status = CameraStatus.Active;
+                                           StateHasChanged();
+                                       });
                                    }
                                    catch (Exception exCam)
                                    {
                                        Console.WriteLine($"Camera {camItem.Code} connect failed: {exCam.Message}");
                                        // Có thể log thêm hoặc đánh dấu camera này bị lỗi
+                                       await InvokeAsync(() =>
+                                                {
+                                                    cam.Status = CameraStatus.Error;
+                                                    StateHasChanged();
+                                                });
                                    }
+                                } else{
+                                   await InvokeAsync(() =>
+                                           {
+                                               cam.Status = CameraStatus.Disable;
+                                               StateHasChanged();
+                                           });
                                 }
                             }
                           
@@ -553,13 +620,13 @@
                                }
                            }, null, 1000, 100);
 
-                           InvokeAsync(StateHasChanged);
+                           await InvokeAsync(StateHasChanged);
                        }
                        catch (Exception ex)
                        {
                            Console.WriteLine($"Camera connect failed: {ex.Message}");
                            // Option: show thông báo UI
-                           InvokeAsync(() =>
+                           await InvokeAsync(() =>
                            {
                              //  _cameraError = true;
                                StateHasChanged();

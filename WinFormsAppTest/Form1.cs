@@ -61,7 +61,7 @@ namespace WinFormsAppTest
                     0x04,       // Unit ID (ở đây là 4)
                     0x02,       // Function Code = Read Discrete Inputs
                     0x00, 0x00, // Starting Address = 0
-                    0x00, 0x02  // Quantity = 2
+                    0x00, 0x05  // Quantity = 2
                  };
 
                 stream.Write(frame, 0, frame.Length);
@@ -80,6 +80,7 @@ namespace WinFormsAppTest
                 {
                     lbSensor1.ForeColor = DI[0] ? Color.Green : Color.Black;
                     lbSensor2.ForeColor = DI[1] ? Color.Green : Color.Black;
+                    lbSensor3.ForeColor = DI[2] ? Color.Green : Color.Black;
                 });
             }
             catch (Exception ex)
