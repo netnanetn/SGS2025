@@ -1,14 +1,8 @@
-﻿@page "/scalewithimage"
-
-@using SGS2025Client.Components.HelperService
-@using SGS2025Client.Components.Shared
-@inject FactoryCameraService _factoryCameraService
+﻿@page "/scale" 
 @inject IJSRuntime JS
 @using System.Globalization
 @inject LoadDataService loadDataService
-@inject ScaleService scaleService
-@inject PdfService PdfService
-@inject RazorRenderer RazorRenderer
+@inject ScaleService scaleService 
 @inject ConfigService configService
 @inject WeighingScaleService _weighingScaleService
 @inject ImageStorageService _imageStorageService
@@ -69,7 +63,7 @@
 
         <!-- Cột phải: Thông tin phiếu cân và khối lượng cân -->
         <div class="col-10">
-            <div class="row" >
+            <div class="row">
                 <!-- Thông tin phiếu cân -->
                 <div class="col-5 parent" style=" padding-left: unset; height: auto">
                     <div style="    background-color: #558bef;
@@ -94,11 +88,11 @@
                                 <div class="mb-2 d-flex align-items-center">
                                     <label for="bienso" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Biển số</label>
                                     <AutoCompleteInput T="TblVehicle"
-                                    Items="ModelLoad.Vehicles"
-                                    ItemText="v => v.VehiceCode"
-                                    Placeholder="Nhập biển số..."
-                                    OnSelected="OnVehicleSelected"
-                                    Value="@scaleData.Vehicle"  />
+                                                       Items="ModelLoad.Vehicles"
+                                                       ItemText="v => v.VehiceCode"
+                                                       Placeholder="Nhập biển số..."
+                                                       OnSelected="OnVehicleSelected"
+                                                       Value="@scaleData.Vehicle" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showVehiclePicker = true">
                                         <i class="bi bi-repeat"></i>
                                     </button>
@@ -119,11 +113,11 @@
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="khachhang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Khách hàng</label>
                                     <AutoCompleteInput T="TblCustomer"
-                                    Items="ModelLoad.Customers"
-                                    ItemText="c => c.Name"
-                                    Placeholder="Nhập tên khách hàng..."
-                                    OnSelected="OnCustomerSelected"
-                                    Value="@scaleData.CustomerName"  />
+                                                       Items="ModelLoad.Customers"
+                                                       ItemText="c => c.Name"
+                                                       Placeholder="Nhập tên khách hàng..."
+                                                       OnSelected="OnCustomerSelected"
+                                                       Value="@scaleData.CustomerName" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showCustomerPicker = true">
                                         <i class="bi bi-person-badge"></i>
                                     </button>
@@ -133,21 +127,21 @@
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="loaihang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Loại hàng</label>
                                     <AutoCompleteInput T="TblProduct"
-                                    Items="ModelLoad.Products"
-                                    ItemText="p => p.Name"
-                                    Placeholder="Nhập loại hàng..."
-                                    OnSelected="OnProductSelected"
-                                    Value="@scaleData.ProductName" />
+                                                       Items="ModelLoad.Products"
+                                                       ItemText="p => p.Name"
+                                                       Placeholder="Nhập loại hàng..."
+                                                       OnSelected="OnProductSelected"
+                                                       Value="@scaleData.ProductName" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showProductPicker = true">
                                         <i class="bi bi-stack"></i>
                                     </button>
-                                </div> 
+                                </div>
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="kieucan" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Kiểu cân</label>
 
                                     <select id="kieucan"
-                                    class="form-select form-select-sm form-control-sm-custom"
-                                    @bind="scaleData.TypeId">
+                                            class="form-select form-select-sm form-control-sm-custom"
+                                            @bind="scaleData.TypeId">
                                         <option value="1">Nhập hàng</option>
                                         <option value="2">Xuất hàng</option>
                                         <option value="3">Dịch vụ</option>
@@ -156,7 +150,7 @@
                                     </select>
 
                                     <button class="btn btn-sm" type="button"
-                                    style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                            style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
                                         <i class="bi bi-tags"></i>
                                     </button>
                                 </div>
@@ -176,7 +170,7 @@
                                     </button>
                                 </div>
 
-                            </div> 
+                            </div>
                         </div>
                     </div>
                     <div class="bottom-fixed border-top pt-3 px-3">
@@ -211,7 +205,7 @@
                 <!-- Ô khối lượng cân -->
                 <div class="col-7" style="padding: unset">
                     <div class="row" style="padding: unset">
-                        <div class="col-6"  style="padding: 0px 10px; text-align: center">
+                        <div class="col-6" style="padding: 0px 10px; text-align: center">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <button class="btn btn-sm @(IsConnectedCOM ? "btn-danger" : "btn-success")"
                                         @onclick="ToggleConnectionCOM">
@@ -229,21 +223,24 @@
                             @if (IsManualCOM)
                             {
                                 <div class="digital-display">
-                                    <InputNumber TValue="double"
-                                                 Value="WeightRealTime"
+                                    <InputNumber TValue="decimal"
+                                                 Value="ManualWeightCOM"
                                                  ValueChanged="OnManualWeightChanged"
-                                                 ValueExpression="@(() => WeightRealTime)"
+                                                 ValueExpression="@(() => ManualWeightCOM)"
                                                  class="form-control text-end"
                                                  style="font-size:30px"
                                                  placeholder="Nhập khối lượng" />
                                 </div>
-
+                                
                             }
                             else
                             {
                                 <div class="digital-display" id="weightDisplay">
                                 </div>
                             }
+                           @*  <div class="digital-display" id="weightDisplay">
+                                 
+                            </div> *@
                         </div>
                         <div class="col-6" style="padding: unset">
                             <div style="    background-color: #558bef;
@@ -450,8 +447,8 @@
     };
     private string Image1, Image2, Image3, Image4;
     private Timer _timer;
-    private bool IsConnectedCOM = false;
-    private bool IsManualCOM = false;
+
+     
 
     private DateTime ngayCan = DateTime.Today;
     private List<TblScale> danhSachPhieu = new();
@@ -478,7 +475,7 @@
 
     private async Task PrintSilent()
     {
-        await PdfService.PrintPdf(pdfBase64);
+        //await PdfService.PrintPdf(pdfBase64);
     }
 
     private async Task DownloadPdf()
@@ -492,7 +489,7 @@
         try
         {
             _config = await configService.LoadAsync();
-            OnDataReceived(0);
+           // OnDataReceived(0);
         }
         catch (Exception e)
         {
@@ -507,12 +504,10 @@
             {
                 _weighingScaleService.DataReceived += OnDataReceived;
                 _weighingScaleService.Connect(port, baud);
-                IsConnectedCOM = true;
             }
         }
         catch (Exception ex)
-        { 
-            IsConnectedCOM = false;
+        {
             Console.WriteLine($"Cannot connect scale: {ex.Message}");
             WeightDisplay = "Không thể kết nối đầu cân";
         }
@@ -520,11 +515,11 @@
     }
 
     private async void OnDataReceived(double data)
-    { 
+    {
 
         try
-        { 
-            await JS.InvokeVoidAsync("updateWeight", $"{data}");
+        {
+           // await JS.InvokeVoidAsync("updateWeight", $"{data}");
             WeightRealTime = data;
         }
         catch (Exception ex)
@@ -541,11 +536,11 @@
         //     {
         //         WeightRealTime = data;
         //         WeightDisplay = $"{data:N2} kg";
-        //         StateHasChanged(); 
+        //         StateHasChanged();
         //     });
         // }
-          
-          
+
+
         // InvokeAsync(() =>
         // {
         //    // WeightRealTime = data;
@@ -555,81 +550,18 @@
         //     WeightRealTime = _scaleState.Weight;
         // });
     }
-
-    // bat dau can
-    private async Task ToggleConnectionCOM()
-    {
-        if (IsConnectedCOM)
-        {
-            try
-            {
-                if (_weighingScaleService.IsConnected)
-                {
-                    // Ngắt kết nối
-                    _weighingScaleService.DataReceived -= OnDataReceived;
-                    _weighingScaleService.Disconnect();
-                }
-            }
-            catch (Exception ex)
-            { 
-                WeightDisplay = $"Không thể kết nối đầu cân: {ex.Message}";
-            }
-            
-            IsConnectedCOM = false;
-            IsManualCOM = true; // khi ngắt cho phép nhập tay
-        }
-        else
-        {
-            // Kết nối lại 
-            
-
-            try
-            {
-                OnDataReceived(0);
-                port = _config?.ComConfig?.PortName ?? "COM2";
-                baud = _config?.ComConfig?.BaudRate ?? 9600;
-                if (!_weighingScaleService.IsConnected)
-                {
-                    _weighingScaleService.DataReceived += OnDataReceived;
-                    _weighingScaleService.Connect(port, baud);
-                    IsConnectedCOM = true;
-                    IsManualCOM = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                WeightDisplay = $"Không thể kết nối đầu cân: {ex.Message}";
-            } 
-        }
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private void ToggleManualInputCOM()
-    {
-        IsManualCOM = !IsManualCOM;
-    }
-
-    private void OnManualWeightChanged(double newValue)
-    {
-        WeightRealTime = newValue;
-    }
-   
-
-    //end can
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-              // 🔹 Vẽ ảnh mặc định ngay lập tức
+            // 🔹 Vẽ ảnh mặc định ngay lập tức
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam1Canvas", "cameraai");
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam2Canvas", "cameraai");
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam3Canvas", "cameraai");
-            // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai"); 
+            // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai");
             foreach (var cam in Cameras)
             {
-                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", $"{cam.Code}Canvas", "cameraai");
+               // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", $"{cam.Code}Canvas", "cameraai");
             }
             // 🔹 Chạy các tác vụ nặng song song
             _ = Task.Run(async () =>
@@ -651,14 +583,15 @@
 
             // chạy các tác vụ nặng sau khi UI render
 
-            _ = Task.Run( async() =>
+            _ = Task.Run(async () =>
                    {
                        try
-                       { 
+                       {
                            foreach (var camItem in _config.Camera.List)
-                            {
+                           {
                                var cam = Cameras.First(x => x.Code == camItem.Code);
-                                if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url)){
+                               if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url))
+                               {
                                    // _factoryCameraService.AddCamera(camItem.Code, camItem.TypeCamera, camItem.Url, camItem.DauGhiPort, camItem.User, camItem.Password);
                                    try
                                    {
@@ -668,20 +601,13 @@
                                             StateHasChanged();
                                         });
 
-                                       _factoryCameraService.AddCamera(
-                                       camItem.Code,
-                                       camItem.TypeCamera,
-                                       camItem.Url,
-                                       camItem.DauGhiPort,
-                                       camItem.User,
-                                       camItem.Password
-                                   );
+                                      
 
-                                      await InvokeAsync(() =>
-                                       {
-                                           cam.Status = CameraStatus.Active;
-                                           StateHasChanged();
-                                       });
+                                       await InvokeAsync(() =>
+                                    {
+                                        cam.Status = CameraStatus.Active;
+                                        StateHasChanged();
+                                    });
                                    }
                                    catch (Exception exCam)
                                    {
@@ -693,22 +619,24 @@
                                                     StateHasChanged();
                                                 });
                                    }
-                                } else{
+                               }
+                               else
+                               {
                                    await InvokeAsync(() =>
                                            {
                                                cam.Status = CameraStatus.Disable;
                                                StateHasChanged();
                                            });
-                                }
-                            }
-                          
+                               }
+                           }
+
 
                            // Nếu thành công thì start timer
                            _timer = new Timer(async _ =>
                            {
                                try
                                {
-                                   await UpdateFrame();
+                                 //  await UpdateFrame();
                                }
                                catch (Exception ex)
                                {
@@ -724,50 +652,33 @@
                            // Option: show thông báo UI
                            await InvokeAsync(() =>
                            {
-                             //  _cameraError = true;
+                               //  _cameraError = true;
                                StateHasChanged();
                            });
                        }
                    });
-            
 
-           //  await Task.Run(() =>
-           //  {
-           //      _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-           //    //  _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-           //  });
 
-           // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
-         
-           //  StateHasChanged();
+            //  await Task.Run(() =>
+            //  {
+            //      _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            //    //  _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            //  });
+
+            // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
+
+            //  StateHasChanged();
         }
     }
     private async Task UpdateFrame()
-    { 
-        async Task Draw(string canvasId, string camId)
-        {
-            var url = _factoryCameraService.CaptureToUrl(camId);
-            if (!string.IsNullOrEmpty(url))
-            {
-                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, camId);
-            }
-            else
-            {
-                await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", canvasId, "cameraai");
-            }
-        }
-
-        await Task.WhenAll(
-            Draw("cam1Canvas", "cam1"),
-            Draw("cam2Canvas", "cam2"),
-           Draw("cam3Canvas", "cam3"),
-           Draw("cam4Canvas", "cam4")
-        );
+    {
+         
+         
     }
     private async Task CanLan1()
     {
         var s = "";
-        await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+     //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         // xu ly de luu
 
@@ -792,37 +703,17 @@
         scaleData.ProductMoney ??= 0;
 
         //_imageStorageService
+
       
-        try
-        {
-            if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
-           is { IsEnabled: true, Capture: true } cam1Config
-           && !string.IsNullOrEmpty(cam1Config.Url))
-            {
-                var img1 = _factoryCameraService.GetImage("cam1");
-                scaleData.Img11 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan1_Cam1");
-            }
-            if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam2")
-            is { IsEnabled: true, Capture: true } cam2Config
-            && !string.IsNullOrEmpty(cam2Config.Url))
-            {
-                var img2 = _factoryCameraService.GetImage("cam2");
-                scaleData.Img12 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan1_Cam2");
-            }
-        }
-        catch (Exception e)
-        { 
-            
-        }
-         
-       
+
+
 
 
         await scaleService.AddAsync(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
     private async Task CanLan2()
-    { 
+    {
 
 
         // xu ly de luu
@@ -831,20 +722,7 @@
         //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         //_imageStorageService
-        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
-           is { IsEnabled: true, Capture: true } cam1Config
-           && !string.IsNullOrEmpty(cam1Config.Url))
-        {
-            var img1 = _factoryCameraService.GetImage("cam1");
-            scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
-        }
-        if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam2")
-       is { IsEnabled: true, Capture: true } cam2Config
-       && !string.IsNullOrEmpty(cam2Config.Url))
-        {
-            var img2 = _factoryCameraService.GetImage("cam2");
-            scaleData.Img22 = await _imageStorageService.SaveBase64Async(img2, scaleData.Code, "Lan2_Cam2");
-        }
+       
         // var img1 = _factoryCameraService.GetImage("cam1");
         // var img2 = _factoryCameraService.GetImage("cam2");
         // scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
@@ -854,14 +732,14 @@
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
     private async Task LuuPhieu()
-    {  
+    {
         await scaleService.LuuPhieu(scaleData);
         danhSachPhieu = await scaleService.SearchAsync("", 200);
     }
     private async Task InPhieu()
     {
 
-      //  var modelForPdf = scaleData;
+        //  var modelForPdf = scaleData;
         var modelForPdf = JsonSerializer.Deserialize<TblScale>(
             JsonSerializer.Serialize(scaleData)
             );
@@ -870,30 +748,7 @@
         modelForPdf.Img21 = _imageStorageService.ConvertImageToBase64(scaleData.Img21);
         modelForPdf.Img22 = _imageStorageService.ConvertImageToBase64(scaleData.Img22);
         // Render template thành HTML
-        var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", modelForPdf);
-
-       try
-        {
-            var pdfBytes = await PdfService.GeneratePdfAsync(html);
-            pdfBase64 = Convert.ToBase64String(pdfBytes);
-        }
-        catch (Exception e)
-        {
-            await JS.InvokeVoidAsync("console.log", e.StackTrace);
-            await JS.InvokeVoidAsync("console.log", e.Message);
-
-        }
-         
-        showModal = true;
-
-        //in ko show
-       // await PdfService.PrintPdf(pdfBase64);
-
-    }
-    private async Task InPhieu_bak()
-    {
-        var pdfBytes = await PdfService.GeneratePdfAsync(scaleData);
-        pdfBase64 = Convert.ToBase64String(pdfBytes);
+        
 
         showModal = true;
 
@@ -901,12 +756,14 @@
         // await PdfService.PrintPdf(pdfBase64);
 
     }
-     
-    private async Task OnClickThemMoi(){
+    
+
+    private async Task OnClickThemMoi()
+    {
         scaleData = new TblScale();
     }
 
-    
+
     private string FormatCurrency(double? amount) =>
         string.Format(CultureInfo.GetCultureInfo("vi-VN"), "{0:#,##0} đ", amount);
 
@@ -1037,57 +894,113 @@
     {
         // clone object (tránh tham chiếu trực tiếp)
         scaleData = new TblScale
-        {
-            Id = item.Id,
-            Code = item.Code,
-            Vehicle = item.Vehicle,
-            DriverName = item.DriverName,
-            TimeIn = item.TimeIn,
-            WeightIn = item.WeightIn,
-            TimeOut = item.TimeOut,
-            WeightOut = item.WeightOut,
-            WeightImpurity = item.WeightImpurity,
-            ProductNumber = item.ProductNumber,
-            ProductName = item.ProductName,
-            CustomerId = item.CustomerId,
-            CustomerName = item.CustomerName,
-            CustomerAddress = item.CustomerAddress,
-            CustomerPhone = item.CustomerPhone,
-            ProductId = item.ProductId,
-            ProductPrice = item.ProductPrice,
-            ProductMoney = item.ProductMoney,
-            Proportion = item.Proportion,
-            Exchange = item.Exchange,
-            Note = item.Note,
-            TypeId = item.TypeId,
-            TopSeal = item.TopSeal,
-            IsActive = item.IsActive,
-            TotalMoney = item.TotalMoney,
-            MoneyPayment = item.MoneyPayment,
-            MoneyDiscount = item.MoneyDiscount,
-            MoneyDebt = item.MoneyDebt,
-            StatusPayment = item.StatusPayment,
-            Img11 = item.Img11,
-            Img12 = item.Img12,
-            Img13 = item.Img13,
-            Img21 = item.Img21,
-            Img22 = item.Img22,
-            Img23 = item.Img23,
-            IndexInDay = item.IndexInDay,
-            CreateDay = item.CreateDay,
-            CreateBy = item.CreateBy,
-            UpdateDay = item.UpdateDay,
-            UpdateBy = item.UpdateBy
-        };
+            {
+                Id = item.Id,
+                Code = item.Code,
+                Vehicle = item.Vehicle,
+                DriverName = item.DriverName,
+                TimeIn = item.TimeIn,
+                WeightIn = item.WeightIn,
+                TimeOut = item.TimeOut,
+                WeightOut = item.WeightOut,
+                WeightImpurity = item.WeightImpurity,
+                ProductNumber = item.ProductNumber,
+                ProductName = item.ProductName,
+                CustomerId = item.CustomerId,
+                CustomerName = item.CustomerName,
+                CustomerAddress = item.CustomerAddress,
+                CustomerPhone = item.CustomerPhone,
+                ProductId = item.ProductId,
+                ProductPrice = item.ProductPrice,
+                ProductMoney = item.ProductMoney,
+                Proportion = item.Proportion,
+                Exchange = item.Exchange,
+                Note = item.Note,
+                TypeId = item.TypeId,
+                TopSeal = item.TopSeal,
+                IsActive = item.IsActive,
+                TotalMoney = item.TotalMoney,
+                MoneyPayment = item.MoneyPayment,
+                MoneyDiscount = item.MoneyDiscount,
+                MoneyDebt = item.MoneyDebt,
+                StatusPayment = item.StatusPayment,
+                Img11 = item.Img11,
+                Img12 = item.Img12,
+                Img13 = item.Img13,
+                Img21 = item.Img21,
+                Img22 = item.Img22,
+                Img23 = item.Img23,
+                IndexInDay = item.IndexInDay,
+                CreateDay = item.CreateDay,
+                CreateBy = item.CreateBy,
+                UpdateDay = item.UpdateDay,
+                UpdateBy = item.UpdateBy
+            };
     }
     public void Dispose()
-    {  
+    {
         _timer?.Dispose();   // ✅ stop timer
-        _timer = null; 
+        _timer = null;
         _weighingScaleService.DataReceived -= OnDataReceived;
         _weighingScaleService.Disconnect();
         // Nếu có camera service thì stop luôn
-       // dahuaCameraService?.StopAll();
-    } 
-   
+        // dahuaCameraService?.StopAll();
+    }
+
+}
+@code {
+    private bool IsConnectedCOM = false;
+    private bool IsManualCOM = false;
+    private string DisplayWeight = "0.00";
+    private decimal ManualWeightCOM = 0; 
+
+ 
+
+    private async Task ToggleConnectionCOM()
+    {
+        if (IsConnectedCOM)
+        {
+            // Ngắt kết nối
+            _weighingScaleService.DataReceived -= OnDataReceived;
+            _weighingScaleService.Disconnect();
+            IsConnectedCOM = false;
+            IsManualCOM = true; // khi ngắt cho phép nhập tay
+        }
+        else
+        {
+            // Kết nối lại
+            try
+            {
+                var port = "COM3";
+                var baud = 9600;
+                _weighingScaleService.DataReceived += OnDataReceived;
+                _weighingScaleService.Connect(port, baud);
+                IsConnectedCOM = true;
+                IsManualCOM = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi kết nối: {ex.Message}");
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleManualInputCOM()
+    {
+        IsManualCOM = !IsManualCOM;
+    }
+ 
+    private void OnManualWeightChanged(decimal newValue)
+    {
+        ManualWeightCOM = newValue;
+        Console.WriteLine($"Nhập tay: {ManualWeightCOM}");
+    }
+    private async void OnDataReceived(string data)
+    {
+        DisplayWeight = data;
+     //   await JS.InvokeVoidAsync("updateWeight", data); // nếu bạn có hàm JS hiển thị
+        await InvokeAsync(StateHasChanged);
+    }
 }

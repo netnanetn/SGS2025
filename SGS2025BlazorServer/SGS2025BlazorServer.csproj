@@ -28,6 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Components\Pages\TestScale.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Database\SGS2025OFFLINE.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
