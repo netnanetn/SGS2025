@@ -28,12 +28,6 @@
                             padding: 5px;border-radius: 5px;">
                 CAMERA
             </div>
-            @* <div class="d-flex flex-column align-items-center py-3 gap-3">
-                <canvas id="cam1Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
-                <canvas id="cam2Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
-                <canvas id="cam3Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
-                <canvas id="cam4Canvas" class="img-fluid" style="border:1px solid #ccc;"></canvas>
-            </div> *@
             <div class="d-flex flex-column align-items-center py-3 gap-3">
                 @foreach (var cam in Cameras)
                 {
@@ -88,11 +82,11 @@
                                 <div class="mb-2 d-flex align-items-center">
                                     <label for="bienso" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Biển số</label>
                                     <AutoCompleteInput T="TblVehicle"
-                                                       Items="ModelLoad.Vehicles"
-                                                       ItemText="v => v.VehiceCode"
-                                                       Placeholder="Nhập biển số..."
-                                                       OnSelected="OnVehicleSelected"
-                                                       Value="@scaleData.Vehicle" />
+                                    Items="ModelLoad.Vehicles"
+                                    ItemText="v => v.VehiceCode"
+                                    Placeholder="Nhập biển số..."
+                                    OnSelected="OnVehicleSelected"
+                                    Value="@scaleData.Vehicle" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showVehiclePicker = true">
                                         <i class="bi bi-repeat"></i>
                                     </button>
@@ -113,11 +107,11 @@
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="khachhang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Khách hàng</label>
                                     <AutoCompleteInput T="TblCustomer"
-                                                       Items="ModelLoad.Customers"
-                                                       ItemText="c => c.Name"
-                                                       Placeholder="Nhập tên khách hàng..."
-                                                       OnSelected="OnCustomerSelected"
-                                                       Value="@scaleData.CustomerName" />
+                                    Items="ModelLoad.Customers"
+                                    ItemText="c => c.Name"
+                                    Placeholder="Nhập tên khách hàng..."
+                                    OnSelected="OnCustomerSelected"
+                                    Value="@scaleData.CustomerName" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showCustomerPicker = true">
                                         <i class="bi bi-person-badge"></i>
                                     </button>
@@ -127,11 +121,11 @@
                                 <div class="mb-1 d-flex align-items-center">
                                     <label for="loaihang" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Loại hàng</label>
                                     <AutoCompleteInput T="TblProduct"
-                                                       Items="ModelLoad.Products"
-                                                       ItemText="p => p.Name"
-                                                       Placeholder="Nhập loại hàng..."
-                                                       OnSelected="OnProductSelected"
-                                                       Value="@scaleData.ProductName" />
+                                    Items="ModelLoad.Products"
+                                    ItemText="p => p.Name"
+                                    Placeholder="Nhập loại hàng..."
+                                    OnSelected="OnProductSelected"
+                                    Value="@scaleData.ProductName" />
                                     <button class="btn btn-sm" type="button" style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;" @onclick="() => showProductPicker = true">
                                         <i class="bi bi-stack"></i>
                                     </button>
@@ -140,8 +134,8 @@
                                     <label for="kieucan" class="form-label form-label-sm me-2 mb-0" style="width: 100px;">Kiểu cân</label>
 
                                     <select id="kieucan"
-                                            class="form-select form-select-sm form-control-sm-custom"
-                                            @bind="scaleData.TypeId">
+                                    class="form-select form-select-sm form-control-sm-custom"
+                                    @bind="scaleData.TypeId">
                                         <option value="1">Nhập hàng</option>
                                         <option value="2">Xuất hàng</option>
                                         <option value="3">Dịch vụ</option>
@@ -150,7 +144,7 @@
                                     </select>
 
                                     <button class="btn btn-sm" type="button"
-                                            style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
+                                    style="padding: 3px 6px; background-color: #d58206; margin-left: 5px;">
                                         <i class="bi bi-tags"></i>
                                     </button>
                                 </div>
@@ -208,7 +202,7 @@
                         <div class="col-6" style="padding: 0px 10px; text-align: center">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <button class="btn btn-sm @(IsConnectedCOM ? "btn-danger" : "btn-success")"
-                                        @onclick="ToggleConnectionCOM">
+                                @onclick="ToggleConnectionCOM">
                                     @(IsConnectedCOM ? "🔴 Ngắt kết nối" : "🟢 Kết nối lại")
                                 </button>
 
@@ -224,22 +218,22 @@
                             {
                                 <div class="digital-display">
                                     <InputNumber TValue="decimal"
-                                                 Value="ManualWeightCOM"
-                                                 ValueChanged="OnManualWeightChanged"
-                                                 ValueExpression="@(() => ManualWeightCOM)"
-                                                 class="form-control text-end"
-                                                 style="font-size:30px"
-                                                 placeholder="Nhập khối lượng" />
+                                    Value="ManualWeightCOM"
+                                    ValueChanged="OnManualWeightChanged"
+                                    ValueExpression="@(() => ManualWeightCOM)"
+                                    class="form-control text-end"
+                                    style="font-size:30px"
+                                    placeholder="Nhập khối lượng" />
                                 </div>
-                                
+
                             }
                             else
                             {
                                 <div class="digital-display" id="weightDisplay">
                                 </div>
                             }
-                           @*  <div class="digital-display" id="weightDisplay">
-                                 
+                            @*  <div class="digital-display" id="weightDisplay">
+
                             </div> *@
                         </div>
                         <div class="col-6" style="padding: unset">
@@ -263,11 +257,11 @@
                                 <tbody>
                                     <tr>
                                         <td>
-                                            Cân lần 1: <strong>11</strong><br />
-                                            Cân lần 2: <strong>2</strong>
+                                            Cân lần 1: <strong>@thongKeTrongNgay.SoLan1TrongNgay</strong><br />
+                                            Cân lần 2: <strong>@thongKeTrongNgay.SoLan2TrongNgay</strong>
                                         </td>
                                         <td>
-                                            <strong>49</strong> chuyến
+                                            <strong>@thongKeTrongNgay.SoXeChoCanLan2</strong> chuyến
                                         </td>
                                     </tr>
                                 </tbody>
@@ -280,49 +274,53 @@
                                 <table class="digital-table">
                                     <tr>
                                         <td class="digital-label" style="border-top-left-radius: 10px;">KL cân lần 1</td>
-                                        <td style="border-top-right-radius: 10px;">1200 kg</td>
+                                        <td style="border-top-right-radius: 10px;">@(scaleData.WeightIn ?? 0) kg</td>
                                     </tr>
                                     <tr>
                                         <td class="digital-label">KL cân lần 2</td>
-                                        <td>0 kg</td>
+                                        <td>@scaleData.WeightOut kg</td>
                                     </tr>
                                     <tr>
                                         <td class="digital-label" style="border-bottom-left-radius: 10px;">KL hàng</td>
-                                        <td style="border-bottom-right-radius: 10px;">0 kg</td>
+                                        <td style="border-bottom-right-radius: 10px;">@scaleData.ProductNumber kg</td>
                                     </tr>
                                 </table>
                             </div>
-                            <div class="bottom-fixed border-top" style="    padding-top: 19px;">
-                                <!-- 2 checkbox trên cùng dòng -->
-                                <div class="d-flex gap-4 align-items-center">
+                            <div class="bottom-fixed border-top pt-3">
+                                <!-- 2 checkbox -->
+                                <div class="d-flex gap-4 align-items-center mb-2">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkboxcanlan2">
+                                        <InputCheckbox @bind-Value="scaleFilter.XeChoCanLan2" class="form-check-input" id="checkboxcanlan2" />
                                         <label class="form-check-label" for="checkboxcanlan2" style="font-size: small;">Xe chờ cân lần 2</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkboxxedacan">
+                                        <InputCheckbox @bind-Value="scaleFilter.XeDaCan" class="form-check-input" id="checkboxxedacan" />
                                         <label class="form-check-label" for="checkboxxedacan" style="font-size: small;">Xe đã cân</label>
                                     </div>
                                 </div>
 
                                 <!-- Combobox kiểu cân -->
                                 <div class="mb-3 d-flex align-items-center">
-                                    @* <label for="dropdownkieucan" class="form-label me-2 mb-0" style="min-width: 80px; font-size: small;">Kiểu cân</label> *@
-                                    <select id="dropdownkieucan" class="form-select" style="font-size: small;">
-                                        <option>Tất cả</option>
-                                        <option>Nhập hàng</option>
-                                        <option>Xuất hàng</option>
-                                        <option>Dịch vụ</option>
+                                    <select id="dropdownkieucan" class="form-select form-select-sm" @bind="scaleFilter.KieuCan">
+                                        <option value="Tất cả">Tất cả</option>
+                                        <option value="Nhập hàng">Nhập hàng</option>
+                                        <option value="Xuất hàng">Xuất hàng</option>
+                                        <option value="Dịch vụ">Dịch vụ</option>
                                     </select>
                                 </div>
 
-                                <!-- Datetime + nút tìm kiếm -->
+                                <!-- Ngày bắt đầu / kết thúc + tìm kiếm -->
                                 <div class="d-flex gap-3 align-items-end">
-                                    <div>
-                                        <input type="date" id="ngaycanfilter" style="font-size: small;" class="form-control" @bind="ngayCan" />
+                                    <div class="d-flex flex-column">
+                                        <label for="tungay" class="form-label mb-1" style="font-size: small;">Từ ngày</label>
+                                        <InputDate id="tungay" class="form-control form-control-sm" style="font-size: small;" @bind-Value="scaleFilter.TuNgay" />
                                     </div>
-                                    <div>
-                                        <button class="btn btn-sm btn-primary " style="font-size: small;">Tìm kiếm</button>
+                                    <div class="d-flex flex-column">
+                                        <label for="denngay" class="form-label mb-1" style="font-size: small;">Đến ngày</label>
+                                        <InputDate id="denngay" class="form-control form-control-sm" style="font-size: small;" @bind-Value="scaleFilter.DenNgay" />
+                                    </div>
+                                    <div class="pt-3">
+                                        <button class="btn btn-sm btn-primary" style="font-size: small;" @onclick="TimKiem">Tìm kiếm</button>
                                     </div>
                                 </div>
                             </div>
@@ -448,7 +446,7 @@
     private string Image1, Image2, Image3, Image4;
     private Timer _timer;
 
-     
+
 
     private DateTime ngayCan = DateTime.Today;
     private List<TblScale> danhSachPhieu = new();
@@ -489,7 +487,7 @@
         try
         {
             _config = await configService.LoadAsync();
-           // OnDataReceived(0);
+            // OnDataReceived(0);
         }
         catch (Exception e)
         {
@@ -519,7 +517,7 @@
 
         try
         {
-           // await JS.InvokeVoidAsync("updateWeight", $"{data}");
+            // await JS.InvokeVoidAsync("updateWeight", $"{data}");
             WeightRealTime = data;
         }
         catch (Exception ex)
@@ -561,7 +559,7 @@
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam4Canvas", "cameraai");
             foreach (var cam in Cameras)
             {
-               // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", $"{cam.Code}Canvas", "cameraai");
+                // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", $"{cam.Code}Canvas", "cameraai");
             }
             // 🔹 Chạy các tác vụ nặng song song
             _ = Task.Run(async () =>
@@ -572,6 +570,7 @@
 
                 var ModelLoadInit = await loadDataService.LoadAllData();
                 var danhSachPhieuInit = await scaleService.SearchAsync("", 200);
+                await LoadScaleStaticSum();
 
                 await InvokeAsync(() =>
                 {
@@ -601,7 +600,7 @@
                                             StateHasChanged();
                                         });
 
-                                      
+
 
                                        await InvokeAsync(() =>
                                     {
@@ -636,7 +635,7 @@
                            {
                                try
                                {
-                                 //  await UpdateFrame();
+                                   //  await UpdateFrame();
                                }
                                catch (Exception ex)
                                {
@@ -672,13 +671,13 @@
     }
     private async Task UpdateFrame()
     {
-         
-         
+
+
     }
     private async Task CanLan1()
     {
         var s = "";
-     //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
+        //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         // xu ly de luu
 
@@ -704,7 +703,7 @@
 
         //_imageStorageService
 
-      
+
 
 
 
@@ -722,7 +721,7 @@
         //   await JS.InvokeVoidAsync("console.log", System.Text.Json.JsonSerializer.Serialize(scaleData));
 
         //_imageStorageService
-       
+
         // var img1 = _factoryCameraService.GetImage("cam1");
         // var img2 = _factoryCameraService.GetImage("cam2");
         // scaleData.Img21 = await _imageStorageService.SaveBase64Async(img1, scaleData.Code, "Lan2_Cam1");
@@ -748,7 +747,7 @@
         modelForPdf.Img21 = _imageStorageService.ConvertImageToBase64(scaleData.Img21);
         modelForPdf.Img22 = _imageStorageService.ConvertImageToBase64(scaleData.Img22);
         // Render template thành HTML
-        
+
 
         showModal = true;
 
@@ -756,7 +755,7 @@
         // await PdfService.PrintPdf(pdfBase64);
 
     }
-    
+
 
     private async Task OnClickThemMoi()
     {
@@ -954,7 +953,7 @@
     private string DisplayWeight = "0.00";
     private decimal ManualWeightCOM = 0; 
 
- 
+
 
     private async Task ToggleConnectionCOM()
     {
@@ -991,7 +990,7 @@
     {
         IsManualCOM = !IsManualCOM;
     }
- 
+
     private void OnManualWeightChanged(decimal newValue)
     {
         ManualWeightCOM = newValue;
@@ -1000,7 +999,32 @@
     private async void OnDataReceived(string data)
     {
         DisplayWeight = data;
-     //   await JS.InvokeVoidAsync("updateWeight", data); // nếu bạn có hàm JS hiển thị
+        //   await JS.InvokeVoidAsync("updateWeight", data); // nếu bạn có hàm JS hiển thị
         await InvokeAsync(StateHasChanged);
+    }
+}
+@code {
+    private ScaleStatisticDTO thongKeTrongNgay = new();
+
+    private ScaleFilterDTO scaleFilter = new()
+        {
+            TuNgay = DateTime.Today.AddDays(-7),
+            DenNgay = DateTime.Today
+        };
+    private async Task TimKiem()
+    {
+        Console.WriteLine($"Lọc từ {scaleFilter.TuNgay:dd/MM/yyyy} đến {scaleFilter.DenNgay:dd/MM/yyyy}, kiểu cân: {scaleFilter.KieuCan}");
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        // Ví dụ truy vấn LINQ
+        danhSachPhieu = await scaleService.SearchByFilterDTOAsync(scaleFilter, 50);
+        // Ví dụ: var result = await query.ToListAsync();
+        // return Task.CompletedTask;
+    }
+    private async Task LoadScaleStaticSum(){
+        thongKeTrongNgay = await scaleService.GetStatisticAsync(DateTime.Today);
     }
 }

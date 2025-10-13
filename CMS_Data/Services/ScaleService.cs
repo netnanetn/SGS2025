@@ -1,4 +1,5 @@
-﻿using CMS_Data.Models;
+﻿using CMS_Data.ModelDTO;
+using CMS_Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -58,6 +59,95 @@ namespace CMS_Data.Services
                 .ToListAsync(ct);
             return res;
         }
+        public async Task<List<TblScale>> SearchByFilterDTOAsync(ScaleFilterDTO filter, int take = 50, CancellationToken ct = default)
+        {
+            using var _db = _factory.CreateDbContext();
+            var query = _db.TblScales.AsNoTracking().AsQueryable();
+
+            // --- 1️⃣ Lọc theo ngày ---
+            if (filter.TuNgay.HasValue)
+            {
+                var fromDate = filter.TuNgay.Value.Date; // bắt đầu từ 00:00
+                query = query.Where(x => x.CreateDay >= fromDate);
+            }
+
+            if (filter.DenNgay.HasValue)
+            {
+                var toDate = filter.DenNgay.Value.Date.AddDays(1).AddTicks(-1); // hết 23:59:59
+                query = query.Where(x => x.CreateDay <= toDate);
+            }
+
+            // --- 2️⃣ Lọc theo tình trạng cân ---
+            if (filter.XeChoCanLan2)
+            {
+                // Xe đã có lần 1 nhưng chưa cân lần 2 (WeightOut chưa có)
+                query = query.Where(x => x.WeightIn > 0 && (x.WeightOut == null || x.WeightOut == 0));
+            }
+
+            if (filter.XeDaCan)
+            {
+                // Xe đã hoàn thành cả 2 lần cân
+                query = query.Where(x => x.WeightOut != null && x.WeightOut > 0);
+            }
+
+            // --- 3️⃣ Lọc theo kiểu cân ---
+            if (!string.IsNullOrEmpty(filter.KieuCan) && filter.KieuCan != "Tất cả")
+            {
+                // giả sử TypeId hoặc TypeName (nếu có mapping khác thì sửa tại đây)
+                query = query.Where(x => x.Note != null && x.Note.Contains(filter.KieuCan));
+            }
+
+            // --- 4️⃣ Lọc theo từ khóa ---
+            if (!string.IsNullOrWhiteSpace(filter.TuKhoa))
+            {
+                string q = filter.TuKhoa.Trim();
+                query = query.Where(x =>
+                    (x.Code != null && x.Code.Contains(q)) ||
+                    (x.Vehicle != null && x.Vehicle.Contains(q)) ||
+                    (x.DriverName != null && x.DriverName.Contains(q)) ||
+                    (x.CustomerName != null && x.CustomerName.Contains(q)) ||
+                    (x.ProductName != null && x.ProductName.Contains(q))
+                );
+            }
+
+            // --- 5️⃣ Trả kết quả ---
+            var result = await query
+                .OrderByDescending(x => x.Id)
+                .Take(take)
+                .ToListAsync(ct);
+
+            return result;
+        }
+        public async Task<ScaleStatisticDTO> GetStatisticAsync(DateTime? ngay = null, CancellationToken ct = default)
+        {
+            using var _db = _factory.CreateDbContext();
+
+            var date = (ngay ?? DateTime.Today).Date;
+            var nextDay = date.AddDays(1);
+
+            // Các phiếu trong ngày
+            var query = _db.TblScales
+                .AsNoTracking()
+                .Where(x => x.CreateDay >= date && x.CreateDay < nextDay);
+
+            // Cân lần 1: đã cân vào nhưng chưa ra
+            var lan1 = await query.CountAsync(x => x.WeightIn > 0 && (x.WeightOut == null || x.WeightOut == 0), ct);
+
+            // Cân lần 2: đã có cả WeightIn và WeightOut
+            var lan2 = await query.CountAsync(x => x.WeightOut != null && x.WeightOut > 0, ct);
+
+            // Xe chờ cân lần 2 (có thể mở rộng logic riêng)
+            var choCanLan2 = await _db.TblScales
+                .CountAsync(x => x.WeightIn > 0 && (x.WeightOut == null || x.WeightOut == 0), ct);
+
+            return new ScaleStatisticDTO
+            {
+                SoLan1TrongNgay = lan1,
+                SoLan2TrongNgay = lan2,
+                SoXeChoCanLan2 = choCanLan2
+            };
+        }
+
         public async Task<TblScale> AddAsync(TblScale v, CancellationToken ct = default)
         {
             await SQLiteWriteLock.RunAsync(async () =>
