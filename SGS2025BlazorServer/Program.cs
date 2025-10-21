@@ -39,6 +39,25 @@ namespace SGS2025BlazorServer
                 // Set BusyTimeout = 5 giây
                 connection.DefaultTimeout = 5; // giây
 
+                 
+
+                // Tăng thời gian chờ khi database đang bị khóa
+                // (BusyTimeout được set qua PRAGMA, DefaultTimeout chỉ áp dụng cho ADO.NET command)
+                connection.Open();
+
+                using (var cmd = connection.CreateCommand())
+                {
+                    // Cho phép nhiều process đọc/ghi cùng lúc
+                    cmd.CommandText = "PRAGMA journal_mode=WAL;";
+                    cmd.ExecuteNonQuery();
+
+                    // Đợi tối đa 5 giây nếu database đang bị lock
+                    cmd.CommandText = "PRAGMA busy_timeout = 5000;";
+                    cmd.ExecuteNonQuery();
+                }
+
+
+
                 options.UseSqlite(connection);
             });
 
@@ -60,12 +79,20 @@ namespace SGS2025BlazorServer
 
             builder.Services.AddSingleton<WeighingScaleService>();
 
+            builder.Services.AddRazorPages();               // ✅ Bắt buộc để Razor engine hoạt động
+            builder.Services.AddControllersWithViews();     // ✅ Cho MVC View
+
+            builder.Services.AddRazorTemplating();
+
+
             // Add services to the container.
             builder.Services.AddBlazorBootstrap();
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
-           
+
+       
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -80,10 +107,12 @@ namespace SGS2025BlazorServer
 
             app.UseStaticFiles();
             app.UseAntiforgery();
+            app.MapControllers();
+            app.MapRazorPages();
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-
+          
             app.Run();
         }
     }

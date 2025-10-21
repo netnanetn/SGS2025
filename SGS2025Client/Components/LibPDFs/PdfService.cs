@@ -343,7 +343,7 @@ namespace SGS2025Client.Components.LibPDFs
         }
 
 
-        public async Task PrintPdf(string base64, string printerName = null, bool landscape = false)
+        public async Task PrintPdf_BAK(string base64, string printerName = null, bool landscape = false)
         {
             try
             { 
@@ -372,6 +372,45 @@ namespace SGS2025Client.Components.LibPDFs
             catch (Exception e)
             {
                  
+            }
+        }
+        public async Task PrintPdf(string base64, string printerName = null, string paperType = "A4", bool landscape = false)
+        {
+            try
+            {
+                // Giải mã base64 thành PDF bytes
+                var pdfBytes = Convert.FromBase64String(base64);
+
+                using (var ms = new MemoryStream(pdfBytes))
+                using (var doc = PdfDocument.Load(ms))
+                using (var printDoc = doc.CreatePrintDocument())
+                {
+                    // Thiết lập máy in
+                    var settings = new PrinterSettings();
+                    if (!string.IsNullOrEmpty(printerName))
+                        settings.PrinterName = printerName;
+
+                    printDoc.PrinterSettings = settings;
+
+                    // 🔹 Khai báo khổ giấy thủ công (đơn vị: 1/100 inch)
+                    // A4 = 210 x 297 mm  → 827 x 1169 (1/100 inch)
+                    // A5 = 148 x 210 mm  → 583 x 827  (1/100 inch)
+                    PaperSize paperSize;
+                    if (paperType.Equals("A5", StringComparison.OrdinalIgnoreCase))
+                        paperSize = new PaperSize("A5", 583, 827);
+                    else
+                        paperSize = new PaperSize("A4", 827, 1169);
+
+                    printDoc.DefaultPageSettings.PaperSize = paperSize;
+                    printDoc.DefaultPageSettings.Landscape = landscape;
+
+                    // ⚠ Một số máy in cần tắt auto-scale trong driver, nếu không sẽ vẫn ra A4
+                    printDoc.Print();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi in PDF: {ex.Message}");
             }
         }
         public async ValueTask DisposeAsync()

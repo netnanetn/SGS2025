@@ -17,7 +17,13 @@ namespace CMS_Data.Services
         {
             _factory = factory;
         }
-
+        public async Task<TblScale> GetById(int id)
+        {
+            using var _db = _factory.CreateDbContext();
+            var scale = await _db.TblScales.AsNoTracking().FirstOrDefaultAsync(x=>x.Id == id);
+            
+            return scale;
+        }
         public async Task<List<TblScale>> SearchAsync(string? q, int take = 20, CancellationToken ct = default)
         {
             using var _db = _factory.CreateDbContext();

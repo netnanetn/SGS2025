@@ -7,6 +7,7 @@
 @using System.Globalization
 @inject LoadDataService loadDataService
 @inject ScaleService scaleService
+@inject CompanyService _companyService
 @inject PdfService PdfService
 @inject RazorRenderer RazorRenderer
 @inject ConfigService configService
@@ -214,7 +215,7 @@
                         <div class="col-6"  style="padding: 0px 10px; text-align: center">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <button class="btn btn-sm @(IsConnectedCOM ? "btn-danger" : "btn-success")"
-                                        @onclick="ToggleConnectionCOM">
+                                @onclick="ToggleConnectionCOM">
                                     @(IsConnectedCOM ? "🔴 Ngắt kết nối" : "🟢 Kết nối lại")
                                 </button>
 
@@ -230,12 +231,12 @@
                             {
                                 <div class="digital-display">
                                     <InputNumber TValue="double"
-                                                 Value="WeightRealTime"
-                                                 ValueChanged="OnManualWeightChanged"
-                                                 ValueExpression="@(() => WeightRealTime)"
-                                                 class="form-control text-end"
-                                                 style="font-size:30px"
-                                                 placeholder="Nhập khối lượng" />
+                                    Value="WeightRealTime"
+                                    ValueChanged="OnManualWeightChanged"
+                                    ValueExpression="@(() => WeightRealTime)"
+                                    class="form-control text-end"
+                                    style="font-size:30px"
+                                    placeholder="Nhập khối lượng" />
                                 </div>
 
                             }
@@ -464,13 +465,13 @@
     private TblScale scaleData = new();
 
     //filterscale
-       private ScaleFilterDTO scaleFilter = new()
+    private ScaleFilterDTO scaleFilter = new()
         {
             TuNgay = DateTime.Today.AddDays(-7),
             DenNgay = DateTime.Today
         };
 
-   
+
     //end filter
 
     //print
@@ -559,8 +560,8 @@
         //         StateHasChanged(); 
         //     });
         // }
-          
-          
+
+
         // InvokeAsync(() =>
         // {
         //    // WeightRealTime = data;
@@ -589,14 +590,14 @@
             { 
                 WeightDisplay = $"Không thể kết nối đầu cân: {ex.Message}";
             }
-            
+
             IsConnectedCOM = false;
             IsManualCOM = true; // khi ngắt cho phép nhập tay
         }
         else
         {
             // Kết nối lại 
-            
+
 
             try
             {
@@ -629,7 +630,7 @@
     {
         WeightRealTime = newValue;
     }
-   
+
 
     //end can
 
@@ -637,7 +638,7 @@
     {
         if (firstRender)
         {
-              // 🔹 Vẽ ảnh mặc định ngay lập tức
+            // 🔹 Vẽ ảnh mặc định ngay lập tức
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam1Canvas", "cameraai");
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam2Canvas", "cameraai");
             // await JS.InvokeVoidAsync("drawFrameOnCanvasUrl", "cam3Canvas", "cameraai");
@@ -672,9 +673,9 @@
                        try
                        { 
                            foreach (var camItem in _config.Camera.List)
-                            {
+                           {
                                var cam = Cameras.First(x => x.Code == camItem.Code);
-                                if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url)){
+                               if (camItem.IsEnabled && !String.IsNullOrEmpty(camItem.Url)){
                                    // _factoryCameraService.AddCamera(camItem.Code, camItem.TypeCamera, camItem.Url, camItem.DauGhiPort, camItem.User, camItem.Password);
                                    try
                                    {
@@ -693,11 +694,11 @@
                                        camItem.Password
                                    );
 
-                                      await InvokeAsync(() =>
-                                       {
-                                           cam.Status = CameraStatus.Active;
-                                           StateHasChanged();
-                                       });
+                                       await InvokeAsync(() =>
+                                    {
+                                        cam.Status = CameraStatus.Active;
+                                        StateHasChanged();
+                                    });
                                    }
                                    catch (Exception exCam)
                                    {
@@ -709,15 +710,15 @@
                                                     StateHasChanged();
                                                 });
                                    }
-                                } else{
+                               } else{
                                    await InvokeAsync(() =>
                                            {
                                                cam.Status = CameraStatus.Disable;
                                                StateHasChanged();
                                            });
-                                }
-                            }
-                          
+                               }
+                           }
+
 
                            // Nếu thành công thì start timer
                            _timer = new Timer(async _ =>
@@ -740,22 +741,22 @@
                            // Option: show thông báo UI
                            await InvokeAsync(() =>
                            {
-                             //  _cameraError = true;
+                               //  _cameraError = true;
                                StateHasChanged();
                            });
                        }
                    });
-            
 
-           //  await Task.Run(() =>
-           //  {
-           //      _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-           //    //  _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
-           //  });
 
-           // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
-         
-           //  StateHasChanged();
+            //  await Task.Run(() =>
+            //  {
+            //      _factoryCameraService.AddCamera("cam1", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            //    //  _factoryCameraService.AddCamera("cam2", CameraType.Hikvision, "192.168.1.109", 8000, "admin", "abcd@1234");
+            //  });
+
+            // _timer = new Timer(async _ => await UpdateFrame(), null, 1000, 50);
+
+            //  StateHasChanged();
         }
     }
     private async Task LoadScaleStaticSum()
@@ -812,7 +813,7 @@
         scaleData.ProductMoney ??= 0;
 
         //_imageStorageService
-      
+
         try
         {
             if (_config?.Camera.List.FirstOrDefault(x => x.Code == "cam1")
@@ -832,10 +833,10 @@
         }
         catch (Exception e)
         { 
-            
+
         }
-         
-       
+
+
 
 
         await scaleService.AddAsync(scaleData);
@@ -894,7 +895,7 @@
         }
         catch (Exception )
         {
-            
+
         }
     }
 
@@ -906,8 +907,8 @@
     }
     private async Task InPhieu()
     {
-
-      //  var modelForPdf = scaleData;
+        var company = await _companyService.GetByIdAsync();
+        //  var modelForPdf = scaleData;
         var modelForPdf = JsonSerializer.Deserialize<TblScale>(
             JsonSerializer.Serialize(scaleData)
             );
@@ -915,12 +916,22 @@
         modelForPdf.Img12 = _imageStorageService.ConvertImageToBase64(scaleData.Img12);
         modelForPdf.Img21 = _imageStorageService.ConvertImageToBase64(scaleData.Img21);
         modelForPdf.Img22 = _imageStorageService.ConvertImageToBase64(scaleData.Img22);
+
+        var modelPrint = new PrintScaleDTO
+            {
+                Scale = modelForPdf,
+                Company = company
+            };
+        var templateName = $"ScalePdfTemplate_{_config?.Print.ScalePdfTemplate}.cshtml";
+        var pageSize = templateName.Contains("a5") ? "A5" : "A4";
+        var landscape = templateName.Contains("ngang") ? true : false;
+         
         // Render template thành HTML
-        var html = await RazorRenderer.RenderTemplateAsync("ScalePdfTemplate6Img.cshtml", modelForPdf);
+        var html = await RazorRenderer.RenderTemplateAsync(templateName, modelPrint);
 
        try
         {
-            var pdfBytes = await PdfService.GeneratePdfAsync(html);
+            var pdfBytes = await PdfService.GeneratePdfAsync(html, pageSize);
             pdfBase64 = Convert.ToBase64String(pdfBytes);
         }
         catch (Exception e)
@@ -929,8 +940,12 @@
             await JS.InvokeVoidAsync("console.log", e.Message);
 
         }
-         
-        showModal = true;
+         if(_config.Print.NotView){
+            await PdfService.PrintPdf(pdfBase64, null, pageSize, landscape);
+         }else{
+            showModal = true;
+
+         }
 
         //in ko show
        // await PdfService.PrintPdf(pdfBase64);

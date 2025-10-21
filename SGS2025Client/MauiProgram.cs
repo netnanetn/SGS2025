@@ -70,6 +70,21 @@ namespace SGS2025Client
                 // Set BusyTimeout = 5 giây
                 connection.DefaultTimeout = 5; // giây
 
+                // Tăng thời gian chờ khi database đang bị khóa
+                // (BusyTimeout được set qua PRAGMA, DefaultTimeout chỉ áp dụng cho ADO.NET command)
+                connection.Open();
+
+                using (var cmd = connection.CreateCommand())
+                {
+                    // Cho phép nhiều process đọc/ghi cùng lúc
+                    cmd.CommandText = "PRAGMA journal_mode=WAL;";
+                    cmd.ExecuteNonQuery();
+
+                    // Đợi tối đa 5 giây nếu database đang bị lock
+                    cmd.CommandText = "PRAGMA busy_timeout = 5000;";
+                    cmd.ExecuteNonQuery();
+                }
+
                 options.UseSqlite(connection);
             });
 
