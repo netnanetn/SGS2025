@@ -1,4 +1,5 @@
-﻿using CMS_Data.ModelDTO;
+﻿using CMS_Data.Enums;
+using CMS_Data.ModelDTO;
 using CMS_Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -159,6 +160,8 @@ namespace CMS_Data.Services
             await SQLiteWriteLock.RunAsync(async () =>
             {
                 using var _db = _factory.CreateDbContext();
+                v.Status = (int)ScaleStatus.Weighing;
+                v.SyncFailCount = 0;
                 if (v.IndexInDay == null)
                 {
                     var today = DateTime.Today;
@@ -187,6 +190,8 @@ namespace CMS_Data.Services
                 scaleUpdate.Img21 = v.Img21;
                 scaleUpdate.Img22 = v.Img22;
                 scaleUpdate.Img23 = v.Img23;
+                scaleUpdate.Status = (int)ScaleStatus.Completed;
+                scaleUpdate.SyncStatus = (int)SyncStatus.NotSynced;
                 _db.TblScales.Update(scaleUpdate);
                 await _db.SaveChangesAsync(ct);
 
@@ -230,6 +235,45 @@ namespace CMS_Data.Services
                 await _db.SaveChangesAsync(ct);
 
             });
+            return v;
+        }
+        public async Task<List<TblScale>> GetUnsyncedAsync(int take = 20, CancellationToken ct = default)
+        {
+            using var _db = _factory.CreateDbContext();
+            var query = _db.TblScales.AsNoTracking().AsQueryable().Where(x => x.Status == 1  && (x.SyncStatus == null || x.SyncStatus == 0));
+              
+            var res = await query
+                .OrderByDescending(x => x.Id)
+                .Take(take)
+                .ToListAsync(ct);
+            return res;
+        }
+        public async Task<TblScale> UpdateScaleAll(TblScale v, CancellationToken ct = default)
+        {
+            await SQLiteWriteLock.RunAsync(async () =>
+            {
+                using var _db = _factory.CreateDbContext();
+
+                var existing = await _db.TblScales.AsNoTracking().FirstOrDefaultAsync(x => x.Id == v.Id, ct);
+                if (existing == null)
+                    throw new Exception("Không tìm thấy bản ghi cần cập nhật");
+
+
+                // Gắn bản ghi lại vào context để có thể cập nhật
+                _db.Attach(v);
+                v.UpdateDay = DateTime.Now;
+
+                // Đánh dấu entity là Modified
+                _db.Entry(v).State = EntityState.Modified;
+
+                //// Cập nhật tất cả field (trừ Id)
+                //_db.Entry(existing).CurrentValues.SetValues(v);
+
+                //existing.UpdateDay = DateTime.Now; // ghi đè nếu cần
+
+                await _db.SaveChangesAsync(ct);
+            });
+
             return v;
         }
         //CreateScaleAsync

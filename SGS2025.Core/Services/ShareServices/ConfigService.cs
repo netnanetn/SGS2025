@@ -6,10 +6,11 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CMS_Data.ModelDTO;
+using CMS_Data.Interfaces;
 
 namespace SGS2025.Core.Services.ShareServices
 {
-    public class ConfigService
+    public class ConfigService : IConfigService
     {
         private readonly string _filePath;
         public AppConfig _config { get; private set; } = new();
@@ -22,6 +23,7 @@ namespace SGS2025.Core.Services.ShareServices
 
             _filePath = Path.Combine(folder, "appsettings.sgs.json");
         }
+
 
         /// <summary>
         /// Load cấu hình từ file JSON

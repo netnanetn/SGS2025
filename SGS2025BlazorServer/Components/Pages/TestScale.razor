@@ -3,9 +3,10 @@
 @using System.Globalization
 @inject LoadDataService loadDataService
 @inject ScaleService scaleService 
-@inject ConfigService configService
+@inject IConfigService configService
 @inject WeighingScaleService _weighingScaleService
 @inject ImageStorageService _imageStorageService
+@using CMS_Data.Interfaces
 @using PuppeteerSharp
 @using System.Text.Json
 @implements IDisposable

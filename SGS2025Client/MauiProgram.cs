@@ -20,6 +20,11 @@ using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using CommunityToolkit.Maui;
 using WinRT.Interop;
+using Windows.Services.Maps;
+using CMS_Data.Networks;
+using SGS2025Client.Services;
+using CMS_Data.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SGS2025Client
 {
@@ -51,8 +56,7 @@ namespace SGS2025Client
                 var content = reader.ReadToEnd();
                 File.WriteAllText(targetPath, content);
             }
-            builder.Services.AddSingleton(new ConfigService(targetPath));
-
+            builder.Services.AddSingleton<IConfigService>(sp => new ConfigService(targetPath)); 
 
             // 🔹 Đường dẫn SQLite
             var dbPath = Path.Combine("E:\\MyProject\\SGS2025\\Database", "SGS2025OFFLINE.db");
@@ -108,6 +112,25 @@ namespace SGS2025Client
             builder.Services.AddScoped<LicenseService>();
 
 
+            // --- Đăng ký các service cần thiết ---
+        
+            builder.Services.AddHttpClient<IAuthOnlineService, AuthOnlineService>((sp, c) =>
+            {
+                var ApiBaseUrl = "http://103.109.43.40:8018/api/";
+                c.BaseAddress = new Uri(ApiBaseUrl);
+            });
+
+            builder.Services.AddHttpClient<IApiService, ApiService>((sp, c) =>
+            {
+                var ApiBaseUrl = "http://103.109.43.40:8018/api/";
+                c.BaseAddress = new Uri(ApiBaseUrl);
+            });
+
+            builder.Services.AddSingleton<INetworkStatusProvider, MauiNetworkStatusProvider>();
+            builder.Services.AddSingleton<BackgroundSyncService>();
+
+
+
             // ✅ Đăng ký DI (Dependency Injection)
             //builder.Services.AddSingleton<CameraService>();
             builder.Services.AddSingleton<FactoryCameraService>();
@@ -125,6 +148,7 @@ namespace SGS2025Client
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
+            builder.Logging.AddConsole();
 #endif
             builder.Services.AddBlazorWebViewDeveloperTools();
 #if WINDOWS

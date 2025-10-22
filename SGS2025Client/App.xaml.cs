@@ -1,21 +1,26 @@
-﻿using Microsoft.AspNetCore.Components.WebView.Maui;
+﻿using CMS_Data.Services;
+using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using SGS2025.Core.Services.ShareServices;
 using SGS2025Client.Components.Pages;
 using SGS2025Client.SDKCameraServices.CameraFactory;
+using SGS2025Client.Services;
 
 namespace SGS2025Client
 {
     public partial class App : Application
     {
+        private readonly BackgroundSyncService _syncService;
         private readonly AuthService _authService;
         private readonly LicenseService _licenseService;
-        public App(AuthService authService, LicenseService licenseService)
+        public App(AuthService authService, LicenseService licenseService, BackgroundSyncService syncService)
         {
             InitializeComponent();
            _licenseService = licenseService;
             _authService = authService;
+            _syncService = syncService;
 
+             
 
             bool valid = _licenseService.ValidateLicense();
 
@@ -26,14 +31,11 @@ namespace SGS2025Client
             }
             else
             {
+                // Bắt đầu auto sync khi mở app
+                _syncService.StartAutoSync(60);
                 MainPage = new NavigationPage(new LoginPage(_authService));
             }
-
-            //_authService = authService;
-            //MainPage = new NavigationPage(new LoginPage(_authService));
-
-            // MainPage = new MainPage();
-            // MainPage = new NavigationPage(new MainPage()); // MainPage có BlazorWebView
+             
 
         }
 

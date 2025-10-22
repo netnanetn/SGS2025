@@ -84,4 +84,10 @@ public partial class TblScale
     public DateTime? UpdateDay { get; set; }
 
     public string? UpdateBy { get; set; }
+    public int? Status { get; set; }
+    public int? SyncStatus { get; set; }
+    public DateTime? SyncTime { get; set; }
+    public int? SyncFailCount { get; set; }
+    public string? SyncError { get; set; }
+    public int? ServerId { get; set; }
 }

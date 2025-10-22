@@ -16,6 +16,7 @@ namespace CMS_Data.ModelDTO
         public ReadComConfig ReadCom { get; set; }
         public List<BarrierConfig> Barrier { get; set; }
         public CameraConfig Camera { get; set; }
+        public SyncConfig Sync { get; set; } = new();
     }
 
     public class SystemConfig
@@ -82,5 +83,12 @@ namespace CMS_Data.ModelDTO
         public int Channel { get; set; }
         public bool Capture { get; set; }
         public bool IsEnabled { get; set; } = true;
+    }
+    public class SyncConfig
+    {
+        public bool AllowSyncOnline { get; set; } = false;
+        public string ApiBaseUrl { get; set; } = "http://103.109.43.40:8018/api/";
+        public string LoginUser { get; set; } = "tvs";
+        public string LoginPassword { get; set; } = "123456";
     }
 }

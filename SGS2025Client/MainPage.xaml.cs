@@ -1,13 +1,16 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using CMS_Data.Services;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 
 namespace SGS2025Client
 {
     public partial class MainPage : ContentPage
     {
+        
         public MainPage()
         {
             InitializeComponent();
+       
 #if WINDOWS
             blazorWebView.BlazorWebViewInitialized += (s, e) =>
             {
