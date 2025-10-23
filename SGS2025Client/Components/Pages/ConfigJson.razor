@@ -1,5 +1,6 @@
 ﻿@page "/config"
 @using CMS_Data.Interfaces
+@inherits SGS2025Client.Common.BaseRazorComponent
 @inject IConfigService configService
 
 <h3>Cấu hình hệ thống</h3>
@@ -167,11 +168,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        config = await configService.LoadAsync();
+        await Run(async () =>
+            {
+                config = await configService.LoadAsync();
+            });
     }
 
     private async Task SaveConfig()
-    {
-        await configService.SaveAsync(config);
+    { 
+        await RunSafe(async () => { await configService.SaveAsync(config); }, null);
     }
 }

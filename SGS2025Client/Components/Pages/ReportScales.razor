@@ -1,5 +1,6 @@
 ﻿@page "/report-scales"
 @using System.Globalization
+@inherits SGS2025Client.Common.BaseRazorComponent
 
 @inject ScaleService scaleService
 @inject LoadDataService loadDataService
@@ -285,61 +286,54 @@
     private async Task LoadData()
     {
         isLoading = true;
-        try
+        await Run(async () =>
         {
-            // Giả sử SearchAsync có hỗ trợ filter (nếu chưa, bạn lọc thủ công sau khi lấy)
             danhSachPhieu = await scaleService.SearchByDateAsync(filter.Keyword ?? "", filter.FromDate, filter.ToDate, 2000);
-
-
-
             WeightDisplay = $"Tổng số phiếu: {danhSachPhieu.Count}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        });
+
+        isLoading = false;
     }
     private async Task LoadDataInit()
     {
-        try
-        {
-            ModelLoad = await loadDataService.LoadAllData();
-
-
-        }
-        finally
-        {
-        }
+        await Run(async () => { ModelLoad = await loadDataService.LoadAllData(); });
     }
-    private void OnVehicleSelected(TblVehicle? vehicle)
+    private async Task OnVehicleSelected(TblVehicle? vehicle)
     {
         if (vehicle == null) return;
+        await Run(async () =>
+        {
+            editPhieu.Vehicle = vehicle.VehiceCode;
+            editPhieu.DriverName = vehicle.DriverName;
+        });
 
-        editPhieu.Vehicle = vehicle.VehiceCode;
-        editPhieu.DriverName = vehicle.DriverName;
-        StateHasChanged();
+        
     }
-    private void OnCustomerSelected(TblCustomer? c)
+    private async Task OnCustomerSelected(TblCustomer? c)
     {
         if (c == null) return;
-
-        editPhieu.CustomerName = c.Name;
-        editPhieu.CustomerAddress = c.Address;
-        editPhieu.CustomerId = c.Id;
-        editPhieu.CustomerPhone = c.Phone;
-        StateHasChanged();
+        await Run(async () =>
+      {
+          editPhieu.CustomerName = c.Name;
+          editPhieu.CustomerAddress = c.Address;
+          editPhieu.CustomerId = c.Id;
+          editPhieu.CustomerPhone = c.Phone;
+      });
+       
     }
-    private void OnProductSelected(TblProduct? p)
+    private async Task OnProductSelected(TblProduct? p)
     {
         if (p == null) return;
-
-        editPhieu.ProductId = p.Id;
-        editPhieu.ProductName = p.Name;
-        editPhieu.Proportion = (double)p.Proportion;
-        editPhieu.ProductPrice = p.PriceOutput;
-        StateHasChanged();
+        await Run(async () =>
+     {
+         editPhieu.ProductId = p.Id;
+         editPhieu.ProductName = p.Name;
+         editPhieu.Proportion = (double)p.Proportion;
+         editPhieu.ProductPrice = p.PriceOutput;
+     });
+         
     }
-    private void ResetFilter()
+    private async Task ResetFilter()
     {
         filter = new FilterModel
             {
@@ -349,22 +343,18 @@
         _ = LoadData();
     }
 
-    private void OnRowDoubleClick(TblScale p)
+    private async Task OnRowDoubleClick(TblScale p)
     {
         Console.WriteLine($"Double-click phiếu: {p.Id}");
     }
-    private void Edit(TblScale p)
+    private async Task Edit(TblScale p)
     {
         // Clone để tránh sửa trực tiếp list
-        try
+        await Run(async () =>
         {
             var json = System.Text.Json.JsonSerializer.Serialize(p);
             editPhieu = System.Text.Json.JsonSerializer.Deserialize<TblScale>(json);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Lỗi Edit: " + ex.Message);
-        }
+        });
     }
     private string FormatDateTime(DateTime? dt)
     {
@@ -378,26 +368,34 @@
         else
             setter(null);
     }
-    private void OnWeightChanged()
+    private async Task OnWeightChanged()
     {
         if (editPhieu == null) return;
-        decimal weightIn = editPhieu.WeightIn ?? 0;
-        decimal weightOut = editPhieu.WeightOut ?? 0;
-        editPhieu.ProductNumber = weightIn - weightOut;
+        await Run(async () =>
+        {
+            decimal weightIn = editPhieu.WeightIn ?? 0;
+            decimal weightOut = editPhieu.WeightOut ?? 0;
+            editPhieu.ProductNumber = weightIn - weightOut;
 
-        // Nếu có đơn giá thì tính lại thành tiền
-        double price = editPhieu.ProductPrice ?? 0;
-        editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
+            // Nếu có đơn giá thì tính lại thành tiền
+            double price = editPhieu.ProductPrice ?? 0;
+            editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
+        });
+        
     }
 
 
-    private void OnPriceChanged()
+    private async Task OnPriceChanged()
     {
         if (editPhieu == null) return;
-        double price = editPhieu.ProductPrice ?? 0;
-        editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
+        await Run(async () =>
+        {
+            double price = editPhieu.ProductPrice ?? 0;
+            editPhieu.TotalMoney = (double)(editPhieu.ProductNumber ?? 0) * price;
+        });
+       
     }
-    private void AddNew()
+    private async Task AddNew()
     {
         editPhieu = new TblScale
             {
@@ -414,24 +412,27 @@
     private async Task SavePhieu()
     {
         if (editPhieu == null) return;
-
-        editPhieu.UpdateDay = DateTime.Now;
-        editPhieu.UpdateBy = "Admin"; // hoặc user hiện tại
-
-        if (editPhieu.Id == 0)
+        await RunSafe(async () =>
         {
-            // phiếu mới
-            editPhieu.CreateDay ??= DateTime.Now;
-            await scaleService.CreateScaleAsync(editPhieu);
-        }
-        else
-        {
-            // phiếu cũ (chỉnh sửa)
-            await scaleService.UpdateScaleAsynnc(editPhieu);
-        }
+            editPhieu.UpdateDay = DateTime.Now;
+            editPhieu.UpdateBy = "Admin"; // hoặc user hiện tại
 
-        await LoadData();
-        CloseModal();
+            if (editPhieu.Id == 0)
+            {
+                // phiếu mới
+                editPhieu.CreateDay ??= DateTime.Now;
+                await scaleService.CreateScaleAsync(editPhieu);
+            }
+            else
+            {
+                // phiếu cũ (chỉnh sửa)
+                await scaleService.UpdateScaleAsynnc(editPhieu);
+            }
+
+            await LoadData();
+            CloseModal();
+        }, null);
+        
     }
     private void CloseModal() => editPhieu = null;
 
@@ -439,13 +440,16 @@
     {
         if (await JsConfirm($"Bạn có chắc muốn xóa phiếu {p.Id}?"))
         {
-            await scaleService.DeleteAsync(p.Id);
+            await RunSafe(async () =>
+               {
+                   await scaleService.DeleteAsync(p.Id);
+               }, null);
+           
             await LoadData();
         }
     }
     private async Task<bool> JsConfirm(string message)
     {
-        // nếu dùng Blazor Server:
         return await JS.InvokeAsync<bool>("confirm", message);
     }
     private class FilterModel
@@ -465,12 +469,16 @@
 
     private async Task ExportExcel()
     {
-        var path = await _excelService.ExportReportScaleToDownloadsAsync(danhSachPhieu);
-        // Có thể mở luôn sau khi export
-        await Launcher.OpenAsync(new OpenFileRequest
-            {
-                File = new ReadOnlyFile(path)
-            });
+        await RunSafe(async () =>
+              {
+                  var path = await _excelService.ExportReportScaleToDownloadsAsync(danhSachPhieu);
+                  // Có thể mở luôn sau khi export
+                  await Launcher.OpenAsync(new OpenFileRequest
+                      {
+                          File = new ReadOnlyFile(path)
+                      });
+              }, null);
+        
     }
 }
 

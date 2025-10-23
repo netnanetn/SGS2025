@@ -1,5 +1,5 @@
 ﻿@page "/customers"
-
+@inherits SGS2025Client.Common.BaseRazorComponent
 @inject ExcelService _excelService
 @inject CustomerService _customerService
 @inject IJSRuntime JS
@@ -160,21 +160,33 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await _customerService.GetAllAsync();
+        
+        await Run(async () => { customers = await _customerService.GetAllAsync(); });
+
     }
 
     async Task Search()
     {
-        if (string.IsNullOrWhiteSpace(searchText))
-            customers = await _customerService.GetAllAsync();
-        else
-            customers = await _customerService.SearchAsync(searchText);
+        await Run(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                customers = await _customerService.GetAllAsync();
+            else
+                customers = await _customerService.SearchAsync(searchText);
+        });
+
+        
     }
 
     async Task ResetSearch()
     {
-        searchText = string.Empty;
-        customers = await _customerService.GetAllAsync();
+        await Run(async () =>
+        {
+            searchText = string.Empty;
+            customers = await _customerService.GetAllAsync();
+        });
+
+        
     }
 
     async Task ShowAddForm()
@@ -184,12 +196,16 @@ else
     }
     private async Task ExportExcel()
     {
-        var path = await _excelService.ExportCustomerToDownloadsAsync(customers);
-        // Có thể mở luôn sau khi export
-        await Launcher.OpenAsync(new OpenFileRequest
-            {
-                File = new ReadOnlyFile(path)
-            });
+        await RunSafe(async () =>
+        {
+            var path = await _excelService.ExportCustomerToDownloadsAsync(customers);
+            // Có thể mở luôn sau khi export
+            await Launcher.OpenAsync(new OpenFileRequest
+                {
+                    File = new ReadOnlyFile(path)
+                });
+        }, null);
+        
     }
     async Task Edit(TblCustomer c)
     {
@@ -213,8 +229,12 @@ else
     {
         if (shouldFocus)
         {
-            shouldFocus = false;
-            await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "customerCodeInput", null);
+            await Run(async () =>
+               {
+                   shouldFocus = false;
+                   await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "customerCodeInput", null);
+               });
+            
         }
     }
 
@@ -222,24 +242,28 @@ else
     {
         if (editCustomer == null) return;
 
-        if (editCustomer.Id == 0)
-            await _customerService.AddAsync(editCustomer);
-        else
-            await _customerService.UpdateAsync(editCustomer);
+        await RunSafe(async () =>
+               {
+                   if (editCustomer.Id == 0)
+                       await _customerService.AddAsync(editCustomer);
+                   else
+                       await _customerService.UpdateAsync(editCustomer);
 
-        customers = await _customerService.GetAllAsync();
-        editCustomer = null;
-        StateHasChanged();
-        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
-        await toast.Show();
+                   customers = await _customerService.GetAllAsync();
+                   editCustomer = null;
+               }, null);
+                
     }
 
     async Task Delete(int id)
     {
-        await _customerService.DeleteAsync(id);
-        customers = await _customerService.GetAllAsync();
-        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã xóa thành công!", ToastDuration.Short, 14);
-        await toast.Show();
+        await RunSafe(async () =>
+      {
+          await _customerService.DeleteAsync(id);
+          customers = await _customerService.GetAllAsync();
+      }, null);
+       
+
     }
 
     void Cancel() => editCustomer = null;

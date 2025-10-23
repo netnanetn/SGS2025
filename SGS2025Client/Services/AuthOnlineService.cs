@@ -76,6 +76,13 @@ namespace SGS2025Client.Services
                 await SaveTokensAsync(result.access_token, result.refreshToken);
                 return true;
             }
+            else
+            {
+                AccessToken = null;
+                RefreshToken = null;
+                Preferences.Remove(nameof(AccessToken));
+                Preferences.Remove(nameof(RefreshToken));
+            }
 
             return false;
         }
@@ -97,7 +104,7 @@ namespace SGS2025Client.Services
             public string access_token { get; set; } = "";
             public int expires_in { get; set; }
             public string refreshToken { get; set; } = "";
-            public DateTime refreshTokenExpiryTime { get; set; }
+           // public int refreshTokenExpiryTime { get; set; }
             public string errorCode { get; set; } = "";
             public string message { get; set; } = "";
             public string userId { get; set; } = "";

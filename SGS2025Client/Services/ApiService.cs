@@ -89,7 +89,9 @@ namespace SGS2025Client.Services
                     }
                     else
                     {
-                        return (false, 0, "Token expired and refresh failed");
+                        await EnsureTokenAsync();
+                        response = await _client.PostAsJsonAsync("Scale/Create", postModel);
+                        //return (false, 0, "Token expired and refresh failed");
                     }
                 }
 

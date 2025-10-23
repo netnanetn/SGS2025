@@ -240,12 +240,13 @@ namespace CMS_Data.Services
         public async Task<List<TblScale>> GetUnsyncedAsync(int take = 20, CancellationToken ct = default)
         {
             using var _db = _factory.CreateDbContext();
-            var query = _db.TblScales.AsNoTracking().AsQueryable().Where(x => x.Status == 1  && (x.SyncStatus == null || x.SyncStatus == 0));
+            var query = _db.TblScales.AsNoTracking().AsQueryable().Where(x => x.Status == 1  &&  x.SyncStatus == 0);
               
             var res = await query
                 .OrderByDescending(x => x.Id)
                 .Take(take)
                 .ToListAsync(ct);
+            var sql = query.ToQueryString();
             return res;
         }
         public async Task<TblScale> UpdateScaleAll(TblScale v, CancellationToken ct = default)

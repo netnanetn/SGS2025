@@ -1,5 +1,6 @@
 ﻿@page "/products"
 
+@inherits SGS2025Client.Common.BaseRazorComponent
 @inject ProductService _productService
 @inject ExcelService _excelService
 @inject IJSRuntime JS
@@ -157,21 +158,28 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        products = await _productService.GetAllAsync();
+       
+        await Run(async () => { products = await _productService.GetAllAsync(); });
+
     }
 
     async Task Search()
     {
-        if (string.IsNullOrWhiteSpace(searchText))
-            products = await _productService.GetAllAsync();
-        else
-            products = await _productService.SearchAsync(searchText);
+        await Run(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                products = await _productService.GetAllAsync();
+            else
+                products = await _productService.SearchAsync(searchText);
+        });
+
+        
     }
 
     async Task ResetSearch()
     {
         searchText = string.Empty;
-        products = await _productService.GetAllAsync();
+        await Run(async () => { products = await _productService.GetAllAsync(); });
     }
 
     async Task ShowAddForm()
@@ -181,12 +189,17 @@ else
     }
     private async Task ExportExcel()
     {
-        var path = await _excelService.ExportProductToDownloadsAsync(products);
-        // Có thể mở luôn sau khi export
-        await Launcher.OpenAsync(new OpenFileRequest
-            {
-                File = new ReadOnlyFile(path)
-            });
+        await RunSafe(async () =>
+        {
+            var path = await _excelService.ExportProductToDownloadsAsync(products);
+            // Có thể mở luôn sau khi export
+            await Launcher.OpenAsync(new OpenFileRequest
+                {
+                    File = new ReadOnlyFile(path)
+                });
+        }, null);
+
+        
     }
     async Task Edit(TblProduct p)
     {
@@ -211,7 +224,9 @@ else
         if (shouldFocus)
         {
             shouldFocus = false;
-            await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "productCodeInput", null);
+            await Run(async () => { await JS.InvokeVoidAsync("siteHelpers.focusAndScroll", "productCodeInput", null); });
+
+            
         }
     }
 
@@ -219,24 +234,29 @@ else
     {
         if (editProduct == null) return;
 
-        if (editProduct.Id == 0)
-            await _productService.AddAsync(editProduct);
-        else
-            await _productService.UpdateAsync(editProduct);
+        await RunSafe(async () =>
+        {
+            if (editProduct.Id == 0)
+                await _productService.AddAsync(editProduct);
+            else
+                await _productService.UpdateAsync(editProduct);
 
-        products = await _productService.GetAllAsync();
-        editProduct = null;
-        StateHasChanged();
-        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
-        await toast.Show();
+            products = await _productService.GetAllAsync();
+            editProduct = null;
+        }, null);
+
+       
+
     }
 
     async Task Delete(int id)
     {
-        await _productService.DeleteAsync(id);
-        products = await _productService.GetAllAsync();
-        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã xóa thành công!", ToastDuration.Short, 14);
-        await toast.Show();
+        await RunSafe(async () =>
+        {
+            await _productService.DeleteAsync(id);
+            products = await _productService.GetAllAsync();
+        }, null);
+
     }
 
     void Cancel() => editProduct = null;

@@ -1,4 +1,5 @@
 ﻿@page "/system"
+@inherits SGS2025Client.Common.BaseRazorComponent
 @inject CompanyService companyService
 @inject LicenseService _licenseService
 @inject IJSRuntime JS
@@ -58,32 +59,22 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            company = await companyService.GetByIdAsync();
-        }
-        catch (Exception e)
-        {
-             
-        }
+        await Run(async () => { company = await companyService.GetByIdAsync(); }); 
     }
 
     private async Task HandleValidSubmit()
     {
         if (company == null) return;
-
-         await companyService.UpdateAsync(company, "current_user");
-        var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã lưu thành công!", ToastDuration.Short, 14);
-        await toast.Show();
+        await RunSafe(async () => { await companyService.UpdateAsync(company, "current_user"); }, null);
     }
 
     private async void Back(){
-        company = await companyService.GetByIdAsync();
+        await Run(async () => { company = await companyService.GetByIdAsync(); });
     }
     private async Task OnUpdateLicenseClicked()
     {
-        try
-        {
+        await RunSafe(async () => {
+
             var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
                     PickerTitle = "Chọn license file",
@@ -105,28 +96,26 @@ else
                 // Lưu file vào local storage
                 var licensePath = Path.Combine(FileSystem.AppDataDirectory, "license.lic");
                 File.WriteAllText(licensePath, licenseContent);
-                 
-                var toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã import license. Khởi động lại ứng dụng!", ToastDuration.Short, 14);
-                await toast.Show();
+
+                await ToastHelper.ShowSuccessAsync("Đã import license. Khởi động lại ứng dụng!");
+
 
                 // Thử validate lại
                 var valid = _licenseService.ValidateLicense();
                 if (valid)
-                { 
-                      toast = CommunityToolkit.Maui.Alerts.Toast.Make("Đã kiểm tra license hợp lệ. Vui lòng Khởi động lại ứng dụng!", ToastDuration.Short, 14);
-                    await toast.Show();
+                {
+
+                    await ToastHelper.ShowSuccessAsync("Đã kiểm tra license hợp lệ. Vui lòng Khởi động lại ứng dụng!");
+
                 }
                 else
                 {
-                      toast = CommunityToolkit.Maui.Alerts.Toast.Make("License không hợp lệ!", ToastDuration.Short, 14);
-                    await toast.Show();
+                    await ToastHelper.ShowErrorAsync("License không hợp lệ!");
+
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            var toast = CommunityToolkit.Maui.Alerts.Toast.Make($"Không thể cập nhật license: {ex.Message}", ToastDuration.Short, 14);
-            await toast.Show();
-        }
+        
+        }, null);
+         
     }
 }
