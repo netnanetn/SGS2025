@@ -1,4 +1,5 @@
-﻿@inherits SGS2025Client.Common.BaseRazorComponent
+﻿@using SGS2025Client.Common
+@inherits SGS2025Client.Common.BaseRazorComponent
 
 <div class="bb-page">
 
@@ -7,13 +8,13 @@
     IconName="IconName.Power"
     Title="SmartScale_BK"
     DataProvider="SidebarDataProvider"/>
- 
+
     <main>
-        @if (IsBusy)
+        @if (Common.BaseRazorComponent.IsBusy)
         {
             <div class="overlay">
                 <div class="spinner"></div>
-                <p>@BusyMessage</p>
+                <p>@Common.BaseRazorComponent.BusyMessage</p>
             </div>
         }
         <div class="bb-top-row px-4 d-flex justify-content-between align-items-center" style="background-color: #4e01e5">
@@ -96,4 +97,20 @@
         }
     }
     private void ToggleSidebar() => sidebar.ToggleSidebar();
+
+    protected override void OnInitialized()
+    {
+        // Đăng ký lắng nghe thay đổi Busy từ BaseRazorComponent
+        BaseRazorComponent.OnBusyStateChanged += HandleBusyChanged;
+    }
+
+    private void HandleBusyChanged()
+    {
+        InvokeAsync(StateHasChanged); // 🔄 ép layout render lại
+    }
+
+    public void Dispose()
+    {
+        BaseRazorComponent.OnBusyStateChanged -= HandleBusyChanged;
+    }
 }

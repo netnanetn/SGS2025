@@ -12,8 +12,11 @@ namespace SGS2025Client.Common
 {
     public class BaseRazorComponent : LayoutComponentBase
     {
-        protected bool IsBusy { get; private set; }
-        protected string BusyMessage { get; private set; } = "";
+        //protected bool IsBusy { get; private set; }
+        //protected string BusyMessage { get; private set; } = "";
+        public static event Action? OnBusyStateChanged;
+        public static bool IsBusy { get; private set; }
+        public static string BusyMessage { get; private set; } = "";
 
         // 🎯 Cấu hình mặc định (có thể override ở page con)
         protected virtual string DefaultBusyMessage => "Vui lòng chờ...";
@@ -52,7 +55,13 @@ namespace SGS2025Client.Common
 
             try
             {
-                SetBusy(true, busyMessage ?? DefaultBusyMessage);
+                await SetBusy(true, busyMessage ?? DefaultBusyMessage);
+
+                // 🔹 Cho Blazor 1 frame để render overlay
+                await InvokeAsync(StateHasChanged);
+                await Task.Yield();
+
+
                 await action();
 
                 if (onSuccess != null)
@@ -70,17 +79,18 @@ namespace SGS2025Client.Common
             }
             finally
             {
-                SetBusy(false);
+                await SetBusy(false);
                 await InvokeAsync(StateHasChanged);
             }
         }
 
         // 🌀 Gán trạng thái busy để UI có thể binding vào
-        protected void SetBusy(bool value, string? message = null)
+        protected Task  SetBusy(bool value, string? message = null)
         {
             IsBusy = value;
             BusyMessage = value ? (message ?? DefaultBusyMessage) : "";
-            InvokeAsync(StateHasChanged);
+            OnBusyStateChanged?.Invoke(); // 🔔 Báo cho layout biết có thay đổi
+            return  InvokeAsync(StateHasChanged);
         }
 
         // ⚡ Overload 1: chỉ action, có toast lỗi mặc định
