@@ -176,6 +176,7 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="NativeLibs\win-x64\native\" />
+      <Folder Include="Platforms\Windows\C3DLL\" />
       <Folder Include="SDKDahua\" />
       <Folder Include="wwwroot\lib\bootstrap-icons\fonts\" />
       <Folder Include="wwwroot\lib\fonts\" />
@@ -214,5 +215,11 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
-	
+	<ItemGroup>
+		<Content Include="Platforms\Windows\C3DLL\**\*.*">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+			<Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+		</Content>
+	</ItemGroup>
 </Project>

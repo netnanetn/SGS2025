@@ -1,0 +1,62 @@
+﻿@page "/c3"
+@inject C3BackgroundWorker C3Worker
+
+<h3>PLC C3-400 (Auto Worker)</h3>
+
+@if (!isStarted)
+{
+    <button @onclick="Start">▶️ Bắt đầu</button>
+}
+else
+{
+    <button @onclick="Stop">⏹ Dừng</button>
+    <button @onclick="OpenDoor">🚪 Mở cửa</button>
+}
+
+<div style="margin-top:20px;">
+    <b>Trạng thái:</b> @status
+</div>
+
+<ul>
+    @foreach (var log in logs)
+    {
+        <li>@log</li>
+    }
+</ul>
+
+@code {
+    private bool isStarted;
+    private string status = "Chưa khởi động";
+    private List<string> logs = new();
+
+    protected override void OnInitialized()
+    {
+        C3Worker.OnLog += msg =>
+        {
+            status = msg;
+            logs.Insert(0, $"{DateTime.Now:T} - {msg}");
+            InvokeAsync(StateHasChanged);
+        };
+
+        C3Worker.OnCardRead += (time, card, reader) =>
+        {
+            logs.Insert(0, $"Card: {card} | Reader: {reader} | {time}");
+            InvokeAsync(StateHasChanged);
+        };
+    }
+
+    private async Task Start()
+    {
+        await C3Worker.StartAsync("192.168.1.201", 4370, "");
+        isStarted = true;
+    }
+    private async Task OpenDoor()
+    {
+        await C3Worker.OpenDoorAsync(1);
+    }
+    private async Task Stop()
+    {
+        await C3Worker.StopAsync();
+        isStarted = false;
+    }
+}
