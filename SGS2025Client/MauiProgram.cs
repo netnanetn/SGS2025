@@ -127,6 +127,7 @@ namespace SGS2025Client
             });
 
             builder.Services.AddSingleton<INetworkStatusProvider, MauiNetworkStatusProvider>();
+            builder.Services.AddSingleton<IM31Service, M31Service>();
             builder.Services.AddSingleton<IC3Service, C3Service>();
             builder.Services.AddSingleton<C3BackgroundWorker>();
             builder.Services.AddSingleton<BackgroundSyncService>();

@@ -20,7 +20,7 @@ namespace WinFormsAppTest
         {
             try
             {
-                client = new TcpClient("192.168.1.220", 502); // IP và port PLC
+                client = new TcpClient("192.168.3.7", 502); // IP và port PLC
                 stream = client.GetStream();
                 MessageBox.Show("Connected OK");
             }
@@ -58,10 +58,10 @@ namespace WinFormsAppTest
                     0x00, 0x22, // Transaction ID (tùy chọn, có thể thay đổi mỗi lần gửi)
                     0x00, 0x00, // Protocol ID
                     0x00, 0x06, // Length
-                    0x04,       // Unit ID (ở đây là 4)
+                    0x01,       // Unit ID (ở đây là 4)
                     0x02,       // Function Code = Read Discrete Inputs
                     0x00, 0x00, // Starting Address = 0
-                    0x00, 0x05  // Quantity = 2
+                    0x00, 0x05  // Quantity = 5
                  };
 
                 stream.Write(frame, 0, frame.Length);
@@ -111,7 +111,7 @@ namespace WinFormsAppTest
                     0x00, 0x01, // Transaction ID
                     0x00, 0x00, // Protocol ID
                     0x00, 0x06, // Length
-                    0x04,       // Unit ID
+                    0x01,       // Unit ID
                     0x05,       // Function = Write Single Coil
                     0x00, 0x00, // Coil Address = 2
                     0xFF, 0x00  // Value = ON
@@ -147,7 +147,7 @@ namespace WinFormsAppTest
                     0x00, 0x01, // Transaction ID
                     0x00, 0x00, // Protocol ID
                     0x00, 0x06, // Length
-                    0x04,       // Unit ID
+                    0x01,       // Unit ID
                     0x05,       // Function = Write Single Coil
                     0x00, 0x00, // Coil Address = 2
                     0x00, 0x00  // OFF
@@ -171,19 +171,19 @@ namespace WinFormsAppTest
 
         private void btnCoi_Click(object sender, EventArgs e)
         {
-            M31WriteSingleCoil(4, 0, enableCoi);
+            M31WriteSingleCoil(1, 0, enableCoi);
             enableCoi = !enableCoi;
         }
 
         private void btnDenxanh_Click(object sender, EventArgs e)
         {
-            M31WriteSingleCoil(4, 1, enableDenxanh);
+            M31WriteSingleCoil(1, 1, enableDenxanh);
             enableDenxanh = !enableDenxanh;
         }
 
         private void btnDendo_Click(object sender, EventArgs e)
         {
-            M31WriteSingleCoil(4, 2, enableDendo);
+            M31WriteSingleCoil(1, 2, enableDendo);
             enableDendo = !enableDendo;
         }
         private void M31WriteSingleCoil(byte unitId, ushort coilAddress, bool turnOn)

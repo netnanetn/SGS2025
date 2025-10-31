@@ -1,0 +1,138 @@
+﻿@page "/m31"
+@inject IM31Service M31
+
+<h3>🔌 Kết nối PLC M31</h3>
+
+<div class="mb-3">
+    <input @bind="_ip" placeholder="IP PLC" class="form-control" style="width:200px" />
+    <button class="btn btn-primary" @onclick="StartM31" disabled="@_isConnected">Kết nối</button>
+    <button class="btn btn-danger" @onclick="StopM31" disabled="@(!_isConnected)">Ngắt</button>
+</div>
+
+@if (_isConnected)
+{
+    <div>
+        <h5>📥 DI (Cảm biến đầu vào)</h5>
+        <div class="d-flex gap-2">
+            @for (int i = 0; i < _di.Length; i++)
+            {
+                <div class="p-2 border rounded text-center" style="width:60px; background:@(_di[i] ? "limegreen" : "lightgray")">
+                    DI{@i}
+                </div>
+            }
+        </div>
+
+        <h5 class="mt-3">📤 DO (Ngõ ra điều khiển)</h5>
+        <div class="d-flex gap-2">
+            @for (int i = 0; i < _do.Length; i++)
+            {
+                var idx = i;  // 👈 tạo biến tạm để tránh capture sai
+                <button class="btn @( _do[idx] ? "btn-success" : "btn-outline-secondary")"
+                        @onclick="() => ToggleDO(idx)">
+                    DO{@idx}
+                </button>
+            }
+        </div>
+
+        <p class="mt-3 text-muted">@_status</p>
+    </div>
+}
+else
+{
+    <p class="text-danger">@_status</p>
+}
+
+@code {
+    private string _ip = "192.168.3.7";
+    private bool _isConnected;
+    private string _status = "";
+    private bool[] _di = new bool[8];
+    private bool[] _do = new bool[8];
+    private System.Threading.Timer? _pollTimer;
+
+    protected override void OnInitialized()
+    {
+        M31.OnStatusChanged += msg =>
+        {
+            _status = msg;
+            InvokeAsync(StateHasChanged);
+        };
+
+        M31.OnSensorChanged += (i, state) =>
+        {
+            _di[i] = state;
+            InvokeAsync(StateHasChanged);
+        };
+    }
+
+    private async Task StartM31()
+    {
+        if (_isConnected) return;
+
+        _status = "⏳ Đang kết nối...";
+        StateHasChanged();
+
+        bool ok = await M31.ConnectAsync(_ip, 502);
+        _isConnected = ok;
+
+        if (ok)
+        {
+            _status = "✅ Đã kết nối PLC M31";
+            await StartPollingAsync();
+             
+        }
+        else
+        {
+            _status = "❌ Kết nối thất bại";
+        }
+    }
+    private CancellationTokenSource? _cts;
+
+    private async Task StartPollingAsync()
+    {
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    if (M31.IsConnected)
+                    {
+                        _di = await M31.ReadDIAsync(0, 8);
+                        _do = await M31.ReadDOAsync(0, 8);
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _status = "⚠️ Mất kết nối M31: " + ex.Message;
+                    _isConnected = false;
+                    await InvokeAsync(StateHasChanged);
+                    break;
+                }
+
+                await Task.Delay(10000, token);
+            }
+        });
+    }
+
+    private async Task StopM31()
+    {
+        _cts?.Cancel();
+        await M31.DisconnectAsync();
+        _pollTimer?.Dispose();
+        _isConnected = false;
+        _status = "🔌 Đã ngắt kết nối";
+    }
+
+    private async Task ToggleDO(int index)
+    {
+        bool newState = !_do[index];
+        await M31.WriteDOAsync(index, newState);
+        _do[index] = newState;
+        await InvokeAsync(StateHasChanged);
+    }
+}

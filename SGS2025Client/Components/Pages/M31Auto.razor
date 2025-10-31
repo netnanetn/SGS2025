@@ -1,0 +1,208 @@
+﻿@page "/m31auto"
+
+@inherits SGS2025Client.Common.BaseRazorComponent
+@inject IM31Service M31
+@inject WeighingScaleService _weighingScaleService
+
+<h3>🚛 Hệ thống Cân Xe Tự Động</h3>
+
+<div class="border rounded p-3 bg-light mb-3">
+    <h5>Trạng thái</h5>
+    <div><b>Luồng xe:</b> @_directionText</div>
+    <div><b>Khối lượng hiện tại:</b> @_weightDisplay kg</div>
+    <div><b>Biển số:</b> @_plate</div>
+</div>
+<!-- 🧠 Giả lập cảm biến -->
+<div class="border rounded p-3 bg-warning-subtle mb-3">
+    <h5>🎮 Giả lập cảm biến (Test M31)</h5>
+
+    <div class="d-flex justify-content-center gap-4">
+        <!-- S1 bên trái -->
+        <button class="btn @( _sensors[0] ? "btn-success" : "btn-outline-secondary")"
+                @onclick="() => ToggleSensorSim(0)">
+            S1
+        </button>
+
+        <!-- S3 ở giữa -->
+        <button class="btn @( _sensors[2] ? "btn-success" : "btn-outline-secondary")"
+                @onclick="() => ToggleSensorSim(2)">
+            S3
+        </button>
+
+        <!-- S2 bên phải -->
+        <button class="btn @( _sensors[1] ? "btn-success" : "btn-outline-secondary")"
+                @onclick="() => ToggleSensorSim(1)">
+            S2
+        </button>
+    </div>
+</div>
+<div class="border rounded p-3 mb-3" style="height:200px;overflow:auto;">
+    @foreach (var log in _logs)
+    {
+        <div>@log</div>
+    }
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-danger" @onclick="() => ClearLog()">🧹 Xoá log</button>
+</div>
+
+@code {
+    private string _directionText = "Chưa xác định";
+    private string _plate = "";
+    private double _weightDisplay;
+    private List<string> _logs = new();
+    private bool[] _sensors = new bool[3]; // S1,S2,S3
+
+    private bool _isWeighing = false;
+    private bool _sessionDone = false;
+    private DateTime _lastWeighTime = DateTime.MinValue;
+
+    private bool IsConnectedCOM = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RunSafe(
+            async () =>
+            {
+                if (!_weighingScaleService.IsConnected)
+                {
+                    _weighingScaleService.DataReceived += OnDataReceived;
+                    _weighingScaleService.Connect("COM2", 9600);
+                    IsConnectedCOM = true;
+                }
+            },
+            async ex =>
+            {
+                IsConnectedCOM = false; 
+            },
+            async () =>
+            {
+              //  WeightDisplay = "Đã nối đầu cân";
+            },
+            "Đang kết nối đầu cân..."
+        );
+        // Gắn sự kiện cảm biến M31
+        M31.OnSensorChanged += async (id, state) =>
+        {
+            _sensors[id] = state;
+            await InvokeAsync(() => AddLog($"Cảm biến S{id + 1} = {(state ? "ON" : "OFF")}"));
+            await CheckFlowAsync();
+        };
+    }
+    // 🎮 Nút giả lập cảm biến (chạy không cần PLC)
+    private async Task ToggleSensorSim(int id)
+    {
+        _sensors[id] = !_sensors[id];
+        AddLog($"(Sim) S{id + 1} = {(_sensors[id] ? "ON" : "OFF")}");
+        await CheckFlowAsync();
+    }
+    private async void OnDataReceived(double data)
+    {
+        try
+        {
+            _weightDisplay = data;
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+    private async Task CheckFlowAsync()
+    {
+        if (_isWeighing || _sessionDone) return;
+
+        bool s1 = _sensors[0];
+        bool s2 = _sensors[1];
+        bool s3 = _sensors[2];
+
+        // 🟢 Xác định hướng
+        string direction = "";
+        if (s1 && s3 && !s2)
+            direction = "Vào";
+        else if (s2 && s3 && !s1)
+            direction = "Ra";
+        if (!string.IsNullOrEmpty(direction))
+        {
+            _directionText = direction;
+            AddLog($"🚗 Phát hiện hướng {direction}");
+        }
+
+        // ⚖️ Điều kiện bắt đầu cân: xe đứng giữa
+        if (s3 && !s1 && !s2)
+        {
+            _isWeighing = true;
+            await InvokeAsync(StateHasChanged);
+            _ = StartWeighProcess(direction);
+        }
+    }
+
+    private async Task StartWeighProcess(string direction)
+    {
+        try
+        {
+            AddLog("⏳ Xe đã vào giữa bàn cân, đọc khối lượng...");
+
+            // Đọc khối lượng thực
+            // double? weight = 1120;//test await Weight.ReadWeightAsync();
+            // _weightDisplay = weight ?? 0;
+            AddLog($"⚖️ Khối lượng đọc được: {_weightDisplay} kg");
+
+            if (_weightDisplay < 1000)
+            {
+                AddLog("❌ Khối lượng nhỏ, bỏ qua.");
+                _isWeighing = false;
+                return;
+            }
+
+            // Nhận biển số từ camera
+            AddLog("📸 Đang nhận diện biển số...");
+            string? plate = "37H55055";//test await Camera.CapturePlateAsync(direction == "Vào" ? "CAM_IN" : "CAM_OUT");
+            _plate = plate ?? "Không nhận được";
+            AddLog($"📋 Biển số: {_plate}");
+
+            // Ghi nhận lượt cân
+            AddLog($"✅ Hoàn tất lượt cân ({direction}) - {_plate} - {_weightDisplay} kg");
+
+            // Đánh dấu xong lượt
+            _sessionDone = true;
+            _lastWeighTime = DateTime.Now;
+
+            // Đợi xe rời bàn cân
+            _ = WaitVehicleLeaveAsync();
+        }
+        catch (Exception ex)
+        {
+            AddLog($"⚠️ Lỗi cân: {ex.Message}");
+        }
+        finally
+        {
+            _isWeighing = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task WaitVehicleLeaveAsync()
+    {
+        AddLog("🕓 Chờ xe rời bàn cân...");
+        while (_sensors[0] || _sensors[1] || _sensors[2] || _weightDisplay> 1000)
+        {
+            await Task.Delay(500);
+        }
+
+        _sessionDone = false;
+        AddLog("🚗 Xe đã rời bàn cân, sẵn sàng lượt mới.");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void AddLog(string msg)
+    {
+        _logs.Insert(0, $"{DateTime.Now:HH:mm:ss} {msg}");
+        StateHasChanged();
+    }
+
+    private void ClearLog()
+    {
+        _logs.Clear();
+    }
+}
