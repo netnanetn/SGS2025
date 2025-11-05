@@ -360,6 +360,7 @@
                                     <th>KL hàng</th>
                                     <th>Đơn giá</th>
                                     <th>Thành tiền</th>
+                                    <th></th> <!-- cột icon -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -378,6 +379,12 @@
                                         <td>@FormatKL(p.ProductNumber)</td>
                                         <td>@FormatCurrency(p.ProductPrice)</td>
                                         <td>@FormatCurrency(p.TotalMoney)</td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-outline-primary"
+                                                    @onclick="() => ShowDetail(p)">
+                                                <i class="bi bi-eye"></i> <!-- dùng Bootstrap Icons -->
+                                            </button>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -395,6 +402,153 @@
 <ProductPicker Show="@showProductPicker" ShowChanged="@(EventCallback.Factory.Create<bool>(this, v => showProductPicker = v))" OnSelected="@OnProductSelected" />
 
 
+@if (selectedPhieu != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color:rgba(0,0,0,0.5)">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-2">
+                    <h6 class="modal-title">
+                        👁️ Chi tiết phiếu @selectedPhieu.Code
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseDetail"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- ✅ Hàng ảnh -->
+                    @{
+                        var baseUrl = "https://local.tvs/"; // mapping ảo
+                        var imgPaths = new[]
+                        {
+                            selectedPhieu?.Img11,
+                            selectedPhieu?.Img12,
+                            selectedPhieu?.Img21,
+                            selectedPhieu?.Img22
+                        }
+                        .Where(p => !string.IsNullOrWhiteSpace(p))
+                        .Select(p =>
+                        {
+                            var relativePath = p.Replace("C:\\TVS\\Images\\", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("\\", "/");
+                            return $"{baseUrl}{relativePath}";
+                        })
+                        .ToList();
+                     }
+
+                    @if (imgPaths.Any())
+                    {
+                        <div class="row mb-3">
+                            @foreach (var (path, index) in imgPaths.Select((p, i) => (p, i)))
+                            {
+                                <div class="col-3 text-center">
+                                    <img src="@path"
+                                         class="img-fluid img-thumbnail rounded shadow-sm"
+                                         alt="Ảnh @(index + 1)" />
+                                    <div class="small text-muted mt-1">Ảnh @(index + 1)</div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- ✅ Thông tin chi tiết phiếu -->
+                    <div class="row g-2">
+                        <!-- Cột trái -->
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label label-col">Mã phiếu</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.Code" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Biển số xe</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.Vehicle" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Khách hàng</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.CustomerName" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Hàng hóa</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.ProductName" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Điện thoại KH</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.CustomerPhone" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Thời gian cân vào</label>
+                                <input type="datetime-local" class="form-control form-control-sm"
+                                       value="@FormatDateTime(selectedPhieu.TimeIn)" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Khối lượng vào</label>
+                                <InputNumber class="form-control form-control-sm" @bind-Value="selectedPhieu.WeightIn" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Đơn giá</label>
+                                <InputNumber class="form-control form-control-sm" @bind-Value="selectedPhieu.ProductPrice" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Cột phải -->
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label label-col">Ngày cân</label>
+                                <input type="datetime-local" class="form-control form-control-sm"
+                                       value="@FormatDateTime(selectedPhieu.CreateDay)" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Tài xế</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.DriverName" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Địa chỉ KH</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.CustomerAddress" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Thời gian cân ra</label>
+                                <input type="datetime-local" class="form-control form-control-sm"
+                                       value="@FormatDateTime(selectedPhieu.TimeOut)" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Khối lượng ra</label>
+                                <InputNumber class="form-control form-control-sm" @bind-Value="selectedPhieu.WeightOut" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Khối lượng hàng</label>
+                                <InputNumber class="form-control form-control-sm" @bind-Value="selectedPhieu.ProductNumber" disabled />
+                            </div>
+
+                            <div class="form-row">
+                                <label class="form-label label-col">Ghi chú</label>
+                                <InputText class="form-control form-control-sm" @bind-Value="selectedPhieu.Note" disabled />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-end">
+                        <h6 class="fw-bold text-success">💰 Tổng tiền: @FormatCurrency(selectedPhieu.TotalMoney)</h6>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" @onclick="CloseDetail">❌ Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 @if (showModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -426,6 +580,7 @@
 
 @code {
 
+    private TblScale? selectedPhieu;
     private AppConfig? _config;
 
     private FilterInitViewModel ModelLoad = new();
@@ -472,6 +627,22 @@
     private string port = "COM3";
     private int baud = 9600;
 
+    //chitiet
+    private void ShowDetail(TblScale p)
+    {
+        selectedPhieu = p;
+    }
+
+    private void CloseDetail()
+    {
+        selectedPhieu = null;
+    }
+    private string FormatDateTime(DateTime? dt)
+    {
+        return dt.HasValue ? dt.Value.ToString("yyyy-MM-ddTHH:mm") : string.Empty;
+    }
+
+    //end chitiet
 
     private void CloseModal()
     {

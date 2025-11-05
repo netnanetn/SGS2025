@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.23.2" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.23.2" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="4.0.3" />
+    <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
+	  <PackageReference Include="PaddleOCRSharp" Version="4.4.0.2" />
+    <PackageReference Include="Sdcb.Onnx.runtime.win64" Version="1.11.22.423" />
+    <PackageReference Include="Sdcb.PaddleInference" Version="3.0.1" />
+    <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.1.0.54" />
+    <PackageReference Include="Sdcb.PaddleOCR" Version="3.0.1" />
+    <PackageReference Include="Sdcb.PaddleOCR.Models.Local" Version="3.0.1" />
+    <PackageReference Include="Sdcb.PaddleOCR.Models.LocalV3" Version="2.7.0.1" />
+    <PackageReference Include="Sdcb.PaddleOCR.Models.LocalV4" Version="2.7.0.1" />
+    <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.0.1" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.6" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="YoloDotNet" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ModelYolo\" />
+  </ItemGroup>
+	<ItemGroup>
+		<!-- Copy PaddleOCR native DLLs -->
+		<None Include="$(UserProfile)\.nuget\packages\paddleocrsharp\5.1.0\runtimes\win-x64\native\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+
+		<!-- Copy PaddleInference native DLLs -->
+		<None Include="$(UserProfile)\.nuget\packages\sdcb.paddleinference.runtime.win64.mkl\3.1.0.54\runtimes\win-x64\native\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+
+		<!-- Copy OnnxRuntime native DLLs -->
+		<None Include="$(UserProfile)\.nuget\packages\microsoft.ml.onnxruntime\1.23.2\runtimes\win-x64\native\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>

@@ -55,16 +55,33 @@ else
         M31.OnStatusChanged += msg =>
         {
             _status = msg;
-            InvokeAsync(StateHasChanged);
+            SafeRefresh();
         };
 
         M31.OnSensorChanged += (i, state) =>
         {
-            _di[i] = state;
-            InvokeAsync(StateHasChanged);
+
+            try
+            {
+                if (i >= 0 && i < _di.Length)
+                {
+                    _di[i] = state;
+                    SafeRefresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("OnSensorChanged lỗi: " + ex);
+            }
+           
+           
         };
     }
-
+    private void SafeRefresh()
+    {
+        try { InvokeAsync(StateHasChanged); }
+        catch { /* bỏ qua nếu trang đã dispose */ }
+    }
     private async Task StartM31()
     {
         if (_isConnected) return;
@@ -101,8 +118,12 @@ else
                 {
                     if (M31.IsConnected)
                     {
-                        _di = await M31.ReadDIAsync(0, 8);
-                        _do = await M31.ReadDOAsync(0, 8);
+                        var di = await M31.ReadDIAsync(0, 8);
+                        if (di != null && di.Length == _di.Length)
+                            _di = di;
+                        var dout = await M31.ReadDOAsync(0, 8);
+                        if (dout != null && dout.Length == _do.Length)
+                            _do = dout;
                         await InvokeAsync(StateHasChanged);
                     }
                 }
@@ -130,9 +151,17 @@ else
 
     private async Task ToggleDO(int index)
     {
-        bool newState = !_do[index];
-        await M31.WriteDOAsync(index, newState);
-        _do[index] = newState;
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            bool newState = !_do[index];
+            await M31.WriteDOAsync(index, newState);
+            _do[index] = newState;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            _status = $"⚠️ Lỗi ghi DO{index}: {ex.Message}";
+            await InvokeAsync(StateHasChanged);
+        }
     }
 }

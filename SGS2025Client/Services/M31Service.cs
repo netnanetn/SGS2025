@@ -96,6 +96,8 @@ namespace SGS2025Client.Services
                     bool[] di = await ReadDIAsync(0, _pollCount).ConfigureAwait(false);
                     bool[] dos = await ReadDOAsync(0, _pollCount).ConfigureAwait(false);
 
+                    if (_lastDI == null || _lastDI.Length != di.Length)
+                        _lastDI = new bool[di.Length];
                     // raise sensor change events for DI
                     for (int i = 0; i < di.Length; i++)
                     {
@@ -104,7 +106,25 @@ namespace SGS2025Client.Services
                         {
                             _lastDI[i] = di[i];
                             // marshal to UI thread if needed
-                            MainThread.BeginInvokeOnMainThread(() => OnSensorChanged?.Invoke(i, di[i]));
+                           // MainThread.BeginInvokeOnMainThread(() => OnSensorChanged?.Invoke(i, di[i]));
+                            try
+                            {
+                                MainThread.BeginInvokeOnMainThread(() =>
+                                {
+                                    try
+                                    {
+                                        OnSensorChanged?.Invoke(i, di[i]);
+                                    }
+                                    catch (Exception uiEx)
+                                    {
+                                        OnStatusChanged?.Invoke($"⚠️ Lỗi UI callback: {uiEx.Message}");
+                                    }
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                OnStatusChanged?.Invoke($"⚠️ Invoke lỗi: {ex.Message}");
+                            }
                         }
                     }
 
