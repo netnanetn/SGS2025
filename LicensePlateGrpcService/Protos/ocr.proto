@@ -1,0 +1,21 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "LicensePlateGrpcService";
+
+service OcrService {
+  rpc Recognize (OcrRequest) returns (OcrReply);
+}
+
+message OcrRequest {
+  string companyCode = 1;
+  string base64 = 2;
+  int32 x = 3;
+  int32 y = 4;
+  int32 width = 5;
+  int32 height = 6;
+}
+
+message OcrReply {
+  string text = 1;
+  int32 timeMs = 2;
+}

@@ -5,6 +5,7 @@ using SGS2025.Core.Services.ShareServices;
 using SGS2025Client.Components.Pages;
 using SGS2025Client.SDKCameraServices.CameraFactory;
 using SGS2025Client.Services;
+using System.Diagnostics;
 
 namespace SGS2025Client
 {
@@ -38,8 +39,72 @@ namespace SGS2025Client
              
 
         }
+        //ocr
+        private Process? _ocrProcess;
+        protected override void OnStart()
+        {
+            base.OnStart();
+            StartOcrApi();
+        }
+        private void StartOcrApi()
+        {
+#if WINDOWS
+            try
+            {
+                //string ocrPath = Path.Combine(AppContext.BaseDirectory, "LicensePlateVN", "LicensePlateVN.exe");
+                string ocrPath = @"E:\MyProject\SGS2025\SGS2025_OFFLINE\SGS2025Solution\LicensePlateVN\bin\Release\net8.0\win-x64\publish\LicensePlateVN.exe";
+                if (!File.Exists(ocrPath))
+                {
+                    Console.WriteLine("⚠️ OCR API executable not found: " + ocrPath);
+                    return;
+                }
 
-         
+                var psi = new ProcessStartInfo
+                {
+                    FileName = ocrPath,
+                    WorkingDirectory = Path.GetDirectoryName(ocrPath),
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                _ocrProcess = Process.Start(psi);
+                Console.WriteLine("✅ OCR API started in background.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("⚠️ Failed to start OCR API: " + ex.Message);
+            }
+#endif
+        }
+
+        protected override void OnSleep()
+        {
+            base.OnSleep();
+            StopOcrApi();
+        }
+
+        
+
+        private void StopOcrApi()
+        {
+#if WINDOWS
+            try
+            {
+                if (_ocrProcess != null && !_ocrProcess.HasExited)
+                {
+                    _ocrProcess.Kill();
+                    _ocrProcess.Dispose();
+                    _ocrProcess = null;
+                    Console.WriteLine("🛑 OCR API stopped.");
+                }
+            }
+            catch { }
+#endif
+        }
+        //end ocr
+
         protected override Window CreateWindow(IActivationState activationState)
         {
             var window = base.CreateWindow(activationState);
